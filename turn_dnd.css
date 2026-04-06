@@ -1,0 +1,62 @@
+/* Container for buttons to position them side by side */
+.button-container {
+    display: flex;
+    justify-content: space-between; /* Aligns one button to the left and the other to the right */
+    width: 100%; /* Ensures buttons span across the container */
+    margin: 20px 0; /* Adds some vertical space */
+}
+
+/* Keep the original button styles */
+    #next-button {
+        background-color: #2E1B18; /* Dark brown background */
+        color: #E0D8B0; /* Parchment-like text color */
+        border: 2px solid #D4AF37; /* Gold border */
+        padding: 10px 20px; /* Larger padding for the button */
+        cursor: pointer;
+        border-radius: 5px; /* Rounded corners */
+        font-family: 'MedievalSharp', serif; /* Use the same font */
+        font-size: 1em;
+        transition: background-color 0.3s, color 0.3s; /* Smooth hover effect */
+        width: fit-content; /* Adjust the width to the content */
+        margin: 20px auto; /* Center the button */
+        display: block;
+}
+
+#apply-damage-button:hover, #next-button:hover {
+    background-color: #8C5A4A; /* Rich reddish-brown hover background */
+    color: #2E1B18; /* Dark text on hover */
+}
+
+#apply-damage-button {
+    margin-right: auto; /* Forces the button to align to the left */
+}
+
+#next-button {
+    margin-left: auto; /* Forces the button to align to the right */
+}
+
+/* Style for the remove button to match the other buttons */
+.remove-button {
+    background-color: #2E1B18; /* Dark brown background */
+    color: #E0D8B0; /* Parchment-like text color */
+    border: 2px solid #D4AF37; /* Gold border */
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-family: 'MedievalSharp', serif;
+    font-size: 0.9em; /* Slightly smaller font size for remove button */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.remove-button:hover {
+    background-color: #8C5A4A; /* Rich reddish-brown hover background */
+    color: #2E1B18; /* Dark text on hover */
+}
+
+.highlighted {
+    background-color: #D4AF37; /* Gold background */
+    color: #2E1B18; /* Dark text */
+    border: 2px solid #FFD700; /* Bright gold border */
+    box-shadow: 0 0 10px #FFD700; /* Glowing effect */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}

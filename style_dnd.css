@@ -1,0 +1,294 @@
+/* General Body Styling */
+body {
+    background: url('background_dnd.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    color: #E0D8B0;
+    font-family: 'MedievalSharp', serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Opaque Overlay to darken the background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(46, 27, 24, 0.9); /* Dark brown overlay */
+    z-index: -1;
+}
+
+/* Main Container */
+.container {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(46, 27, 24, 0.8); /* Darker brown with opacity */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Input Fields */
+input[type="text"], input[type="number"] {
+    padding: 10px;
+    border: 2px solid #D4AF37; /* Gold border for input fields */
+    border-radius: 5px;
+    width: calc(100% - 20px);
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.15); /* Slightly transparent white */
+    color: #E0D8B0; /* Parchment-like text color for input text */
+    font-family: 'MedievalSharp', serif;
+    font-size: 1em;
+    outline: none;
+}
+
+/* Remove arrows from input[type="number"] in Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove arrows from input[type="number"] in Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Focused Input Fields */
+input[type="text"]:focus, input[type="number"]:focus {
+    border: 2px solid #8C5A4A; /* Darker reddish-brown border on focus */
+    background-color: rgba(255, 255, 255, 0.25); /* Slightly brighter background on focus */
+}
+
+/* Headings */
+h1, h2 {
+    color: #D4AF37; /* Gold color for headings */
+    font-weight: bold;
+    font-family: 'MedievalSharp', serif;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* List Items */
+li {
+    display: flex; /* Flexbox layout */
+    align-items: center; /* Vertically align elements */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #8C5A4A;
+    border-radius: 5px;
+    background-color: rgba(165, 123, 91, 0.8);
+    max-width: 600px; /* Limit the total width */
+    margin: 0 auto 10px auto; /* Center the list item */
+    gap: 10px; /* Adds spacing between elements */
+}
+
+/* Flex properties for the name, number, health, and ac elements */
+li .name, li .number, li .health, li .ac {
+    padding: 0 5px; /* Add a little padding to the left and right */
+    flex: 1; /* Distribute space equally */
+    white-space: nowrap; /* Prevent text from breaking into multiple lines */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis (...) if content overflows */
+    text-align: center; /* Center the text */
+}
+
+/* Optionally make the name field wider */
+li .name {
+    flex: 2; /* Make the name field take up more space */
+}
+
+/* Specific styling for .ac class */
+li .ac {
+    color: #E0D8B0; /* Parchment-like text color */
+    font-size: 1em;
+}
+
+/* Input fields inside list items */
+input.damage-input {
+    flex: 0 0 auto; /* Do not let the input box grow unnecessarily */
+    width: 60px; /* Limit the width for mobile */
+    height: 30px; /* Set a consistent height */
+    padding: 5px;
+    border: 2px solid #D4AF37; /* Gold border */
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.15); /* Slightly transparent white */
+    color: #726c4b; /* Parchment-like text color */
+    font-family: 'MedievalSharp', serif;
+    font-size: 1em;
+    outline: none;
+    text-align: center; /* Center the number inside the input */
+    vertical-align: middle; /* Align it vertically */
+    margin: 0; /* Remove extra margins to better align it with other elements */
+    box-sizing: border-box; /* Ensure padding doesn't affect overall width */
+}
+
+/* Defeated class for list items with 0 HP */
+.defeated {
+    background-color: #8B0000; /* Dark red background */
+    color: white; /* White text for better contrast */
+    border: 2px solid #FF0000; /* Optional: Red border to emphasize the defeated state */
+    transition: background-color 0.3s ease; /* Smooth transition when the item becomes defeated */
+}
+
+/* Submit and Clear List Buttons */
+#submit-button, #clear-list-button, #apply-damage-button {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-size: 1em;
+    width: fit-content;
+}
+
+/* Apply Damage button styling */
+#apply-damage-button {
+    background-color: #2E1B18; /* Dark brown background */
+    color: #E0D8B0; /* Parchment-like text color */
+    border: 2px solid #D4AF37; /* Gold border */
+    padding: 10px 20px; /* Larger padding for the button */
+    cursor: pointer;
+    border-radius: 5px; /* Rounded corners */
+    font-family: 'MedievalSharp', serif; /* Use the same font */
+    font-size: 1em;
+    transition: background-color 0.3s, color 0.3s; /* Smooth hover effect */
+    width: fit-content; /* Adjust the width to the content */
+    margin: 20px auto; /* Center the button */
+    display: block; /* Make sure the button is a block element */
+}
+
+#apply-damage-button:hover {
+    background-color: #8C5A4A; /* Rich reddish-brown hover background */
+    color: #2E1B18; /* Dark text on hover */
+}
+
+/* Link Styled as Button */
+a.button-link {
+    display: block;
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 20px;
+    transition: background-color 0.3s, color 0.3s;
+    text-align: center;
+    width: fit-content;
+    align-self: center; /* Ensure it's centered within the flex container */
+}
+
+a.button-link:hover {
+    background-color: #8C5A4A;
+    color: #2E1B18;
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 768px) {
+    input.damage-input {
+        width: 50px; /* Reduce width even further on mobile */
+        height: 25px; /* Adjust height for smaller screens */
+        font-size: 0.9em; /* Slightly smaller font size */
+    }
+
+    li .name, li .number, li .health, li .ac {
+        flex: 1; /* Ensure better distribution of space on smaller screens */
+        text-align: center; /* Center the text for smaller screens */
+    }
+}
+
+/* Style for the gathered list */
+#rankingList {
+    max-width: 800px; /* Increase max-width to make the list wider */
+    width: 100%; /* Ensure it takes full width up to max-width */
+    margin: 0 auto; /* Center the list */
+    padding: 0;
+    list-style-type: none; /* Remove default bullet points */
+}
+
+/* Individual List Items (li) */
+li {
+    display: flex; /* Flexbox layout */
+    align-items: center; /* Vertically align elements */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #8C5A4A;
+    border-radius: 5px;
+    background-color: rgba(165, 123, 91, 0.8);
+    width: 100%; /* Take full width of the container */
+    gap: 10px; /* Space between child elements */
+}
+/* Style for the name and AC container */
+.name-ac-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 2; /* Adjust as needed */
+    gap: 5px;
+}
+
+/* Flex properties for the name, ac, number, and health elements */
+.name-ac-container .name, .name-ac-container .ac, li .number, li .health {
+    padding: 0 5px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* Optionally adjust the flex for name and AC */
+.name-ac-container .name, .name-ac-container .ac {
+    flex: 1; /* Together they take up the space assigned to name-ac-container */
+}
+
+/* Ensure buttons don't stretch */
+li button {
+    flex: 0 0 auto;
+}
+li .name, li .health {
+    padding: 0 5px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* Adjust flex properties to center the elements */
+li {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center the items horizontally */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #8C5A4A;
+    border-radius: 5px;
+    background-color: rgba(165, 123, 91, 0.8);
+    width: 100%;
+    gap: 10px;
+}
+
+/* Ensure buttons don't stretch */
+li button {
+    flex: 0 0 auto;
+}

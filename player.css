@@ -1,0 +1,575 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'MedievalSharp', cursive;
+  color: #e3cf95;
+}
+
+.player-shell {
+  max-width: 980px;
+}
+
+.player-page.container {
+  width: min(100%, 980px);
+  max-width: 980px;
+  margin: 0 auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 0 12px #000;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+.player-panel {
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  overflow-x: hidden;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.top-character-row {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.top-character-row .player-panel {
+  margin-bottom: 0;
+}
+
+.compact-panel {
+  width: 220px;
+  max-width: 220px;
+  flex: 0 0 220px;
+}
+
+.name-panel {
+  width: 260px;
+  max-width: 260px;
+  flex: 0 0 260px;
+}
+
+.name-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  align-items: center;
+}
+
+.field-stack label {
+  width: 100%;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.field-stack input {
+  width: 100%;
+  max-width: 170px;
+  min-height: 54px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  line-height: 1.2;
+  border-radius: 8px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.initiative-panel .field-stack input {
+  max-width: 140px;
+}
+
+.initiative-panel button {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* D&D layout */
+.dnd-hp-top {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 18px auto;
+  text-align: center;
+}
+
+.dnd-hp-top .field-stack input {
+  max-width: 180px;
+}
+
+.dnd-ac-prof {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 140px));
+  justify-content: center;
+  gap: 12px;
+  margin: 0 auto 18px auto;
+  width: 100%;
+  max-width: 320px;
+}
+
+.dnd-ac-prof .field-stack {
+  width: 100%;
+}
+
+.dnd-ac-prof .field-stack input {
+  max-width: 140px;
+}
+
+.dnd-stats-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 140px));
+  justify-content: center;
+  gap: 12px 18px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.dnd-stat-column {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.dnd-stat-column .field-stack {
+  width: 100%;
+}
+
+.dnd-stat-column .field-stack input {
+  max-width: 140px;
+}
+
+/* Open Legend */
+.builder-link-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ol-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto 14px auto;
+}
+
+.summary-card {
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 0.82rem;
+  opacity: 0.85;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.summary-input {
+  width: 100%;
+  max-width: 90px;
+  min-height: 42px;
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+}
+
+.damage-panel {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 18px;
+  width: 100%;
+  min-width: 0;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#ol-damage-input {
+  max-width: 110px;
+  min-height: 42px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+
+.damage-options {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: center;
+  align-items: start;
+  column-gap: 8px;
+  row-gap: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.damage-options label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  font-size: 0.78rem;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.damage-options input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+  margin: 0;
+  transform: none;
+}
+
+.damage-button-row {
+  justify-content: flex-start;
+}
+
+.compact-heal-field {
+  min-width: 160px;
+}
+
+#ol-heal-amount {
+  max-width: 110px;
+  min-height: 42px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+
+.ol-recovery-area {
+  max-width: 620px;
+  margin: 10px auto 0 auto;
+}
+
+.ol-recovery-row {
+  align-items: end;
+}
+
+.ol-reset-row {
+  margin-top: 8px;
+}
+
+.calc-result {
+  min-height: 1.4em;
+  margin-top: 12px;
+}
+
+/* Trackers */
+.tracker-subtitle {
+  margin-bottom: 14px;
+}
+
+.tracker-form {
+  display: grid;
+  grid-template-columns: 1.3fr 110px auto;
+  gap: 10px;
+  margin-bottom: 18px;
+  width: 100%;
+  min-width: 0;
+}
+
+.tracker-form-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -6px 0 18px 0;
+}
+
+.tracker-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.tracker-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.tracker-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.tracker-name {
+  font-weight: bold;
+  font-size: 1.05rem;
+}
+
+.tracker-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20px, 20px));
+  gap: 8px;
+  align-items: center;
+  justify-content: start;
+  min-width: 0;
+}
+
+.tracker-boxes input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  pointer-events: none;
+  margin: 0;
+}
+
+.tracker-boxes input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.tracker-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.tracker-controls button {
+  width: auto;
+  min-width: 64px;
+  flex: 0 0 auto;
+}
+
+.empty-state {
+  padding: 14px;
+  border-radius: 8px;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.button-small {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  .damage-panel,
+  .tracker-form,
+  .tracker-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .player-page.container {
+    width: calc(100% - 16px);
+    max-width: none;
+    margin: 8px auto;
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  .player-panel {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  .top-character-row {
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  .compact-panel {
+    width: 150px;
+    max-width: 150px;
+    flex: 0 0 150px;
+  }
+
+  .name-panel {
+    width: 170px;
+    max-width: 170px;
+    flex: 0 0 170px;
+  }
+
+  .field-stack input {
+    width: 100%;
+    max-width: 126px;
+    min-height: 54px;
+    padding: 10px;
+    font-size: 1rem;
+  }
+
+  .initiative-panel .field-stack input {
+    max-width: 126px;
+  }
+
+  .dnd-hp-top {
+    max-width: 150px;
+    margin: 0 auto 16px auto;
+  }
+
+  .dnd-hp-top .field-stack input {
+    max-width: 150px;
+  }
+
+  .dnd-ac-prof {
+    grid-template-columns: repeat(2, minmax(0, 126px));
+    gap: 10px;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 16px auto;
+  }
+
+  .dnd-ac-prof .field-stack input {
+    max-width: 126px;
+  }
+
+  .dnd-stats-columns {
+    grid-template-columns: repeat(2, minmax(0, 126px));
+    gap: 10px 12px;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .dnd-stat-column {
+    gap: 10px;
+  }
+
+  .dnd-stat-column .field-stack input {
+    max-width: 126px;
+  }
+
+  .ol-summary-grid {
+    grid-template-columns: repeat(2, minmax(90px, 120px));
+    justify-content: center;
+    max-width: 280px;
+    gap: 10px;
+  }
+
+  .builder-link-row {
+    justify-content: center;
+  }
+
+  .damage-panel,
+  .tracker-form,
+  .tracker-card {
+    grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #ol-damage-input,
+  #ol-heal-amount {
+    max-width: 100px;
+    min-height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .damage-options {
+    grid-template-columns: repeat(3, max-content);
+    column-gap: 8px;
+    justify-content: center;
+  }
+
+  .damage-options label {
+    font-size: 0.72rem;
+    gap: 2px;
+  }
+
+  .damage-options input[type="checkbox"] {
+    width: 11px;
+    height: 11px;
+    min-width: 11px;
+    min-height: 11px;
+  }
+
+  .button-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button-row button {
+    width: 100%;
+  }
+
+  .tracker-controls {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  .tracker-controls button {
+    width: auto;
+    min-width: 58px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .tracker-boxes {
+    grid-template-columns: repeat(8, 20px);
+    gap: 6px;
+  }
+}

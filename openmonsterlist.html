@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monster List</title>
+  <link rel="stylesheet" href="list.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #searchBar {
+      width: 100%;
+      max-width: 300px;
+      margin: 1em 0;
+      padding: 0.5em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+
+<script type="module">
+  import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+  import { db } from "./firebase-config.js";
+  import { requireAuth } from "./auth.js";
+
+  await requireAuth();
+
+  function getGameCode() {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("code") || "").trim().toUpperCase();
+  }
+
+  function getEntriesPath() {
+    const code = getGameCode();
+    if (!code) throw new Error("Missing game code in URL.");
+    return `games/${code}/entries`;
+  }
+
+  const container = document.getElementById("monster-list");
+  const searchInput = document.getElementById("searchBar");
+
+  let allMonsters = [];
+
+  function isValid(monster) {
+    return monster.name && monster.health && monster.grd && monster.res && monster.tgh;
+  }
+
+  function createMonsterElement(monster) {
+    const entry = document.createElement("div");
+    entry.className = "table-entry";
+    entry.dataset.name = monster.name.toLowerCase();
+
+    entry.innerHTML = `
+      <div><span class="label">Name:</span><span class="content">${monster.name}</span></div>
+      <div><span class="label">HP:</span><span class="content">${monster.health}</span></div>
+      <div><span class="label">GRD:</span><span class="content">${monster.grd}</span></div>
+      <div><span class="label">RES:</span><span class="content">${monster.res}</span></div>
+      <div><span class="label">TGH:</span><span class="content">${monster.tgh}</span></div>
+      <div class="link-button">
+        <button>Add to Initiative</button>
+      </div>
+    `;
+
+    entry.querySelector("button").addEventListener("click", async () => {
+      const initiative = prompt("Enter initiative:");
+      if (initiative === null || isNaN(parseInt(initiative, 10))) return;
+
+      const refList = ref(db, getEntriesPath());
+      await push(refList, {
+        name: monster.name,
+        number: parseInt(initiative, 10),
+        initiative: parseInt(initiative, 10),
+        health: monster.health,
+        grd: monster.grd,
+        res: monster.res,
+        tgh: monster.tgh,
+        updatedAt: Date.now()
+      });
+    });
+
+    return entry;
+  }
+
+  function renderMonsters(list) {
+    container.innerHTML = '';
+    list.forEach(monster => {
+      const el = createMonsterElement(monster);
+      container.appendChild(el);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const backLink = document.querySelector('a.button-link[href="group.html"]');
+    const code = getGameCode();
+    if (backLink && code) {
+      backLink.href = `group.html?code=${encodeURIComponent(code)}`;
+    }
+
+    const monsters = [
+
+      {name: "Geir",
+        health: 20,
+        grd: 14,
+        res: 12,
+        tgh: 16
+      },
+     {
+        name: "Ashcoat Sergeant",
+        health: 24,
+        grd: 16,
+        res: 16,
+        tgh: 13
+		},
+		{
+        name: "Ashcoat Gunner",
+        health: 18,
+        grd: 12,
+        res: 16,
+        tgh: 13
+		},
+		{
+        name: "Ashcoat Flenser",
+        health: 18,
+        grd: 14,
+        res: 16,
+        tgh: 13
+		},
+		{
+        name: "Ashcoat Duelist",
+        health: 18,
+        grd: 14,
+        res: 16,
+        tgh: 13
+		},
+   {
+    name: "Aboleth",
+    health: 75,
+    grd: 22,
+    res: 16,
+    tgh: 18
+  },
+  {
+    name: "Animated Armor",
+    health: 30,
+    grd: 17,
+    res: 10,
+    tgh: 15
+  },
+  {
+    name: "Ankheg",
+    health: 45,
+    grd: 15,
+    res: 10,
+    tgh: 16
+  },
+  {
+    name: "Azer",
+    health: 39,
+    grd: 17,
+    res: 14,
+    tgh: 16
+  },
+  {
+    name: "Basilisk",
+    health: 52,
+    grd: 16,
+    res: 12,
+    tgh: 17
+  },
+  {
+    name: "Behir",
+    health: 168,
+    grd: 17,
+    res: 16,
+    tgh: 19
+  },
+  {
+    name: "Black Bear",
+    health: 34,
+    grd: 15,
+    res: 10,
+    tgh: 17
+  },
+  {
+    name: "Bugbear",
+    health: 27,
+    grd: 16,
+    res: 10,
+    tgh: 15
+  },
+  {
+    name: "Chimera",
+    health: 114,
+    grd: 17,
+    res: 13,
+    tgh: 18
+  },
+  {
+    name: "Chuul",
+    health: 93,
+    grd: 16,
+    res: 12,
+    tgh: 17
+  },
+  {
+    name: "Cockatrice",
+    health: 27,
+    grd: 13,
+    res: 10,
+    tgh: 12
+  },
+  {
+    name: "Cloud Giant",
+    health: 200,
+    grd: 17,
+    res: 14,
+    tgh: 20
+  },
+  {
+    name: "Clay Golem",
+    health: 133,
+    grd: 17,
+    res: 10,
+    tgh: 18
+  },
+  {
+    name: "Darkmantle",
+    health: 22,
+    grd: 11,
+    res: 10,
+    tgh: 12
+  },
+  {
+    name: "Deva Planetar",
+    health: 41,
+    grd: 25,
+    res: 18,
+    tgh: 15
+  },
+  {
+    name: "Solar Deva",
+    health: 32,
+    grd: 20,
+    res: 20,
+    tgh: 15
+  },
+  {
+    name: "Balor Demon",
+    health: 105,
+    grd: 21,
+    res: 29,
+    tgh: 27
+  },
+  {
+    name: "Rust Monster",
+    health: 22,
+    grd: 16,
+    res: 10,
+    tgh: 22
+  },
+  {
+    name: "Storm Giant",
+    health: 229,
+    grd: 21,
+    res: 13,
+    tgh: 18
+  },
+  {
+    name: "Purple Worm",
+    health: 247,
+    grd: 18,
+    res: 10,
+    tgh: 18
+  },
+  {
+    name: "Otyugh",
+    health: 114,
+    grd: 14,
+    res: 10,
+    tgh: 17
+  },
+  {
+    name: "Vampire (Boss)",
+    health: 144,
+    grd: 17,
+    res: 16,
+    tgh: 18
+  },
+  {
+    name: "Vampire Spawn",
+    health: 82,
+    grd: 15,
+    res: 13,
+    tgh: 14
+  },
+  {
+    name: "Wraith",
+    health: 67,
+    grd: 14,
+    res: 14,
+    tgh: 12
+  },
+  {
+    name: "Wolf (NPC)",
+    health: 12,
+    grd: 15,
+    res: 12,
+    tgh: 13
+  },
+  {
+    name: "Elven Skirmisher",
+    health: 18,
+    grd: 17,
+    res: 12,
+    tgh: 13
+  },
+  {
+    name: "Crocodile",
+    health: 19,
+    grd: 14,
+    res: 12,
+    tgh: 17
+  },
+  {
+    name: "Giant Frog",
+    health: 18,
+    grd: 12,
+    res: 11,
+    tgh: 15
+  },
+  {
+    name: "Harpy",
+    health: 38,
+    grd: 14,
+    res: 13,
+    tgh: 12
+  },
+  {
+    name: "Black Bear (Large)",
+    health: 42,
+    grd: 16,
+    res: 11,
+    tgh: 18
+  },
+  {
+    name: "Ogre",
+    health: 59,
+    grd: 17,
+    res: 14,
+    tgh: 16
+  },
+  {
+    name: "Skeleton Scout",
+    health: 13,
+    grd: 13,
+    res: 10,
+    tgh: 11
+  },
+  {
+    name: "Ancient Red Dragon",
+    health: 546,
+    grd: 23,
+    res: 20,
+    tgh: 25
+  },
+  {
+    name: "Young Red Dragon",
+    health: 178,
+    grd: 18,
+    res: 16,
+    tgh: 17
+  },
+  {
+    name: "Adult Black Dragon",
+    health: 195,
+    grd: 19,
+    res: 17,
+    tgh: 18
+  },
+  {
+    name: "Young Green Dragon",
+    health: 136,
+    grd: 17,
+    res: 15,
+    tgh: 16
+  },
+  {
+    name: "Adult Blue Dragon",
+    health: 225,
+    grd: 20,
+    res: 18,
+    tgh: 19
+  },
+  {
+    name: "Ancient White Dragon",
+    health: 333,
+    grd: 22,
+    res: 19,
+    tgh: 21
+  },
+  {
+    name: "Young Bronze Dragon",
+    health: 142,
+    grd: 17,
+    res: 15,
+    tgh: 16
+  },
+  {
+    name: "Adult Silver Dragon",
+    health: 243,
+    grd: 21,
+    res: 18,
+    tgh: 20
+  },
+  {
+    name: "Dretch Demon",
+    health: 18,
+    grd: 12,
+    res: 9,
+    tgh: 11
+  },
+  {
+    name: "Glabrezu Demon",
+    health: 157,
+    grd: 17,
+    res: 18,
+    tgh: 19
+  },
+  {
+    name: "Hezrou Demon",
+    health: 136,
+    grd: 16,
+    res: 15,
+    tgh: 17
+  },
+  {
+    name: "Marilith Demon",
+    health: 189,
+    grd: 18,
+    res: 17,
+    tgh: 18
+  },
+  {
+    name: "Nalfeshnee Demon",
+    health: 184,
+    grd: 18,
+    res: 19,
+    tgh: 20
+  },
+  {
+    name: "Vrock Demon",
+    health: 104,
+    grd: 15,
+    res: 14,
+    tgh: 16
+  },
+  {
+    name: "Barbed Devil",
+    health: 110,
+    grd: 16,
+    res: 14,
+    tgh: 17
+  },
+  {
+    name: "Bearded Devil",
+    health: 52,
+    grd: 15,
+    res: 13,
+    tgh: 14
+  },
+  {
+    name: "Bone Devil",
+    health: 142,
+    grd: 17,
+    res: 16,
+    tgh: 18
+  },
+  {
+    name: "Chain Devil",
+    health: 85,
+    grd: 16,
+    res: 14,
+    tgh: 15
+  },
+  {
+    name: "Erinyes Devil",
+    health: 120,
+    grd: 18,
+    res: 17,
+    tgh: 16
+  },
+  {
+    name: "Horned Devil",
+    health: 178,
+    grd: 19,
+    res: 17,
+    tgh: 19
+  },
+  {
+    name: "Ice Devil",
+    health: 180,
+    grd: 18,
+    res: 18,
+    tgh: 20
+  },
+  {
+    name: "Imp Devil",
+    health: 10,
+    grd: 13,
+    res: 12,
+    tgh: 10
+  },
+  {
+    name: "Pit Fiend",
+    health: 300,
+    grd: 21,
+    res: 20,
+    tgh: 23
+  },
+  {
+    name: "Plesiosaurus",
+    health: 68,
+    grd: 15,
+    res: 10,
+    tgh: 17
+  },
+  {
+    name: "Triceratops",
+    health: 95,
+    grd: 16,
+    res: 10,
+    tgh: 19
+  },
+  {
+    name: "Tyrannosaurus Rex",
+    health: 136,
+    grd: 17,
+    res: 10,
+    tgh: 20
+  },
+  {
+    name: "Doppelganger",
+    health: 52,
+    grd: 14,
+    res: 13,
+    tgh: 12
+  },
+  {
+    name: "Young Dragon Drider",
+    health: 60,
+    grd: 18,
+    res: 20,
+    tgh: 22
+  },
+  {
+    name: "Dryad",
+    health: 27,
+    grd: 14,
+    res: 13,
+    tgh: 12
+  },
+  {
+    name: "Duergar",
+    health: 26,
+    grd: 15,
+    res: 12,
+    tgh: 14
+  },
+  {
+    name: "Air Elemental",
+    health: 90,
+    grd: 15,
+    res: 14,
+    tgh: 13
+  },
+  {
+    name: "Earth Elemental",
+    health: 126,
+    grd: 17,
+    res: 14,
+    tgh: 18
+  },
+  {
+    name: "Fire Elemental",
+    health: 102,
+    grd: 16,
+    res: 14,
+    tgh: 15
+  },
+  {
+    name: "Water Elemental",
+    health: 114,
+    grd: 16,
+    res: 14,
+    tgh: 17
+  },
+  {
+    name: "Efreeti",
+    health: 200,
+    grd: 17,
+    res: 18,
+    tgh: 19
+  },
+  {
+    name: "Ettercap",
+    health: 44,
+    grd: 13,
+    res: 10,
+    tgh: 14
+  },
+  {
+    name: "Ettin",
+    health: 85,
+    grd: 15,
+    res: 11,
+    tgh: 17
+  },
+  {
+    name: "Fire Giant",
+    health: 162,
+    grd: 18,
+    res: 12,
+    tgh: 19
+  },
+  {
+    name: "Frost Giant",
+    health: 138,
+    grd: 17,
+    res: 12,
+    tgh: 18
+  },
+  {
+    name: "Stone Giant",
+    health: 126,
+    grd: 17,
+    res: 11,
+    tgh: 17
+  },
+  {
+    name: "Gargoyle",
+    health: 52,
+    grd: 15,
+    res: 11,
+    tgh: 16
+  },
+  {
+    name: "Ghoul",
+    health: 22,
+    grd: 12,
+    res: 10,
+    tgh: 11
+  },
+  {
+    name: "Gorgon",
+    health: 114,
+    grd: 19,
+    res: 11,
+    tgh: 20
+  },
+  {
+    name: "Grick",
+    health: 27,
+    grd: 14,
+    res: 10,
+    tgh: 14
+  },
+  {
+    name: "Grick Leader",
+    health: 75,
+    grd: 17,
+    res: 12,
+    tgh: 16
+  },
+  {
+    name: "Griffon",
+    health: 59,
+    grd: 15,
+    res: 12,
+    tgh: 15
+  },
+  {
+    name: "Green Hag",
+    health: 82,
+    grd: 17,
+    res: 14,
+    tgh: 13
+  },
+  {
+    name: "Night Hag",
+    health: 112,
+    grd: 18,
+    res: 16,
+    tgh: 16
+  },
+  {
+    name: "Harpy Matriarch",
+    health: 70,
+    grd: 16,
+    res: 15,
+    tgh: 13
+  },
+  {
+    name: "Hell Hound",
+    health: 45,
+    grd: 15,
+    res: 12,
+    tgh: 14
+  },
+  {
+    name: "Hobgoblin Captain",
+    health: 39,
+    grd: 17,
+    res: 12,
+    tgh: 14
+  },
+  {
+    name: "Hydra",
+    health: 172,
+    grd: 15,
+    res: 13,
+    tgh: 18
+  },
+  {
+    name: "Kobold Wyrmpriest",
+    health: 27,
+    grd: 12,
+    res: 14,
+    tgh: 11
+  },
+  {
+    name: "Kraken",
+    health: 472,
+    grd: 18,
+    res: 20,
+    tgh: 24
+  },
+  {
+    name: "Lich",
+    health: 135,
+    grd: 17,
+    res: 20,
+    tgh: 15
+  },
+  {
+    name: "Manticore",
+    health: 68,
+    grd: 14,
+    res: 11,
+    tgh: 13
+  },
+  {
+    name: "Medusa",
+    health: 127,
+    grd: 15,
+    res: 16,
+    tgh: 13
+  },
+  {
+    name: "Mimic",
+    health: 58,
+    grd: 15,
+    res: 10,
+    tgh: 16
+  },
+  {
+    name: "Minotaur",
+    health: 76,
+    grd: 14,
+    res: 11,
+    tgh: 17
+  },
+  {
+    name: "Mummy",
+    health: 58,
+    grd: 11,
+    res: 12,
+    tgh: 15
+  },
+  {
+    name: "Nightmare",
+    health: 68,
+    grd: 16,
+    res: 15,
+    tgh: 16
+  },
+  {
+    name: "Orc War Chief",
+    health: 93,
+    grd: 16,
+    res: 12,
+    tgh: 15
+  },
+  {
+    name: "Remorhaz",
+    health: 195,
+    grd: 17,
+    res: 13,
+    tgh: 19
+  },
+  {
+    name: "Shadow",
+    health: 16,
+    grd: 12,
+    res: 13,
+    tgh: 10
+  },
+  {
+    name: "Wight",
+    health: 45,
+    grd: 15,
+    res: 13,
+    tgh: 14
+  },
+  {
+    name: "Wyvern",
+    health: 110,
+    grd: 15,
+    res: 12,
+    tgh: 17
+  },
+  {
+    name: "Zombie Brute",
+    health: 52,
+    grd: 8,
+    res: 10,
+    tgh: 13
+  },
+  {
+    name: "Zombie Horde",
+    health: 85,
+    grd: 10,
+    res: 8,
+    tgh: 15
+  },
+  {
+    name: "Giant Spider",
+    health: 36,
+    grd: 14,
+    res: 11,
+    tgh: 13
+  },
+  {
+    name: "Gnoll Pack Leader",
+    health: 49,
+    grd: 15,
+    res: 12,
+    tgh: 14
+  },
+  {
+    name: "Goblin Sneak",
+    health: 17,
+    grd: 14,
+    res: 11,
+    tgh: 10
+  },
+  {
+    name: "Merfolk Warrior",
+    health: 25,
+    grd: 13,
+    res: 12,
+    tgh: 13
+  },
+  {
+    name: "Naga Spirit",
+    health: 85,
+    grd: 16,
+    res: 17,
+    tgh: 14
+  },
+  {
+    name: "Quasit",
+    health: 10,
+    grd: 13,
+    res: 12,
+    tgh: 10
+  },
+  {
+    name: "Roc",
+    health: 248,
+    grd: 19,
+    res: 15,
+    tgh: 21
+  },
+  {
+    name: "Satyr Trickster",
+    health: 38,
+    grd: 15,
+    res: 14,
+    tgh: 12
+  },
+  {
+    name: "Scarecrow",
+    health: 36,
+    grd: 11,
+    res: 13,
+    tgh: 13
+  },
+  {
+    name: "Sea Hag",
+    health: 52,
+    grd: 14,
+    res: 12,
+    tgh: 14
+  },
+  {
+    name: "Skeleton Warrior",
+    health: 45,
+    grd: 15,
+    res: 11,
+    tgh: 14
+  },
+  {
+    name: "Slaad Red",
+    health: 93,
+    grd: 16,
+    res: 14,
+    tgh: 17
+  },
+  {
+    name: "Specter",
+    health: 22,
+    grd: 12,
+    res: 14,
+    tgh: 10
+  },
+  {
+    name: "Troll",
+    health: 84,
+    grd: 15,
+    res: 12,
+    tgh: 18
+  },
+  {
+    name: "Unicorn",
+    health: 67,
+    grd: 17,
+    res: 16,
+    tgh: 15
+  },
+  {
+    name: "Vampiric Mist",
+    health: 45,
+    grd: 13,
+    res: 15,
+    tgh: 12
+  },
+  {
+    name: "Warhorse",
+    health: 30,
+    grd: 14,
+    res: 11,
+    tgh: 15
+  },
+  {
+    name: "Worg",
+    health: 26,
+    grd: 14,
+    res: 10,
+    tgh: 13
+  },
+  {
+    name: "Yeti",
+    health: 51,
+    grd: 15,
+    res: 13,
+    tgh: 16
+  },
+  {
+    name: "Zombie Beast",
+    health: 60,
+    grd: 10,
+    res: 9,
+    tgh: 16
+  },
+  {
+    name: "Arcane Sentinel",
+    health: 88,
+    grd: 18,
+    res: 16,
+    tgh: 17
+  },
+  {
+    name: "Banshee",
+    health: 58,
+    grd: 13,
+    res: 17,
+    tgh: 12
+  },
+  {
+    name: "Blight Vine",
+    health: 72,
+    grd: 12,
+    res: 14,
+    tgh: 16
+  },
+  {
+    name: "Cave Fisher",
+    health: 49,
+    grd: 15,
+    res: 11,
+    tgh: 16
+  },
+  {
+    name: "Clockwork Defender",
+    health: 85,
+    grd: 17,
+    res: 12,
+    tgh: 18
+  },
+  {
+    name: "Corrupted Treant",
+    health: 150,
+    grd: 16,
+    res: 14,
+    tgh: 20
+  },
+  {
+    name: "Crystal Golem",
+    health: 112,
+    grd: 18,
+    res: 12,
+    tgh: 21
+  },
+  {
+    name: "Deep One",
+    health: 60,
+    grd: 14,
+    res: 14,
+    tgh: 15
+  },
+  {
+    name: "Dune Stalker",
+    health: 42,
+    grd: 15,
+    res: 13,
+    tgh: 14
+  },
+  {
+    name: "Fey Panther",
+    health: 39,
+    grd: 16,
+    res: 14,
+    tgh: 13
+  },
+  {
+    name: "Flame Serpent",
+    health: 67,
+    grd: 17,
+    res: 15,
+    tgh: 15
+  },
+  {
+    name: "Fungal Horror",
+    health: 91,
+    grd: 14,
+    res: 12,
+    tgh: 18
+  },
+  {
+    name: "Ghost Knight",
+    health: 88,
+    grd: 16,
+    res: 18,
+    tgh: 14
+  },
+  {
+    name: "Hill Giant Brute",
+    health: 142,
+    grd: 15,
+    res: 11,
+    tgh: 20
+  },
+  {
+    name: "Ice Drake",
+    health: 108,
+    grd: 18,
+    res: 15,
+    tgh: 18
+  },
+  {
+    name: "Iron Wight",
+    health: 97,
+    grd: 17,
+    res: 15,
+    tgh: 18
+  },
+  {
+    name: "Lava Spawn",
+    health: 84,
+    grd: 16,
+    res: 14,
+    tgh: 17
+  },
+  {
+    name: "Moss Troll",
+    health: 74,
+    grd: 14,
+    res: 12,
+    tgh: 17
+  },
+  {
+    name: "Nether Horror",
+    health: 128,
+    grd: 19,
+    res: 18,
+    tgh: 17
+  },
+  {
+    name: "Plague Zombie",
+    health: 49,
+    grd: 10,
+    res: 12,
+    tgh: 15
+  },
+  {
+    name: "Poison Serpent",
+    health: 35,
+    grd: 14,
+    res: 13,
+    tgh: 12
+  },
+  {
+    name: "Razorbeak Raptor",
+    health: 42,
+    grd: 16,
+    res: 11,
+    tgh: 13
+  },
+  {
+    name: "Sand Wyrm",
+    health: 170,
+    grd: 18,
+    res: 15,
+    tgh: 20
+  },
+  {
+    name: "Shadow Revenant",
+    health: 88,
+    grd: 17,
+    res: 18,
+    tgh: 14
+  },
+  {
+    name: "Spirit Bear",
+    health: 91,
+    grd: 16,
+    res: 15,
+    tgh: 17
+  },
+  {
+    name: "Storm Revenant",
+    health: 106,
+    grd: 18,
+    res: 18,
+    tgh: 16
+  },
+  {
+    name: "Swamp Horror",
+    health: 98,
+    grd: 15,
+    res: 14,
+    tgh: 17
+  },
+  {
+    name: "Sylvan Watcher",
+    health: 77,
+    grd: 16,
+    res: 15,
+    tgh: 14
+  },
+  {
+    name: "Thornhide Boar",
+    health: 63,
+    grd: 15,
+    res: 11,
+    tgh: 17
+  },
+  {
+    name: "Thunder Roc",
+    health: 232,
+    grd: 20,
+    res: 16,
+    tgh: 22
+  },
+  {
+    name: "Undead Knight",
+    health: 85,
+    grd: 17,
+    res: 13,
+    tgh: 17
+  },
+  {
+    name: "Vile Ooze",
+    health: 66,
+    grd: 13,
+    res: 12,
+    tgh: 16
+  },
+  {
+    name: "Volcanic Drake",
+    health: 144,
+    grd: 19,
+    res: 17,
+    tgh: 19
+  },
+  {
+    name: "Webspinner Spider",
+    health: 54,
+    grd: 15,
+    res: 11,
+    tgh: 15
+  },
+  {
+    name: "Will-o'-Wisp",
+    health: 30,
+    grd: 14,
+    res: 18,
+    tgh: 10
+  },
+  {
+    name: "Winter Wight",
+    health: 92,
+    grd: 16,
+    res: 16,
+    tgh: 15
+  },
+  {
+    name: "Withered Treant",
+    health: 132,
+    grd: 15,
+    res: 13,
+    tgh: 19
+  },
+  {
+    name: "Wyrmspawn Adept",
+    health: 78,
+    grd: 16,
+    res: 17,
+    tgh: 13
+  },
+  {
+    name: "Zombie Troll",
+    health: 88,
+    grd: 13,
+    res: 10,
+    tgh: 20
+  },
+  {
+    name: "Ancient Tree Guardian",
+    health: 188,
+    grd: 19,
+    res: 16,
+    tgh: 22
+  },
+  {
+    name: "Bone Horror",
+    health: 76,
+    grd: 16,
+    res: 14,
+    tgh: 17
+  },
+  {
+    name: "Carrion Swarm",
+    health: 55,
+    grd: 13,
+    res: 13,
+    tgh: 14
+  },
+  {
+    name: "Crystal Hydra",
+    health: 182,
+    grd: 17,
+    res: 16,
+    tgh: 21
+  },
+  {
+    name: "Doom Shade",
+    health: 94,
+    grd: 15,
+    res: 19,
+    tgh: 13
+  },
+  {
+    name: "Ember Wolf",
+    health: 43,
+    grd: 15,
+    res: 13,
+    tgh: 14
+  },
+  {
+    name: "Frostfang Serpent",
+    health: 78,
+    grd: 17,
+    res: 14,
+    tgh: 16
+  },
+  {
+    name: "Gravestone Golem",
+    health: 122,
+    grd: 18,
+    res: 12,
+    tgh: 21
+  },
+  {
+    name: "Iron Serpent",
+    health: 88,
+    grd: 18,
+    res: 13,
+    tgh: 20
+  },
+  {
+    name: "Lurking Horror",
+    health: 64,
+    grd: 14,
+    res: 15,
+    tgh: 15
+  },
+  {
+    name: "Moonlight Stag",
+    health: 77,
+    grd: 17,
+    res: 17,
+    tgh: 13
+  },
+  {
+    name: "Nether Drake",
+    health: 158,
+    grd: 19,
+    res: 17,
+    tgh: 18
+  },
+  {
+    name: "Obsidian Fiend",
+    health: 198,
+    grd: 20,
+    res: 18,
+    tgh: 22
+  },
+  {
+    name: "Phantom Knight",
+    health: 83,
+    grd: 16,
+    res: 17,
+    tgh: 15
+  },
+  {
+    name: "Quaking Behemoth",
+    health: 210,
+    grd: 18,
+    res: 14,
+    tgh: 23
+  },
+  {
+    name: "Radiant Seraph",
+    health: 120,
+    grd: 20,
+    res: 19,
+    tgh: 16
+  },
+  {
+    name: "Soul Harvester",
+    health: 101,
+    grd: 17,
+    res: 18,
+    tgh: 14
+  },
+  {
+    name: "Temporal Wraith",
+    health: 86,
+    grd: 15,
+    res: 19,
+    tgh: 12
+  },
+  {
+    name: "Umbral Leviathan",
+    health: 274,
+    grd: 21,
+    res: 20,
+    tgh: 25
+  },
+  {
+    name: "Venomscale Hydra",
+    health: 166,
+    grd: 17,
+    res: 14,
+    tgh: 20
+  },
+  {
+    name: "Whispering Wight",
+    health: 73,
+    grd: 15,
+    res: 17,
+    tgh: 13
+  }
+]
+      ;
+
+      allMonsters = monsters.filter(isValid);
+      renderMonsters(allMonsters);
+
+      searchInput.addEventListener("input", () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filtered = allMonsters.filter(monster =>
+          monster.name.toLowerCase().includes(searchTerm)
+        );
+        renderMonsters(filtered);
+      });
+    });
+  </script>
+</head>
+<body>
+  <a href="group.html" class="button-link">Back to Initiative</a>
+  <h2>Search & Add Monsters</h2>
+
+  <input type="text" id="searchBar" placeholder="Search by name..." />
+
+  <div class="table-container" id="monster-list"></div>
+</body>
+</html>

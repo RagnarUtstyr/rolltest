@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>D&amp;D Character Builder</title>
+<style>
+  body {
+    background: url('background_dnd.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    color: #E0D8B0;
+    font-family: 'MedievalSharp', serif;
+    margin: 0;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-color: rgba(46, 27, 24, 0.9);
+    z-index: -1;
+  }
+  * { box-sizing: border-box; }
+  .container {
+    max-width: 940px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 18px;
+    background-color: rgba(46, 27, 24, 0.86);
+    box-shadow: 0 0 18px rgba(0,0,0,0.45);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  button,
+#back-to-player-link {
+  background-color: #2E1B18;
+  color: #E0D8B0;
+  border: 2px solid #D4AF37;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:hover,
+#back-to-player-link:hover {
+  background-color: #8C5A4A;
+  color: #2E1B18;
+}
+  h1, h2, h3, h4 { color: #D4AF37; margin: 0 0 10px; }
+  h1 { text-align:center; }
+  .section {
+    border: 1px solid #8C5A4A;
+    border-radius: 10px;
+    padding: 14px;
+    background: rgba(165, 123, 91, 0.12);
+  }
+  .stack { display:flex; flex-direction:column; gap:10px; }
+  .grid-2, .grid-3, .grid-4 { display:grid; gap:12px; }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  label { display:flex; flex-direction:column; gap:6px; font-size:0.95rem; }
+  input[type="text"], input[type="number"], select, textarea {
+    padding: 10px;
+    border: 2px solid #D4AF37;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #E0D8B0;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+  }
+  select {
+    background-color: rgba(46, 27, 24, 0.92);
+    color: #E0D8B0;
+  }
+  select option,
+  select optgroup {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  input:focus, select:focus, textarea:focus {
+    border-color: #8C5A4A;
+    background-color: rgba(255,255,255,0.22);
+  }
+  button {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  button:hover { background-color: #8C5A4A; color: #2E1B18; }
+  .button-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .muted { color:#e9ddb3; opacity:0.88; font-size:0.92rem; }
+  .small { font-size: 0.86rem; }
+  .cards { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+  .card {
+    border: 1px solid #8C5A4A;
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(255,255,255,0.06);
+  }
+  .value { font-size: 1.4rem; color:#fff0b2; font-weight:bold; }
+  #summaryCardsTop > .card:nth-child(-n+3) {
+    padding: 14px 12px;
+    background: rgba(255,255,255,0.09);
+    border-width: 2px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.18);
+  }
+  #summaryCardsTop > .card:nth-child(-n+3) .small {
+    font-size: 0.92rem;
+    color:#fff0b2;
+    opacity:0.95;
+  }
+  #summaryCardsTop > .card:nth-child(-n+3) .value {
+    font-size: 1.8rem;
+  }
+  .abilities-wrap {
+    display:grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap:12px;
+    align-items:start;
+  }
+  .abilities-box {
+    border:1px solid #8C5A4A;
+    border-radius: 10px;
+    padding:12px;
+    background: rgba(255,255,255,0.05);
+  }
+  .ability-columns { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+  .ability-row {
+    display:grid;
+    grid-template-columns: 52px 1fr auto;
+    gap:8px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .ability-row:last-child { margin-bottom:0; }
+  .skills-section {
+    margin-top: 12px;
+    border-top: 1px solid rgba(212,175,55,0.22);
+    padding-top: 12px;
+  }
+  .skills-grid {
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap:12px;
+  }
+  .skill-group {
+    border:1px solid #8C5A4A;
+    border-radius: 10px;
+    padding:12px;
+    background: rgba(255,255,255,0.04);
+  }
+  .skill-group h4 {
+    margin:0 0 8px;
+    color:#fff0b2;
+  }
+  .skill-line {
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    padding:3px 0;
+  }
+  .skill-source {
+    margin:0 0 6px 0;
+    color:#e9ddb3;
+    opacity:0.88;
+    font-size:0.82rem;
+  }
+  .pill {
+    display:inline-block;
+    padding:2px 8px;
+    border:1px solid #D4AF37;
+    border-radius:999px;
+    font-size: 0.82rem;
+    margin: 2px 6px 2px 0;
+    background: rgba(255,255,255,0.06);
+  }
+  .list-row {
+    display:grid;
+    grid-template-columns: 1.5fr 1.4fr auto auto;
+    gap:8px;
+    align-items:end;
+    margin-bottom:10px;
+    padding-bottom:10px;
+    border-bottom:1px solid rgba(212,175,55,0.22);
+  }
+  .weapon-row {
+    grid-template-columns: minmax(170px,1.45fr) 96px minmax(180px,1fr) auto;
+    align-items:center;
+  }
+  .weapon-row label:last-of-type select {
+    max-width: 96px;
+  }
+  .weapon-stats {
+    font-size: 1rem;
+    line-height: 1.35;
+    color:#fff0b2;
+    font-weight:600;
+  }
+  .list-row:last-child { border-bottom:0; margin-bottom:0; padding-bottom:0; }
+  .class-row {
+    display:grid;
+    grid-template-columns: 1.2fr 80px 120px auto;
+    gap:8px;
+    align-items:end;
+    margin-bottom:10px;
+  }
+  .spell-columns { display:grid; grid-template-columns: 1fr; gap:12px; }
+  .spell-level-box { border:1px solid #8C5A4A; border-radius:8px; padding:10px; background: rgba(255,255,255,0.05); }
+  .spell-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .stats-notes { white-space: pre-wrap; line-height:1.5; min-height:220px; }
+  .error-box, .info-box {
+    border-radius:8px; padding:10px; font-size:0.94rem;
+  }
+  .error-box { background: rgba(139,0,0,0.28); border:1px solid #d35b5b; }
+  .info-box { background: rgba(255,255,255,0.06); border:1px solid #8C5A4A; }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.72);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 12px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-panel {
+    border:1px solid #D4AF37;
+    border-radius: 10px;
+    background: rgba(46,27,24,0.98);
+    color:#E0D8B0;
+    width:min(760px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+  }
+  .modal-head, .modal-body { padding:16px; }
+  .modal-head { border-bottom:1px solid rgba(212,175,55,0.25); display:flex; justify-content:space-between; align-items:center; }
+  .modal-body { display:flex; flex-direction:column; gap:12px; }
+  .top-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .builder-status { color:#e9ddb3; font-size:0.92rem; }
+  .hidden { display:none !important; }
+
+  .resource-list { display:flex; flex-direction:column; gap:10px; }
+  .resource-row {
+    display:grid;
+    grid-template-columns: 1.6fr 90px 90px 1fr;
+    gap:8px;
+    align-items:end;
+    padding:8px;
+    border:1px solid rgba(212,175,55,0.2);
+    border-radius:8px;
+    background: rgba(255,255,255,0.04);
+  }
+  .resource-row .small { margin-top:2px; }
+  .resource-meta { color:#e9ddb3; font-size:0.82rem; }
+
+  .feat-card {
+    display:grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap:10px 12px;
+    align-items:start;
+    margin-bottom:10px;
+    padding:12px;
+    border:1px solid rgba(212,175,55,0.22);
+    border-radius:10px;
+    background: rgba(255,255,255,0.05);
+  }
+  .feat-card:last-child { margin-bottom:0; }
+  .feat-card > label { min-width:0; }
+  .feat-card > .info-box {
+    grid-column: 1 / -1;
+    margin:0;
+  }
+  .feat-card > button {
+    align-self:end;
+    white-space:nowrap;
+  }
+
+  @media (max-width: 820px) {
+    .abilities-wrap { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid-3 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .skills-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .ability-columns { grid-template-columns: 1fr 1fr; }
+
+    .identity-grid,
+    .identity-secondary,
+    .armor-grid {
+      grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+
+    #classesWrap .class-row {
+      grid-template-columns: minmax(0, 1.4fr) minmax(76px, 0.6fr);
+      align-items:end;
+    }
+    #classesWrap .class-row label:first-child { grid-column: 1; }
+    #classesWrap .class-row label:nth-child(2) { grid-column: 2; }
+    #classesWrap .class-row .small {
+      grid-column: 1 / -1;
+      margin-top: 2px;
+    }
+    #classesWrap .class-row button {
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+
+    #summaryCardsTop {
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+    }
+    #summaryCardsTop .card {
+      padding: 10px 8px;
+    }
+    #summaryCardsTop .value {
+      font-size: 1.35rem;
+    }
+    #summaryCardsTop > .card:nth-child(-n+3) .value {
+      font-size: 1.55rem;
+    }
+
+    .abilities-wrap .stack {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:12px;
+      align-items:start;
+    }
+    #pointBuyBox {
+      grid-column: 1 / -1;
+    }
+
+    #skillsGrid {
+      display:block;
+      column-count: 2;
+      column-gap: 12px;
+    }
+    #skillsGrid .skill-group {
+      display:block;
+      break-inside: avoid;
+      margin: 0 0 12px;
+    }
+
+    .resource-row {
+      grid-template-columns: minmax(0,1fr) minmax(92px,110px) minmax(92px,110px);
+      align-items:end;
+      gap:10px 8px;
+    }
+    .resource-row > div:first-child { grid-column: 1 / -1; }
+    .resource-row label {
+      min-width: 0;
+    }
+    .resource-row input {
+      min-width: 0;
+      text-align: center;
+    }
+
+    .armor-grid {
+      gap:10px 8px;
+      align-items:end;
+    }
+    .armor-grid .bonus-field select,
+    .weapon-row label:nth-child(2) select {
+      min-width: 0;
+      max-width: 84px;
+      justify-self: start;
+    }
+
+    .weapon-row {
+      grid-template-columns: minmax(0,1.25fr) minmax(74px,0.5fr);
+      align-items:end;
+    }
+    .weapon-row label:first-child { grid-column: 1; }
+    .weapon-row label:nth-child(2) { grid-column: 2; }
+    .weapon-row .weapon-stats {
+      grid-column: 1;
+      font-size: 0.94rem;
+    }
+    .weapon-row button {
+      grid-column: 2;
+      align-self:end;
+      width: 100%;
+    }
+
+    
+  }
+
+  @media (max-width: 640px) {
+    body { padding:6px; }
+    .container { padding:10px; }
+    input[type="text"], input[type="number"], select, textarea { padding: 8px; font-size: 0.95rem; }
+    label { gap:4px; font-size:0.88rem; }
+    .section { padding:12px; }
+    .ability-columns { grid-template-columns: 1fr 1fr; gap:10px; }
+    .ability-row { grid-template-columns: 42px minmax(0,1fr) auto; gap:6px; }
+    .abilities-wrap .stack { grid-template-columns: 1fr 1fr; }
+    .button-row button { width:100%; }
+    .list-row { gap:8px; }
+
+    .feat-card {
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .feat-card > button {
+      width:100%;
+    }
+
+    .resource-row {
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      align-items:start;
+    }
+    .resource-row > div:first-child {
+      grid-column: 1 / -1;
+    }
+    .resource-row label {
+      font-size: 0.84rem;
+    }
+    .resource-row input {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+<main class="container">
+  <div class="top-row">
+    <div>
+      <h1>Character Sheet</h1>
+      <div class="muted">2014 5e PHB</div>
+    </div>
+    <a id="back-to-player-link" class="button-link" href="player.html">Back to player</a>
+  </div>
+  <div id="builder-meta" class="builder-status">Loading game…</div>
+  <div id="save-status" class="builder-status"></div>
+
+  <section class="section stack">
+    <h2>Identity</h2>
+    <div class="grid-3 identity-grid">
+      <label>Name <input id="name" type="text"/></label>
+      <label>Species <select id="species"></select></label>
+      <label>Background <select id="background"></select></label>
+    </div>
+    <div class="grid-2 identity-secondary">
+      <label>Point Buy Mode
+        <select id="abilityMode">
+          <option selected value="manual">Manual</option>
+          <option value="pointbuy">27-Point Buy</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="section stack">
+    <h2>Classes &amp; Level</h2>
+    <div class="stack" id="classesWrap"></div>
+    <div class="button-row">
+      <button id="addClassBtn" type="button">Add Class</button>
+      <button id="levelUpBtn" type="button">Level Up</button>
+    </div>
+  </section>
+
+  <section class="section stack">
+    <h2>Core Stats</h2>
+    <div class="cards" id="summaryCardsTop"></div>
+  </section>
+
+  <section class="section stack">
+    <h2>Abilities &amp; Core Stats</h2>
+    <div class="abilities-wrap">
+      <div class="abilities-box">
+        <div class="ability-columns">
+          <div id="abilityColLeft"></div>
+          <div id="abilityColRight"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="info-box" id="pointBuyBox"></div>
+        <div id="validationBox"></div>
+      </div>
+    </div>
+    <div class="skills-section">
+      <div class="top-row">
+        <h3>Skills</h3>
+        <button id="openSkillsModalBtn" type="button">Skills</button>
+      </div>
+      <div class="skills-grid" id="skillsGrid"></div>
+    </div>
+  </section>
+
+  <section class="section stack">
+    <h2>Armor &amp; Weapons</h2>
+    <div class="grid-4 armor-grid">
+      <label>Armor <select id="armor"></select></label>
+      <label class="bonus-field">Armor Magic Bonus <select id="armorMagic"></select></label>
+      <label>Shield <select id="shield"></select></label>
+      <label class="bonus-field">Shield Magic Bonus <select id="shieldMagic"></select></label>
+    </div>
+    <div class="stack" id="weaponsWrap"></div>
+    <div class="button-row"><button id="addWeaponBtn" type="button">Add Weapon</button></div>
+  </section>
+
+  <section class="section stack">
+    <h2>Feats</h2>
+    <div class="stack" id="featsWrap"></div>
+    <div class="button-row"><button id="addFeatBtn" type="button">Add Feat</button></div>
+  </section>
+
+  <section class="section stack">
+    <h2>Spells &amp; Cantrips</h2>
+    <div class="grid-2">
+      <label>Spellcasting Ability Override
+        <select id="spellAbilityOverride">
+          <option value="">Automatic by class</option>
+          <option>Intelligence</option>
+          <option>Wisdom</option>
+          <option>Charisma</option>
+        </select>
+      </label>
+      <div class="info-box small" id="spellSummary"></div>
+    </div>
+    <div class="grid-2">
+      <label>Available Spells and Cantrips
+        <select id="spellPicker"></select>
+      </label>
+      <div class="button-row" style="align-items:end"><button id="addSpellBtn" type="button">Add Spell</button></div>
+    </div>
+    <div class="spell-columns" id="spellsByLevel"></div>
+  </section>
+
+  <section class="section stack">
+    <h2>Species, Background &amp; Class Notes</h2>
+    <div class="stats-notes info-box" id="notesSummary"></div>
+    <label>Notes <textarea id="notes" style="min-height:240px;"></textarea></label>
+  </section>
+</main>
+
+<div class="modal-overlay" id="levelModalOverlay" aria-hidden="true">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="levelModalTitle">
+    <div class="modal-head">
+      <h3 id="levelModalTitle">Level Up</h3>
+      <button id="closeLevelModal" type="button">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <label>Class to Level
+          <select id="levelClass"></select>
+        </label>
+        <label>HP Gain Method
+          <select id="hpMethod">
+            <option selected value="roll">Manual die roll</option>
+            <option value="fixed">Fixed value</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-3">
+        <label id="hpRollWrap">Hit Die Result <input id="hpRoll" min="1" type="number"/></label>
+        <label id="hpFixedWrap">Fixed HP Gain <input id="hpFixed" min="1" type="number"/></label>
+        <div class="info-box small" id="hpModalNote"></div>
+      </div>
+      <div class="info-box small" id="levelBenefits"></div>
+      <div class="section stack hidden" id="subclassSection" style="padding:12px;">
+        <h4>Subclass / Class-Specific Upgrade</h4>
+        <div class="small" id="subclassNote">Choose or record the class-specific option unlocked at this level.</div>
+        <div class="hidden" id="subclassPickerWrap">
+          <label>Subclass
+            <select id="levelSubclass"></select>
+          </label>
+        </div>
+        <div class="hidden" id="subclassFeatureWrap">
+          <label>Feature Choice / Notes
+            <input id="subclassFeatureText" placeholder="Example: College of Lore, Additional Magical Secrets: Counterspell + Fireball" type="text"/>
+          </label>
+        </div>
+      </div>
+      <div class="section stack hidden" id="asiFeatSection" style="padding:12px;">
+        <h4>Feat or Ability Score Improvement</h4>
+        <div class="small" id="asiFeatNote">This class level grants an Ability Score Improvement. Choose either a feat or increase ability scores.</div>
+        <label>Choice
+          <select id="asiChoice">
+            <option value="asi">Ability Score Improvement</option>
+            <option value="feat">Feat</option>
+          </select>
+        </label>
+        <div class="grid-2" id="asiFields">
+          <label>First Ability <select id="asiStat1"></select></label>
+          <label>Second Ability <select id="asiStat2"></select></label>
+        </div>
+        <div class="hidden" id="featField">
+          <label>Feat
+            <input id="levelFeat" list="featList" placeholder="Choose a feat" type="text"/>
+          </label>
+          <div class="info-box small" id="levelFeatInfo">Choose a feat to see a short rules summary.</div>
+        </div>
+      </div>
+      <button id="applyLevelBtn" type="button">Apply Level Up</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="skillsModalOverlay" aria-hidden="true">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="skillsModalTitle">
+    <div class="modal-head">
+      <h3 id="skillsModalTitle">Extra Skill Proficiencies</h3>
+      <button id="closeSkillsModal" type="button">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="small muted">
+        Check any skills the character gains proficiency in outside the builder’s core rules automation.
+      </div>
+      <div class="skills-grid" id="skillsModalGrid"></div>
+      <div class="button-row">
+        <button id="clearSkillsModalBtn" type="button">Clear Extra Skills</button>
+        <button id="applySkillsModalBtn" type="button">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="featList"></datalist>
+
+<script type="module">
+// Firebase test-project ready: shared config + authenticated access.
+import { requireAuth } from "./auth.js";
+import { db } from "./firebase-config.js";
+import { watchOrLoadGame } from "./game-service.js";
+import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
+const params = new URLSearchParams(window.location.search);
+const code = (params.get("code") || "").trim().toUpperCase();
+const builderMetaEl = document.getElementById("builder-meta");
+const saveStatusEl = document.getElementById("save-status");
+const backToPlayerLink = document.getElementById("back-to-player-link");
+let firebaseUser = null;
+let currentGame = null;
+let saveTimer = null;
+let suppressAutoSave = false;
+let isSavingToFirebase = false;
+
+function builderPath(){
+  return `games/${code}/builderSheetsDnd/${firebaseUser.uid}`;
+}
+
+function playerPath(){
+  return `games/${code}/players/${firebaseUser.uid}`;
+}
+
+function deepClone(value){
+  return JSON.parse(JSON.stringify(value));
+}
+
+const ABILITIES = ['Strength','Dexterity','Constitution','Intelligence','Wisdom','Charisma'];
+const SHORT = { Strength:'STR', Dexterity:'DEX', Constitution:'CON', Intelligence:'INT', Wisdom:'WIS', Charisma:'CHA' };
+const POINT_BUY_COST = {8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
+const SKILL_DATA = {
+  'Athletics':'Strength',
+  'Acrobatics':'Dexterity',
+  'Sleight of Hand':'Dexterity',
+  'Stealth':'Dexterity',
+  'Arcana':'Intelligence',
+  'History':'Intelligence',
+  'Investigation':'Intelligence',
+  'Nature':'Intelligence',
+  'Religion':'Intelligence',
+  'Animal Handling':'Wisdom',
+  'Insight':'Wisdom',
+  'Medicine':'Wisdom',
+  'Perception':'Wisdom',
+  'Survival':'Wisdom',
+  'Deception':'Charisma',
+  'Intimidation':'Charisma',
+  'Performance':'Charisma',
+  'Persuasion':'Charisma'
+};
+const SKILL_GROUP_ORDER = ['Strength','Dexterity','Intelligence','Wisdom','Charisma'];
+const SPECIES_SKILL_BONUSES = {
+  Elf:['Perception']
+};
+const PROF_BY_LEVEL = lvl => 2 + Math.floor((Math.max(1,lvl)-1)/4);
+const SPELL_SLOTS_FULL = {
+  1:[2,0,0,0,0,0,0,0,0],2:[3,0,0,0,0,0,0,0,0],3:[4,2,0,0,0,0,0,0,0],4:[4,3,0,0,0,0,0,0,0],
+  5:[4,3,2,0,0,0,0,0,0],6:[4,3,3,0,0,0,0,0,0],7:[4,3,3,1,0,0,0,0,0],8:[4,3,3,2,0,0,0,0,0],
+  9:[4,3,3,3,1,0,0,0,0],10:[4,3,3,3,2,0,0,0,0],11:[4,3,3,3,2,1,0,0,0],12:[4,3,3,3,2,1,0,0,0],
+  13:[4,3,3,3,2,1,1,0,0],14:[4,3,3,3,2,1,1,0,0],15:[4,3,3,3,2,1,1,1,0],16:[4,3,3,3,2,1,1,1,0],
+  17:[4,3,3,3,2,1,1,1,1],18:[4,3,3,3,3,1,1,1,1],19:[4,3,3,3,3,2,1,1,1],20:[4,3,3,3,3,2,2,1,1]
+};
+const SPECIES = {
+  Human:{ speed:30, traits:['Resourceful','Skillful','Versatile'], notes:'Human: Medium or Small, Speed 30 feet, one extra origin-style versatility package.' },
+  Dwarf:{ speed:30, traits:['Darkvision','Dwarven Resilience','Stonecunning'], notes:'Dwarf: Speed 30 feet, Darkvision, resilience against poison, and stone lore.' },
+  Elf:{ speed:30, traits:['Darkvision','Fey Ancestry','Keen Senses'], notes:'Elf: Speed 30 feet, Darkvision, Fey Ancestry, and keen senses.' },
+  Halfling:{ speed:30, traits:['Brave','Halfling Nimbleness','Luck'], notes:'Halfling: Speed 30 feet, bravery, nimbleness, and Lucky trait.' },
+  Gnome:{ speed:30, traits:['Darkvision','Gnomish Cunning'], notes:'Gnome: Speed 30 feet, Darkvision, and advantage-like magical cunning theme.' },
+  Dragonborn:{ speed:30, traits:['Breath Weapon','Draconic Resistance'], notes:'Dragonborn: Speed 30 feet, breath weapon, and draconic resistance.' },
+  Orc:{ speed:30, traits:['Adrenaline Rush','Darkvision','Relentless Endurance'], notes:'Orc: Speed 30 feet, Darkvision, and a relentless survival feature.' },
+  Tiefling:{ speed:30, traits:['Darkvision','Fiendish Legacy'], notes:'Tiefling: Speed 30 feet, Darkvision, and infernal legacy magic.' }
+};
+const BACKGROUNDS = {
+  Acolyte:{ boosts:['Intelligence','Wisdom','Charisma'], feat:'Magic Initiate', skills:['Insight','Religion'], notes:'Acolyte grants skill training, an origin feat, equipment, and +2/+1 or +1/+1/+1 among its listed abilities.' },
+  Artisan:{ boosts:['Strength','Dexterity','Intelligence'], feat:'Crafter', skills:['Investigation','Persuasion'], notes:'Artisan grants Crafter, practical proficiencies, and boosts among Strength, Dexterity, Intelligence.' },
+  Criminal:{ boosts:['Dexterity','Constitution','Intelligence'], feat:'Alert', skills:['Sleight of Hand','Stealth'], notes:'Criminal grants Alert, stealthy skills, and boosts among Dexterity, Constitution, Intelligence.' },
+  Guard:{ boosts:['Strength','Intelligence','Wisdom'], feat:'Alert', skills:['Athletics','Perception'], notes:'Guard grants Alert, observant martial training, and boosts among Strength, Intelligence, Wisdom.' },
+  Hermit:{ boosts:['Constitution','Wisdom','Charisma'], feat:'Healer', skills:['Medicine','Religion'], notes:'Hermit grants Healer and boosts among Constitution, Wisdom, Charisma.' },
+  Noble:{ boosts:['Strength','Intelligence','Charisma'], feat:'Skilled', skills:['History','Persuasion'], notes:'Noble grants Skilled and boosts among Strength, Intelligence, Charisma.' },
+  Sage:{ boosts:['Constitution','Intelligence','Wisdom'], feat:'Magic Initiate', skills:['Arcana','History'], notes:'Sage grants Magic Initiate and boosts among Constitution, Intelligence, Wisdom.' },
+  Soldier:{ boosts:['Strength','Dexterity','Constitution'], feat:'Savage Attacker', skills:['Athletics','Intimidation'], notes:'Soldier grants Savage Attacker, stealthy skills, and boosts among Strength, Dexterity, Constitution.' },
+  Wayfarer:{ boosts:['Dexterity','Wisdom','Charisma'], feat:'Lucky', skills:['Insight','Stealth'], notes:'Wayfarer grants Lucky and boosts among Dexterity, Wisdom, Charisma.' }
+};
+const CLASSES = {
+  Barbarian:{ hd:12, primary:['Strength'], spellcasting:null, asi:[4,8,12,16,19], features:{1:['Rage','Unarmored Defense'],2:['Reckless Attack','Danger Sense'],3:['Primal Path'],5:['Extra Attack','Fast Movement'],7:['Feral Instinct'],9:['Brutal Critical (1 die)'],11:['Relentless Rage'],15:['Persistent Rage'],18:['Indomitable Might'],20:['Primal Champion']} },
+  Bard:{ hd:8, primary:['Charisma'], spellcasting:'full', asi:[4,8,12,16,19], features:{1:['Spellcasting','Bardic Inspiration'],2:['Jack of All Trades','Song of Rest'],3:['Bard College','Expertise'],5:['Font of Inspiration'],6:['Countercharm','Bard College feature'],10:['Expertise','Magical Secrets','Bardic Inspiration d10'],14:['Magical Secrets'],18:['Magical Secrets'],20:['Superior Inspiration']} },
+  Cleric:{ hd:8, primary:['Wisdom'], spellcasting:'full', asi:[4,8,12,16,19], features:{1:['Spellcasting','Divine Domain'],2:['Channel Divinity'],5:['Destroy Undead (CR 1/2)'],6:['Channel Divinity (2/rest)','Domain feature'],8:['Destroy Undead (CR 1)','Divine Strike or Potent Spellcasting'],10:['Divine Intervention'],17:['Destroy Undead (CR 4)','Domain feature'],20:['Divine Intervention improvement']} },
+  Druid:{ hd:8, primary:['Wisdom'], spellcasting:'full', asi:[4,8,12,16,19], features:{1:['Druidic','Spellcasting'],2:['Wild Shape','Druid Circle'],4:['Wild Shape improvement'],8:['Wild Shape improvement'],18:['Timeless Body','Beast Spells'],20:['Archdruid']} },
+  Fighter:{ hd:10, primary:['Strength','Dexterity'], spellcasting:null, asi:[4,6,8,12,14,16,19], features:{1:['Fighting Style','Second Wind'],2:['Action Surge (x1)'],3:['Martial Archetype'],4:['Ability Score Improvement'],5:['Extra Attack (x1)'],6:['Ability Score Improvement'],7:['Martial Archetype feature'],8:['Ability Score Improvement'],9:['Indomitable (x1)'],10:['Martial Archetype feature'],11:['Extra Attack (x2)'],12:['Ability Score Improvement'],13:['Indomitable (x2)'],14:['Ability Score Improvement'],15:['Martial Archetype feature'],16:['Ability Score Improvement'],17:['Action Surge (x2)','Indomitable (x3)'],18:['Martial Archetype feature'],19:['Ability Score Improvement'],20:['Extra Attack (x3)']} },
+  Monk:{ hd:8, primary:['Dexterity','Wisdom'], spellcasting:null, asi:[4,8,12,16,19], features:{1:['Unarmored Defense','Martial Arts'],2:['Ki','Unarmored Movement'],3:['Monastic Tradition','Deflect Missiles'],4:['Slow Fall'],5:['Extra Attack','Stunning Strike'],6:['Ki-Empowered Strikes','Monastic Tradition feature'],7:['Evasion','Stillness of Mind'],10:['Purity of Body'],14:['Diamond Soul'],18:['Empty Body'],20:['Perfect Self']} },
+  Paladin:{ hd:10, primary:['Strength','Charisma'], spellcasting:'half', asi:[4,8,12,16,19], features:{1:['Divine Sense','Lay on Hands'],2:['Fighting Style','Spellcasting','Divine Smite'],3:['Divine Health','Sacred Oath'],5:['Extra Attack'],6:['Aura of Protection'],7:['Sacred Oath feature'],10:['Aura of Courage'],11:['Improved Divine Smite'],14:['Cleansing Touch'],18:['Aura improvements'],20:['Sacred Oath feature']} },
+  Ranger:{ hd:10, primary:['Dexterity','Wisdom'], spellcasting:'half', asi:[4,8,12,16,19], features:{1:['Favored Enemy','Natural Explorer'],2:['Fighting Style','Spellcasting'],3:['Ranger Archetype','Primeval Awareness'],5:['Extra Attack'],6:['Favored Enemy improvement','Natural Explorer improvement'],7:['Ranger Archetype feature'],8:['Land’s Stride'],10:['Natural Explorer improvement','Hide in Plain Sight'],14:['Vanish'],18:['Feral Senses'],20:['Foe Slayer']} },
+  Rogue:{ hd:8, primary:['Dexterity'], spellcasting:null, asi:[4,8,10,12,16,19], features:{1:['Expertise','Sneak Attack','Thieves’ Cant'],2:['Cunning Action'],3:['Roguish Archetype'],5:['Uncanny Dodge'],6:['Expertise'],7:['Evasion'],11:['Reliable Talent'],14:['Blindsense'],15:['Slippery Mind'],18:['Elusive'],20:['Stroke of Luck']} },
+  Sorcerer:{ hd:6, primary:['Charisma'], spellcasting:'full', asi:[4,8,12,16,19], features:{1:['Spellcasting','Sorcerous Origin'],2:['Font of Magic'],3:['Metamagic'],10:['Metamagic option'],17:['Metamagic option'],20:['Sorcerous Restoration']} },
+  Warlock:{ hd:8, primary:['Charisma'], spellcasting:'pact', asi:[4,8,12,16,19], features:{1:['Otherworldly Patron','Pact Magic'],2:['Eldritch Invocations'],3:['Pact Boon'],6:['Otherworldly Patron feature'],11:['Mystic Arcanum (6th)'],13:['Mystic Arcanum (7th)'],14:['Otherworldly Patron feature'],15:['Mystic Arcanum (8th)'],17:['Mystic Arcanum (9th)'],20:['Eldritch Master']} },
+  Wizard:{ hd:6, primary:['Intelligence'], spellcasting:'full', asi:[4,8,12,16,19], features:{1:['Spellcasting','Arcane Recovery'],2:['Arcane Tradition'],18:['Spell Mastery'],20:['Signature Spells']} }
+};
+const SUBCLASSES = {
+  Barbarian:{ chooseAt:3, featureLevels:[3,6,10,14], label:'Primal Path', options:['Path of the Berserker','Path of the Totem Warrior'] },
+  Bard:{ chooseAt:3, featureLevels:[3,6,14], label:'Bard College', options:['College of Lore','College of Valor'] },
+  Cleric:{ chooseAt:1, featureLevels:[1,2,6,8,17], label:'Divine Domain', options:['Knowledge Domain','Life Domain','Light Domain','Nature Domain','Tempest Domain','Trickery Domain','War Domain'] },
+  Druid:{ chooseAt:2, featureLevels:[2,6,10,14], label:'Druid Circle', options:['Circle of the Land','Circle of the Moon'] },
+  Fighter:{ chooseAt:3, featureLevels:[3,7,10,15,18], label:'Martial Archetype', options:['Champion','Battle Master','Eldritch Knight'] },
+  Monk:{ chooseAt:3, featureLevels:[3,6,11,17], label:'Monastic Tradition', options:['Way of the Open Hand','Way of Shadow','Way of the Four Elements'] },
+  Paladin:{ chooseAt:3, featureLevels:[3,7,15,20], label:'Sacred Oath', options:['Oath of Devotion','Oath of the Ancients','Oath of Vengeance'] },
+  Ranger:{ chooseAt:3, featureLevels:[3,7,11,15], label:'Ranger Archetype', options:['Hunter','Beast Master'] },
+  Rogue:{ chooseAt:3, featureLevels:[3,9,13,17], label:'Roguish Archetype', options:['Thief','Assassin','Arcane Trickster'] },
+  Sorcerer:{ chooseAt:1, featureLevels:[1,6,14,18], label:'Sorcerous Origin', options:['Draconic Bloodline','Wild Magic'] },
+  Warlock:{ chooseAt:1, featureLevels:[1,6,10,14], label:'Otherworldly Patron', options:['The Archfey','The Fiend','The Great Old One'] },
+  Wizard:{ chooseAt:2, featureLevels:[2,6,10,14], label:'Arcane Tradition', options:['School of Abjuration','School of Conjuration','School of Divination','School of Enchantment','School of Evocation','School of Illusion','School of Necromancy','School of Transmutation'] }
+};
+const CLASS_OPTION_PROMPTS = {
+  Bard:{ 10:'Magical Secrets: choose 2 spells from any class.', 14:'Magical Secrets: choose 2 more spells from any class.', 18:'Magical Secrets: choose 2 more spells from any class.' },
+  Sorcerer:{ 3:'Metamagic: choose 2 Metamagic options.', 10:'Metamagic: choose 1 additional Metamagic option.', 17:'Metamagic: choose 1 additional Metamagic option.' },
+  Warlock:{ 2:'Eldritch Invocations: choose invocations now available.', 3:'Pact Boon: choose Pact of the Chain, Blade, or Tome.', 11:'Mystic Arcanum: choose one 6th-level spell.', 13:'Mystic Arcanum: choose one 7th-level spell.', 15:'Mystic Arcanum: choose one 8th-level spell.', 17:'Mystic Arcanum: choose one 9th-level spell.' },
+  Fighter:{ 1:'Fighting Style: choose a fighting style.', 2:'Action Surge unlocked.', 3:'Martial Archetype: choose a subclass.', 4:'Ability Score Improvement or feat.', 6:'Ability Score Improvement or feat.' },
+  Paladin:{ 2:'Fighting Style: choose a fighting style.' },
+  Ranger:{ 2:'Fighting Style: choose a fighting style.' }
+};
+const CLASS_OPTION_DETAILS = {
+  Bard:{
+    3:'Bard College: your subclass choice at bard level 3. In 2014 PHB rules, this sets your college feature track.',
+    10:'Magical Secrets: learn 2 spells from any class. They count as bard spells for you.',
+    14:'Magical Secrets: learn 2 more spells from any class. They count as bard spells for you.',
+    18:'Magical Secrets: learn 2 more spells from any class. They count as bard spells for you.'
+  },
+  Sorcerer:{
+    1:'Sorcerous Origin: your subclass choice determines origin features at later levels.',
+    3:'Metamagic: choose 2 Metamagic options you can apply by spending sorcery points.',
+    10:'Metamagic: choose 1 additional Metamagic option.',
+    17:'Metamagic: choose 1 additional Metamagic option.'
+  },
+  Warlock:{
+    1:'Otherworldly Patron: your subclass choice determines patron features at later levels.',
+    2:'Eldritch Invocations: choose invocations you qualify for.',
+    3:'Pact Boon: choose Pact of the Chain, Pact of the Blade, or Pact of the Tome.',
+    11:'Mystic Arcanum (6th): choose one 6th-level warlock spell you can cast once per long rest.',
+    13:'Mystic Arcanum (7th): choose one 7th-level warlock spell you can cast once per long rest.',
+    15:'Mystic Arcanum (8th): choose one 8th-level warlock spell you can cast once per long rest.',
+    17:'Mystic Arcanum (9th): choose one 9th-level warlock spell you can cast once per long rest.'
+  },
+  Fighter:{
+    1:'Fighting Style: choose one fighting style that grants a passive combat benefit.',
+    3:'Martial Archetype: your subclass choice determines archetype features at later levels.'
+  },
+  Paladin:{ 3:'Sacred Oath: your subclass choice determines oath features at later levels.' },
+  Ranger:{ 3:'Ranger Archetype: your subclass choice determines archetype features at later levels.' },
+  Rogue:{ 3:'Roguish Archetype: your subclass choice determines archetype features at later levels.' },
+  Wizard:{ 2:'Arcane Tradition: your subclass choice determines school features at later levels.' },
+  Druid:{ 2:'Druid Circle: your subclass choice determines circle features at later levels.' },
+  Cleric:{ 1:'Divine Domain: your subclass choice determines domain features at later levels.' },
+  Barbarian:{ 3:'Primal Path: your subclass choice determines path features at later levels.' },
+  Monk:{ 3:'Monastic Tradition: your subclass choice determines tradition features at later levels.' }
+};
+const SUBCLASS_DETAILS = {
+  Bard:{
+    'College of Lore':{
+      summary:'A knowledge-focused bard college built around extra skills, cutting words, and wider spell access.',
+      features:{
+        3:'Bonus Proficiencies grants 3 extra skill proficiencies. Cutting Words lets you spend Bardic Inspiration as a reaction to reduce an enemy attack roll, ability check, or damage roll.',
+        6:'Additional Magical Secrets lets you learn 2 extra spells from any class, and they count as bard spells for you.',
+        14:'Peerless Skill lets you use Bardic Inspiration on your own ability check after seeing the roll.'
+      }
+    },
+    'College of Valor':{
+      summary:'A battle bard college focused on armor, weapons, combat inspiration, and fighting in the front line.',
+      features:{
+        3:'Bonus Proficiencies grants medium armor, shields, and martial weapons. Combat Inspiration lets allies add your Bardic Inspiration to weapon damage or AC against one attack.',
+        6:'Extra Attack lets you attack twice, instead of once, when you take the Attack action on your turn.',
+        14:'Battle Magic lets you make one weapon attack as a bonus action after casting a bard spell with your action.'
+      }
+    }
+  },
+  Fighter:{
+    Champion:{
+      summary:'A straightforward martial archetype focused on improved critical hits and strong athletic ability.',
+      features:{
+        3:'Improved Critical makes your weapon attacks score a critical hit on a roll of 19 or 20.',
+        7:'Remarkable Athlete adds half your proficiency bonus to certain Strength, Dexterity, and Constitution checks you are not proficient in and improves running long jumps.',
+        10:'Additional Fighting Style grants a second fighting style option.',
+        15:'Superior Critical makes your weapon attacks score a critical hit on a roll of 18 to 20.',
+        18:'Survivor restores hit points each round while you are below half your hit point maximum.'
+      }
+    },
+    'Battle Master':{
+      summary:'A tactical martial archetype built around superiority dice and combat maneuvers.',
+      features:{
+        3:'Combat Superiority gives superiority dice and maneuvers. Student of War grants proficiency with one type of artisan’s tools.',
+        7:'Know Your Enemy lets you study another creature to learn how it compares to you in combat traits.',
+        10:'Improved Combat Superiority upgrades your superiority dice to d10s.',
+        15:'Relentless restores one superiority die when initiative is rolled and you have none left.',
+        18:'Improved Combat Superiority upgrades your superiority dice to d12s.'
+      }
+    },
+    'Eldritch Knight':{
+      summary:'A fighter archetype that mixes weapon combat with wizard-style spellcasting.',
+      features:{
+        3:'Weapon Bond prevents you from being disarmed of bonded weapons and lets you summon one as a bonus action. Spellcasting also begins for this archetype.',
+        7:'War Magic lets you make one weapon attack as a bonus action after using your action to cast a cantrip.',
+        10:'Eldritch Strike gives a creature disadvantage on the next saving throw against one of your spells after you hit it with a weapon attack.',
+        15:'Arcane Charge lets you teleport up to 30 feet when you use Action Surge.',
+        18:'Improved War Magic lets you make one weapon attack as a bonus action after casting a spell with your action.'
+      }
+    }
+  }
+};
+function getClassSpecificNotes(c){
+  const lines = [];
+  const subclassInfo = SUBCLASSES[c.name];
+  if (subclassInfo && c.subclass) {
+    lines.push(`Chosen ${subclassInfo.label}: ${c.subclass}`);
+    const subclassData = SUBCLASS_DETAILS[c.name]?.[c.subclass];
+    if (subclassData?.summary) lines.push(`Subclass summary: ${subclassData.summary}`);
+    const unlockedSubclassLevels = (subclassInfo.featureLevels || []).filter(lvl => lvl <= c.level);
+    unlockedSubclassLevels.forEach(lvl => {
+      const subclassText = subclassData?.features?.[lvl];
+      if (subclassText) lines.push(`Subclass feature at level ${lvl}: ${subclassText}`);
+    });
+  }
+  const recorded = Object.keys(c.featureChoices || {}).map(Number).sort((a,b)=>a-b);
+  recorded.forEach(lvl => {
+    const detail = CLASS_OPTION_DETAILS[c.name]?.[lvl];
+    const recordedText = c.featureChoices[lvl];
+    lines.push(`Recorded class-specific choice at level ${lvl}: ${recordedText}`);
+    if (detail) lines.push(`What that upgrade does: ${detail}`);
+  });
+  return lines;
+}
+const ARMORS = {
+  None:{base:10, dex:'full', maxDex:null}, Padded:{base:11, dex:'full', maxDex:null}, Leather:{base:11, dex:'full', maxDex:null}, StuddedLeather:{base:12, dex:'full', maxDex:null},
+  Hide:{base:12, dex:'cap', maxDex:2}, ChainShirt:{base:13, dex:'cap', maxDex:2}, ScaleMail:{base:14, dex:'cap', maxDex:2}, Breastplate:{base:14, dex:'cap', maxDex:2}, HalfPlate:{base:15, dex:'cap', maxDex:2},
+  RingMail:{base:14, dex:'none', maxDex:0}, ChainMail:{base:16, dex:'none', maxDex:0}, Splint:{base:17, dex:'none', maxDex:0}, Plate:{base:18, dex:'none', maxDex:0}
+};
+const SHIELDS = { None:0, Shield:2 };
+const WEAPONS = {
+  Club:{ability:'Strength', damage:'1d4 bludgeoning'}, Dagger:{ability:'Dexterity/Strength', damage:'1d4 piercing'}, Greatsword:{ability:'Strength', damage:'2d6 slashing'},
+  Greataxe:{ability:'Strength', damage:'1d12 slashing'}, Handaxe:{ability:'Strength', damage:'1d6 slashing'}, Javelin:{ability:'Strength', damage:'1d6 piercing'}, Longbow:{ability:'Dexterity', damage:'1d8 piercing'},
+  Longsword:{ability:'Strength', damage:'1d8 slashing'}, Mace:{ability:'Strength', damage:'1d6 bludgeoning'}, Quarterstaff:{ability:'Strength', damage:'1d6 bludgeoning'}, Rapier:{ability:'Dexterity', damage:'1d8 piercing'},
+  Scimitar:{ability:'Dexterity', damage:'1d6 slashing'}, Shortbow:{ability:'Dexterity', damage:'1d6 piercing'}, Shortsword:{ability:'Dexterity', damage:'1d6 piercing'}, Spear:{ability:'Strength', damage:'1d6 piercing'},
+  Warhammer:{ability:'Strength', damage:'1d8 bludgeoning'}, CrossbowLight:{ability:'Dexterity', damage:'1d8 piercing'}
+};
+const FEATS = ['Actor','Alert','Athlete','Charger','Crossbow Expert','Defensive Duelist','Dual Wielder','Dungeon Delver','Durable','Elemental Adept','Grappler','Great Weapon Master','Healer','Heavily Armored','Heavy Armor Master','Inspiring Leader','Keen Mind','Lightly Armored','Linguist','Lucky','Mage Slayer','Magic Initiate','Martial Adept','Medium Armor Master','Mobile','Moderately Armored','Mounted Combatant','Observant','Polearm Master','Resilient','Ritual Caster','Savage Attacker','Sentinel','Sharpshooter','Shield Master','Skilled','Skulker','Spell Sniper','Tavern Brawler','Tough','War Caster','Weapon Master'];
+const SPELLS = [
+  {name:'Acid Splash', level:0, classes:['Sorcerer','Wizard']}, {name:'Blade Ward', level:0, classes:['Bard','Sorcerer','Warlock','Wizard']}, {name:'Chill Touch', level:0, classes:['Sorcerer','Warlock','Wizard']},
+  {name:'Dancing Lights', level:0, classes:['Bard','Sorcerer','Wizard']}, {name:'Eldritch Blast', level:0, classes:['Warlock']}, {name:'Fire Bolt', level:0, classes:['Sorcerer','Wizard']},
+  {name:'Guidance', level:0, classes:['Cleric','Druid']}, {name:'Light', level:0, classes:['Bard','Cleric','Sorcerer','Wizard']}, {name:'Mage Hand', level:0, classes:['Bard','Sorcerer','Warlock','Wizard']},
+  {name:'Minor Illusion', level:0, classes:['Bard','Sorcerer','Warlock','Wizard']}, {name:'Poison Spray', level:0, classes:['Druid','Sorcerer','Warlock','Wizard']}, {name:'Prestidigitation', level:0, classes:['Bard','Sorcerer','Warlock','Wizard']},
+  {name:'Resistance', level:0, classes:['Cleric','Druid']}, {name:'Sacred Flame', level:0, classes:['Cleric']}, {name:'Shillelagh', level:0, classes:['Druid']}, {name:'Shocking Grasp', level:0, classes:['Sorcerer','Wizard']},
+  {name:'Spare the Dying', level:0, classes:['Cleric']}, {name:'Thaumaturgy', level:0, classes:['Cleric']}, {name:'True Strike', level:0, classes:['Bard','Sorcerer','Warlock','Wizard']},
+  {name:'Bless', level:1, classes:['Cleric','Paladin']}, {name:'Burning Hands', level:1, classes:['Sorcerer','Wizard']}, {name:'Charm Person', level:1, classes:['Bard','Druid','Sorcerer','Warlock','Wizard']},
+  {name:'Cure Wounds', level:1, classes:['Bard','Cleric','Druid','Paladin','Ranger']}, {name:'Detect Magic', level:1, classes:['Bard','Cleric','Druid','Paladin','Ranger','Sorcerer','Warlock','Wizard']},
+  {name:'Disguise Self', level:1, classes:['Bard','Sorcerer','Warlock','Wizard']}, {name:'Faerie Fire', level:1, classes:['Bard','Druid']}, {name:'Feather Fall', level:1, classes:['Bard','Sorcerer','Wizard']},
+  {name:'Find Familiar', level:1, classes:['Wizard']}, {name:'Guiding Bolt', level:1, classes:['Cleric']}, {name:'Healing Word', level:1, classes:['Bard','Cleric','Druid']}, {name:'Hex', level:1, classes:['Warlock']},
+  {name:'Mage Armor', level:1, classes:['Sorcerer','Wizard']}, {name:'Magic Missile', level:1, classes:['Sorcerer','Wizard']}, {name:'Shield', level:1, classes:['Sorcerer','Wizard']}, {name:'Sleep', level:1, classes:['Bard','Sorcerer','Wizard']},
+  {name:'Thunderwave', level:1, classes:['Bard','Druid','Wizard']}, {name:'Aid', level:2, classes:['Cleric','Paladin']}, {name:'Darkness', level:2, classes:['Sorcerer','Warlock','Wizard']},
+  {name:'Hold Person', level:2, classes:['Bard','Cleric','Druid','Sorcerer','Warlock','Wizard']}, {name:'Invisibility', level:2, classes:['Bard','Sorcerer','Warlock','Wizard']},
+  {name:'Lesser Restoration', level:2, classes:['Bard','Cleric','Druid','Paladin','Ranger']}, {name:'Misty Step', level:2, classes:['Sorcerer','Warlock','Wizard']},
+  {name:'Scorching Ray', level:2, classes:['Sorcerer','Wizard']}, {name:'Shatter', level:2, classes:['Bard','Sorcerer','Wizard']}, {name:'Spiritual Weapon', level:2, classes:['Cleric']}, {name:'Suggestion', level:2, classes:['Bard','Sorcerer','Warlock','Wizard']},
+  {name:'Counterspell', level:3, classes:['Sorcerer','Warlock','Wizard']}, {name:'Dispel Magic', level:3, classes:['Bard','Cleric','Druid','Paladin','Sorcerer','Warlock','Wizard']}, {name:'Fireball', level:3, classes:['Sorcerer','Wizard']},
+  {name:'Fly', level:3, classes:['Sorcerer','Warlock','Wizard']}, {name:'Haste', level:3, classes:['Sorcerer','Wizard']}, {name:'Revivify', level:3, classes:['Cleric','Paladin']}, {name:'Spirit Guardians', level:3, classes:['Cleric']}
+];
+
+const FEAT_DETAILS = {
+  'Actor':'+1 Charisma. Advantage on Deception and Performance checks when trying to pass yourself off as a different person, and you can mimic speech and sounds you have heard.',
+  'Alert':'+5 bonus to initiative, you can\'t be surprised while conscious, and other creatures don\'t gain advantage on attack rolls against you just for being unseen.',
+  'Athlete':'+1 Strength or Dexterity. Standing from prone uses only 5 feet of movement, climbing costs less, and you can make running long jumps after only 5 feet of movement.',
+  'Charger':'When you use the Dash action, you can use a bonus action to make one melee attack or shove. If you move at least 10 feet straight before the attack, you gain +5 damage or push the target farther on a shove.',
+  'Crossbow Expert':'You ignore the loading property of crossbows you are proficient with, being within 5 feet of a hostile creature doesn\'t impose disadvantage on your ranged attacks, and when you attack with a one-handed weapon you can bonus-action attack with a hand crossbow.',
+  'Defensive Duelist':'When wielding a finesse weapon you are proficient with, you can use your reaction to add your proficiency bonus to AC against one melee attack that would hit you.',
+  'Dual Wielder':'+1 AC while wielding a separate melee weapon in each hand, you can use two-weapon fighting with non-light one-handed melee weapons, and you can draw or stow two one-handed weapons when you normally could draw or stow only one.',
+  'Dungeon Delver':'You gain advantages for finding secret doors, resisting traps, and noticing hidden trap effects, and you can search for traps at a normal pace while traveling.',
+  'Durable':'+1 Constitution. When you spend Hit Dice to heal, the minimum you regain from each die equals twice your Constitution modifier.',
+  'Elemental Adept':'Choose one damage type from acid, cold, fire, lightning, or thunder. Your spells ignore resistance to that type, and damage dice of 1 for spells of that type count as 2.',
+  'Grappler':'You gain advantage on attack rolls against a creature you are grappling, and you can try to pin a creature grappled by you, restraining both of you.',
+  'Great Weapon Master':'On your turn, when you score a critical hit with a melee weapon or reduce a creature to 0 hit points, you can make one melee weapon attack as a bonus action. Before attacking with a heavy weapon you are proficient with, you can take -5 to hit for +10 damage.',
+  'Healer':'With a healer\'s kit, you can stabilize a creature and restore 1 hit point to it. You can also expend one use of a healer\'s kit to restore 1d6 + 4 + the target\'s Hit Dice, once per creature per short or long rest.',
+  'Heavily Armored':'+1 Strength and proficiency with heavy armor.',
+  'Heavy Armor Master':'+1 Strength, and while wearing heavy armor bludgeoning, piercing, and slashing damage from nonmagical weapons is reduced by 3.',
+  'Inspiring Leader':'After a 10-minute speech, you can grant temporary hit points to up to six friendly creatures who can hear and understand you.',
+  'Keen Mind':'+1 Intelligence. You always know which way is north, how many hours remain before the next sunrise or sunset, and you can accurately recall anything seen or heard within the past month.',
+  'Lightly Armored':'+1 Strength or Dexterity and proficiency with light armor.',
+  'Linguist':'+1 Intelligence, three extra languages, and you can create written ciphers others struggle to decipher.',
+  'Lucky':'You gain 3 luck points per long rest. You can spend one to roll an extra d20 on an attack roll, ability check, or saving throw, or to influence an attack roll made against you.',
+  'Mage Slayer':'When a creature within 5 feet casts a spell, you can use your reaction to make a melee attack against it. Your attacks damage its concentration, and you have advantage on saves against spells cast by creatures within 5 feet of you.',
+  'Magic Initiate':'Choose a class spell list. Learn two cantrips and one 1st-level spell from that class list; you can cast the 1st-level spell once per long rest.',
+  'Martial Adept':'Learn two maneuvers from Battle Master and gain one superiority die (d6) to fuel them.',
+  'Medium Armor Master':'Wearing medium armor doesn\'t impose disadvantage on Dexterity (Stealth) checks, and you can add up to +3 Dexterity to AC instead of +2.',
+  'Mobile':'Your speed increases by 10 feet, Dash is easier through difficult terrain, and creatures you attack can\'t make opportunity attacks against you for the rest of the turn whether you hit or not.',
+  'Moderately Armored':'+1 Strength or Dexterity and proficiency with medium armor and shields.',
+  'Mounted Combatant':'You gain advantages on attacks against smaller unmounted creatures, can redirect attacks that target your mount to yourself, and your mount gains better protection on Dexterity saves.',
+  'Observant':'+1 Intelligence or Wisdom, +5 passive Perception and passive Investigation, and you can read lips of a creature speaking a language you understand.',
+  'Polearm Master':'When wielding a glaive, halberd, pike, quarterstaff, or spear, you can bonus-action attack with the opposite end and make opportunity attacks when creatures enter your reach.',
+  'Resilient':'+1 to one ability score of your choice and proficiency in saving throws using that ability.',
+  'Ritual Caster':'Choose a spellcasting class. You gain a ritual book with two 1st-level rituals from that class and can add more ritual spells you find.',
+  'Savage Attacker':'Once per turn when you roll weapon damage for a melee weapon attack, you can reroll the weapon\'s damage dice and use either total.',
+  'Sentinel':'Creatures you hit with opportunity attacks stop moving, creatures provoke your opportunity attacks even when they Disengage, and you can react to attack a nearby creature that attacks someone else.',
+  'Sharpshooter':'Long range doesn\'t impose disadvantage on your ranged weapon attacks, your ranged attacks ignore half and three-quarters cover, and you can take -5 to hit for +10 damage.',
+  'Shield Master':'If you take the Attack action, you can bonus-action shove with your shield. You add your shield\'s AC bonus to certain Dexterity saves, and on some successful saves you can take no damage.',
+  'Skilled':'Gain proficiency in any combination of three skills or tools of your choice.',
+  'Skulker':'You can try to hide when lightly obscured, missing with a ranged attack from hiding does not reveal your position, and dim light does not impose disadvantage on your Perception checks relying on sight.',
+  'Spell Sniper':'Learn one attack-roll cantrip, double the range of your spell attacks, and those attacks ignore half and three-quarters cover.',
+  'Tavern Brawler':'+1 Strength or Constitution, proficiency with improvised weapons, unarmed strikes deal 1d4, and after hitting a creature with an unarmed strike or improvised weapon you can bonus-action grapple.',
+  'Tough':'Your hit point maximum increases by 2 per level when you gain this feat, and it increases by 2 again every time you gain a level afterward.',
+  'War Caster':'You have advantage on Constitution saves to maintain concentration, can perform somatic components even with weapons or shields in hand, and can cast a spell instead of making an opportunity attack if the spell targets only that creature.',
+  'Weapon Master':'Gain proficiency with four weapons of your choice.'
+};
+function featDescription(name){
+  const feat = String(name || '').trim();
+  if (!feat) return 'Choose a feat to see a short rules summary.';
+  return FEAT_DETAILS[feat] || 'Custom or unrecognized feat. Add its rules in your notes if needed.';
+}
+function featInfoHtml(name, extra=''){
+  const feat = String(name || '').trim();
+  const title = feat ? `<strong>${feat}</strong><br>` : '';
+  return `<div class="small">${title}${featDescription(feat)}${extra ? `<br><span class="muted">${extra}</span>` : ''}</div>`;
+}
+
+const state = {
+  name:'', species:'Human', background:'Soldier', notes:'', abilityMode:'manual',
+  abilities:{ Strength:10, Dexterity:10, Constitution:10, Intelligence:10, Wisdom:10, Charisma:10 },
+  classes:[{ name:'Fighter', level:1, hpLog:[10], subclass:'', featureChoices:{}, asiChoices:{} }],
+  backgroundBoostChoice:{ mode:'+2/+1', first:'Strength', second:'Constitution', third:'Wisdom' },
+  armor:'Leather', armorMagic:0, shield:'None', shieldMagic:0,
+  weapons:[{ name:'Longsword', magic:0 }, { name:'Longbow', magic:0 }],
+  feats:['Savage Attacker'],
+  spells:[],
+  spellAbilityOverride:'',
+  resourceTracker:{},
+  extraSkillProficiencies:[]
+};
+
+function qs(id){ return document.getElementById(id); }
+function mod(score){ return Math.floor((score-10)/2); }
+function totalLevel(){ return state.classes.reduce((a,c)=>a+c.level,0); }
+function profBonus(){ return PROF_BY_LEVEL(totalLevel()); }
+function getBackgroundBoostMap(){
+  const map = Object.fromEntries(ABILITIES.map(a=>[a,0]));
+  const c = state.backgroundBoostChoice;
+  if (c.mode === '+2/+1') {
+    map[c.first] += 2;
+    if (c.second && c.second !== c.first) map[c.second] += 1;
+  } else {
+    [c.first,c.second,c.third].forEach(a=>{ if (a) map[a] += 1; });
+  }
+  return map;
+}
+function getBaseAbilitiesWithoutBackground(){
+  const boosts = getBackgroundBoostMap();
+  const out = {};
+  for (const a of ABILITIES) out[a] = state.abilities[a] - (boosts[a] || 0);
+  return out;
+}
+function applyBackgroundBoostsToManualBase(baseMap){
+  const boosts = getBackgroundBoostMap();
+  const result = {};
+  for (const a of ABILITIES) {
+    const baseValue = Number(baseMap[a] || 8) + (boosts[a] || 0);
+    if (state.abilityMode === 'pointbuy') {
+      result[a] = Math.max(1, Math.min(20, baseValue));
+    } else {
+      result[a] = Math.max(1, Math.min(30, baseValue));
+    }
+  }
+  return result;
+}
+function pointBuySpent(){
+  const base = getBaseAbilitiesWithoutBackground();
+  return ABILITIES.reduce((sum,a)=> sum + (POINT_BUY_COST[base[a]] ?? 999), 0);
+}
+function armorClass(){
+  const armor = ARMORS[state.armor];
+  const dex = mod(state.abilities.Dexterity);
+  const dexPart = armor.dex === 'full' ? dex : armor.dex === 'cap' ? Math.min(dex, armor.maxDex) : 0;
+  return armor.base + dexPart + SHIELDS[state.shield] + Number(state.armorMagic) + Number(state.shieldMagic);
+}
+function initiative(){ return mod(state.abilities.Dexterity); }
+function speciesSpeed(){ return SPECIES[state.species].speed; }
+function hitPointMax(){
+  const totalLevels = totalLevel();
+  const con = mod(state.abilities.Constitution);
+  const rolled = state.classes.reduce((sum,c)=> sum + c.hpLog.reduce((a,b)=>a+b,0), 0);
+  return Math.max(totalLevels, rolled + (con * totalLevels));
+}
+function hitDiceSummary(){
+  const pools = {};
+  state.classes.forEach(c => {
+    const die = 'd' + CLASSES[c.name].hd;
+    pools[die] = (pools[die] || 0) + c.level;
+  });
+  return Object.entries(pools)
+    .sort((a,b)=> Number(a[0].slice(1)) - Number(b[0].slice(1)))
+    .map(([die,count]) => `${count}${die}`)
+    .join(' / ') || '—';
+}
+function classLevelsMap(){
+  return Object.fromEntries(state.classes.map(c=>[c.name,c.level]));
+}
+function spellcastingProfile(){
+  let casterLevel = 0;
+  let pactLevel = 0;
+  let spellAbility = state.spellAbilityOverride || null;
+  state.classes.forEach(c => {
+    const data = CLASSES[c.name];
+    if (data.spellcasting === 'full') casterLevel += c.level;
+    if (data.spellcasting === 'half') casterLevel += Math.floor(c.level / 2);
+    if (data.spellcasting === 'pact') pactLevel += c.level;
+    if (!spellAbility && data.primary.length) {
+      const p = data.primary.find(v => ['Intelligence','Wisdom','Charisma'].includes(v));
+      if (p) spellAbility = p;
+    }
+  });
+  const slots = SPELL_SLOTS_FULL[Math.max(1, Math.min(20, casterLevel))] || [0,0,0,0,0,0,0,0,0];
+  return { casterLevel, pactLevel, slots, spellAbility: spellAbility || 'Intelligence' };
+}
+function spellSaveDC(){
+  const p = spellcastingProfile();
+  return 8 + profBonus() + mod(state.abilities[p.spellAbility]);
+}
+function spellAttackBonus(){
+  const p = spellcastingProfile();
+  return profBonus() + mod(state.abilities[p.spellAbility]);
+}
+function passivePerception(){ return 10 + mod(state.abilities.Wisdom) + profBonus(); }
+function multiclassRulesText(){
+  const warnings = [];
+  if (state.classes.length > 1) {
+    state.classes.forEach(c => {
+      const req = CLASSES[c.name].primary;
+      const ok = req.some(a => state.abilities[a] >= 13);
+      if (!ok) warnings.push(`${c.name} multiclass prerequisite is not met; you typically need at least 13 in a listed primary ability.`);
+    });
+  }
+  return warnings.length ? warnings.join(' ') : 'Multiclass note: this sheet checks the main 13+ ability gate from the 2014 optional multiclassing rules in a simplified way and does not fully automate Pact Magic interaction.';
+}
+function nextLevelBenefitsText(chosen){
+  const data = CLASSES[chosen.name];
+  const nextLevel = chosen.level + 1;
+  const featureText = (data.features && data.features[nextLevel]) ? data.features[nextLevel].join(', ') : 'No major class feature listed in this builder for that level.';
+  const asiText = data.asi.includes(nextLevel)
+    ? 'This level grants an Ability Score Improvement, so you can choose a feat or increase ability scores.'
+    : 'This level does not grant an ASI / feat choice in this builder.';
+  return `${chosen.name} level ${nextLevel}\nFeatures: ${featureText}\n${asiText}`;
+}
+function updateBackgroundBoostedAbilitiesFromInputs(){
+  const base = {};
+  ABILITIES.forEach(a => {
+    const el = qs(`base-${a}`);
+    base[a] = Number(el?.value || 8);
+  });
+  state.abilities = applyBackgroundBoostsToManualBase(base);
+}
+function availableSpells(){
+  const classes = state.classes.map(c=>c.name);
+  return SPELLS.filter(s => s.classes.some(c => classes.includes(c)));
+}
+function skillNameToKey(name){
+  return name.toLowerCase().replace(/[^a-z]/g, '');
+}
+function getSkillSourceMap(){
+  const out = Object.fromEntries(Object.keys(SKILL_DATA).map(name => [name, []]));
+  const addSource = (skill, source) => {
+    if (!out[skill].includes(source)) out[skill].push(source);
+  };
+
+  (BACKGROUNDS[state.background]?.skills || []).forEach(skill => {
+    if (out[skill]) addSource(skill, `Background: ${state.background}`);
+  });
+
+  (SPECIES_SKILL_BONUSES[state.species] || []).forEach(skill => {
+    if (out[skill]) addSource(skill, `Species: ${state.species}`);
+  });
+
+  (state.extraSkillProficiencies || []).forEach(skill => {
+    if (out[skill]) addSource(skill, 'Manual');
+  });
+
+  state.classes.forEach(c => {
+    Object.values(c.featureChoices || {}).forEach(text => {
+      const lower = String(text || '').toLowerCase();
+      Object.keys(SKILL_DATA).forEach(skill => {
+        if (lower.includes(skill.toLowerCase())) addSource(skill, `${c.name} choice`);
+      });
+    });
+  });
+
+  return out;
+}
+function renderSkillList(){
+  const container = qs('skillsGrid');
+  if (!container) return;
+  const sourceMap = getSkillSourceMap();
+
+  const html = SKILL_GROUP_ORDER.map(ability => {
+    const skills = Object.keys(SKILL_DATA)
+      .filter(skill => SKILL_DATA[skill] === ability)
+      .sort((a, b) => a.localeCompare(b))
+      .map(skill => {
+        const sources = sourceMap[skill];
+        const proficient = sources.length > 0;
+        const total = mod(state.abilities[ability]) + (proficient ? profBonus() : 0);
+        const sourceText = proficient
+          ? `<div class="skill-source">Proficient via: ${sources.join(', ')}</div>`
+          : '';
+        return `
+          <div class="skill-line">
+            <span>${skill}</span>
+            <strong>${total >= 0 ? '+' : ''}${total}</strong>
+          </div>
+          ${sourceText}
+        `;
+      }).join('');
+
+    return `<div class="skill-group"><h4>${ability} ${mod(state.abilities[ability]) >= 0 ? '+' : ''}${mod(state.abilities[ability])}</h4>${skills}</div>`;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+function renderSkillsModal(){
+  const container = qs('skillsModalGrid');
+  if (!container) return;
+
+  const html = SKILL_GROUP_ORDER.map(ability => {
+    const skills = Object.keys(SKILL_DATA)
+      .filter(skill => SKILL_DATA[skill] === ability)
+      .sort((a, b) => a.localeCompare(b))
+      .map(skill => {
+        const checked = (state.extraSkillProficiencies || []).includes(skill) ? 'checked' : '';
+        const id = `extra-skill-${skillNameToKey(skill)}`;
+        return `
+          <label for="${id}" style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" id="${id}" data-extra-skill="${skill}" ${checked}>
+            <span>${skill}</span>
+          </label>
+        `;
+      }).join('');
+
+    return `
+      <div class="skill-group">
+        <h4>${ability}</h4>
+        <div class="stack">${skills}</div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+function openSkillsModal(){
+  renderSkillsModal();
+  qs('skillsModalOverlay').classList.add('open');
+  qs('skillsModalOverlay').setAttribute('aria-hidden', 'false');
+}
+
+function closeSkillsModal(){
+  qs('skillsModalOverlay').classList.remove('open');
+  qs('skillsModalOverlay').setAttribute('aria-hidden', 'true');
+}
+
+function applySkillsModal(){
+  const selected = [...document.querySelectorAll('[data-extra-skill]:checked')]
+    .map(el => el.dataset.extraSkill)
+    .sort((a, b) => a.localeCompare(b));
+
+  state.extraSkillProficiencies = selected;
+  closeSkillsModal();
+  rerender();
+}
+
+function availableSpellOptions(){
+  const profile = spellcastingProfile();
+  const maxSpellLevel = Math.max(0, ...profile.slots.map((n, i) => n > 0 ? i + 1 : 0));
+  return availableSpells().filter(s => {
+    if (s.level === 0) return true;
+    return s.level <= maxSpellLevel;
+  });
+}
+function renderSelectors(){
+  qs('species').innerHTML = Object.keys(SPECIES).map(v=>`<option ${state.species===v?'selected':''}>${v}</option>`).join('');
+  qs('background').innerHTML = Object.keys(BACKGROUNDS).map(v=>`<option ${state.background===v?'selected':''}>${v}</option>`).join('');
+  qs('armor').innerHTML = Object.keys(ARMORS).map(v=>`<option value="${v}" ${state.armor===v?'selected':''}>${v}</option>`).join('');
+  qs('shield').innerHTML = Object.keys(SHIELDS).map(v=>`<option value="${v}" ${state.shield===v?'selected':''}>${v}</option>`).join('');
+  const magicOpts = [0,1,2,3].map(v=>`<option value="${v}">+${v}</option>`).join('');
+  qs('armorMagic').innerHTML = magicOpts; qs('armorMagic').value = state.armorMagic;
+  qs('shieldMagic').innerHTML = magicOpts; qs('shieldMagic').value = state.shieldMagic;
+  qs('abilityMode').value = state.abilityMode;
+  qs('spellAbilityOverride').value = state.spellAbilityOverride;
+  qs('featList').innerHTML = FEATS.map(f=>`<option value="${f}"></option>`).join('');
+  const spellOptions = availableSpellOptions();
+  qs('spellPicker').innerHTML = spellOptions.length
+    ? `<option value="">Choose a spell or cantrip...</option>` + spellOptions.map(s=>`<option value="${s.name}">${s.name} — ${s.level===0?'Cantrip':`Level ${s.level}`}</option>`).join('')
+    : '<option value="">No currently available spells</option>';
+  [qs('asiStat1'),qs('asiStat2')].forEach(sel => sel.innerHTML = ABILITIES.map(a=>`<option>${a}</option>`).join(''));
+}
+function renderClasses(){
+  qs('classesWrap').innerHTML = state.classes.map((c, i) => `
+    <div class="class-row card">
+      <label>Class <select data-class-name="${i}">${Object.keys(CLASSES).map(name=>`<option ${name===c.name?'selected':''}>${name}</option>`).join('')}</select></label>
+      <label>Level <input data-class-level="${i}" type="number" min="1" value="${c.level}"></label>
+      
+      <button type="button" data-remove-class="${i}" ${state.classes.length===1?'disabled':''}>Remove</button>
+    </div>
+  `).join('');
+  qs('levelClass').innerHTML = state.classes.map((c,i)=>`<option value="${i}">${c.name} (current ${c.level})</option>`).join('');
+}
+function renderAbilities(){
+  const base = getBaseAbilitiesWithoutBackground();
+  const boostMap = getBackgroundBoostMap();
+  const inputMax = state.abilityMode === 'pointbuy' ? 15 : 30;
+  const inputMin = state.abilityMode === 'pointbuy' ? 8 : 1;
+  const mk = names => names.map(a => `
+    <div class="ability-row">
+      <strong>${SHORT[a]}</strong>
+      <input id="base-${a}" type="number" min="${inputMin}" max="${inputMax}" value="${base[a]}">
+      <span>${state.abilities[a]} (${mod(state.abilities[a])>=0?'+':''}${mod(state.abilities[a])})</span>
+    </div>
+    <div class="small muted" style="margin:-4px 0 8px 0;">Background bonus: +${boostMap[a] || 0}</div>
+  `).join('');
+  qs('abilityColLeft').innerHTML = mk(['Strength','Dexterity','Constitution']);
+  qs('abilityColRight').innerHTML = mk(['Intelligence','Wisdom','Charisma']);
+}
+
+function bardicInspirationDie(bardLevel){
+  if (bardLevel >= 15) return 'd12';
+  if (bardLevel >= 10) return 'd10';
+  if (bardLevel >= 5) return 'd8';
+  return 'd6';
+}
+function barbarianRages(barbLevel){
+  if (barbLevel >= 20) return 'Unlimited';
+  if (barbLevel >= 17) return 6;
+  if (barbLevel >= 12) return 5;
+  if (barbLevel >= 6) return 4;
+  if (barbLevel >= 3) return 3;
+  return 2;
+}
+function battleMasterDice(fighterLevel){
+  const count = fighterLevel >= 15 ? 6 : fighterLevel >= 7 ? 5 : 4;
+  const die = fighterLevel >= 18 ? 'd12' : fighterLevel >= 10 ? 'd10' : 'd8';
+  return {count, die};
+}
+function setResourceCurrentDefault(key, maxValue){
+  const hasValue = Object.prototype.hasOwnProperty.call(state.resourceTracker, key);
+  if (!hasValue) state.resourceTracker[key] = String(maxValue);
+}
+function getTrackedResources(){
+  const resources = [];
+  state.classes.forEach(c => {
+    const keyBase = `${c.name}-${c.level}`;
+    if (c.name === 'Barbarian' && c.level >= 1) {
+      const maxValue = barbarianRages(c.level);
+      setResourceCurrentDefault(`${keyBase}-rages`, maxValue);
+      resources.push({ key:`${keyBase}-rages`, label:'Rages', current:state.resourceTracker[`${keyBase}-rages`], max:maxValue, meta:'Uses per long rest' });
+    }
+    if (c.name === 'Bard' && c.level >= 1) {
+      const maxValue = Math.max(1, mod(state.abilities.Charisma));
+      const die = bardicInspirationDie(c.level);
+      const restText = c.level >= 5 ? 'Short or long rest' : 'Long rest';
+      setResourceCurrentDefault(`${keyBase}-bardic`, maxValue);
+      resources.push({ key:`${keyBase}-bardic`, label:`Bardic Inspiration (${die})`, current:state.resourceTracker[`${keyBase}-bardic`], max:maxValue, meta:`${die} · ${restText}` });
+    }
+    if (c.name === 'Cleric' && c.level >= 2) {
+      const maxValue = c.level >= 18 ? 3 : c.level >= 6 ? 2 : 1;
+      setResourceCurrentDefault(`${keyBase}-channel`, maxValue);
+      resources.push({ key:`${keyBase}-channel`, label:'Channel Divinity', current:state.resourceTracker[`${keyBase}-channel`], max:maxValue, meta:'Uses per rest' });
+    }
+    if (c.name === 'Druid' && c.level >= 2) {
+      setResourceCurrentDefault(`${keyBase}-wildshape`, 2);
+      resources.push({ key:`${keyBase}-wildshape`, label:'Wild Shape', current:state.resourceTracker[`${keyBase}-wildshape`], max:2, meta:'Uses per short or long rest' });
+    }
+    if (c.name === 'Fighter' && c.level >= 1) {
+      setResourceCurrentDefault(`${keyBase}-secondwind`, 1);
+      resources.push({ key:`${keyBase}-secondwind`, label:'Second Wind', current:state.resourceTracker[`${keyBase}-secondwind`], max:1, meta:'Use per short or long rest' });
+      if (c.subclass === 'Battle Master' && c.level >= 3) {
+        const bm = battleMasterDice(c.level);
+        setResourceCurrentDefault(`${keyBase}-superiority`, bm.count);
+        resources.push({ key:`${keyBase}-superiority`, label:`Superiority Dice (${bm.die})`, current:state.resourceTracker[`${keyBase}-superiority`], max:bm.count, meta:`${bm.die} · Maneuver dice` });
+      }
+    }
+    if (c.name === 'Monk' && c.level >= 2) {
+      setResourceCurrentDefault(`${keyBase}-ki`, c.level);
+      resources.push({ key:`${keyBase}-ki`, label:'Ki Points', current:state.resourceTracker[`${keyBase}-ki`], max:c.level, meta:'Points per short or long rest' });
+    }
+    if (c.name === 'Paladin' && c.level >= 1) {
+      const layOnHands = c.level * 5;
+      setResourceCurrentDefault(`${keyBase}-layonhands`, layOnHands);
+      resources.push({ key:`${keyBase}-layonhands`, label:'Lay on Hands', current:state.resourceTracker[`${keyBase}-layonhands`], max:layOnHands, meta:'Healing pool per long rest' });
+      const divineSense = Math.max(1, 1 + mod(state.abilities.Charisma));
+      setResourceCurrentDefault(`${keyBase}-divinesense`, divineSense);
+      resources.push({ key:`${keyBase}-divinesense`, label:'Divine Sense', current:state.resourceTracker[`${keyBase}-divinesense`], max:divineSense, meta:'Uses per long rest' });
+    }
+    if (c.name === 'Sorcerer' && c.level >= 2) {
+      setResourceCurrentDefault(`${keyBase}-sorcery`, c.level);
+      resources.push({ key:`${keyBase}-sorcery`, label:'Sorcery Points', current:state.resourceTracker[`${keyBase}-sorcery`], max:c.level, meta:'Points per long rest' });
+    }
+  });
+  return resources;
+}
+function renderResourcesBox(){
+  const resources = getTrackedResources();
+  if (!resources.length) {
+    qs('pointBuyBox').innerHTML = '<strong>Class Resources</strong><br><span class="muted">No tracked class dice or uses at the current levels.</span>';
+    return;
+  }
+  qs('pointBuyBox').innerHTML = `
+    <strong>Class Resources</strong>
+    <div class="resource-list" style="margin-top:10px;">
+      ${resources.map(r => `
+        <div class="resource-row">
+          <div><strong>${r.label}</strong><div class="resource-meta">${r.meta}</div></div>
+          <label>Current <input type="number" min="0" data-resource-current="${r.key}" value="${r.current}"></label>
+          <label>Max <input type="text" value="${r.max}" readonly></label>
+          <div class="small muted"></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function renderSummary(){
+  const spell = spellcastingProfile();
+  const cardsHtml = [
+    ['HP', hitPointMax()],
+    ['AC', armorClass()],
+    ['Initiative', `${initiative()>=0?'+':''}${initiative()}`],
+    ['Hit Dice', hitDiceSummary()],
+    ['Speed', speciesSpeed()],
+    ['PP', passivePerception()],
+    ['Prof. Bonus', `+${profBonus()}`],
+    ['Spell Save DC', spell.casterLevel || spell.pactLevel ? spellSaveDC() : '—'],
+    ['Spell Attack', spell.casterLevel || spell.pactLevel ? `${spellAttackBonus()>=0?'+':''}${spellAttackBonus()}` : '—']
+  ].map(([k,v]) => `<div class="card"><div class="small">${k}</div><div class="value">${v}</div></div>`).join('');
+  qs('summaryCardsTop').innerHTML = cardsHtml;
+
+  const spent = pointBuySpent();
+  const base = getBaseAbilitiesWithoutBackground();
+  const invalid = state.abilityMode === 'pointbuy' && Object.values(base).some(v => v < 8 || v > 15);
+  renderResourcesBox();
+  const errors = [];
+  if (state.abilityMode === 'pointbuy' && !invalid && spent > 27) errors.push('Point buy is over 27 points.');
+  qs('validationBox').innerHTML = errors.length ? `<div class="error-box">${errors.join('<br>')}</div>` : '';
+}
+function renderWeapons(){
+  qs('weaponsWrap').innerHTML = state.weapons.map((w, i) => {
+    const magicOptions = [0,1,2,3].map(v => `<option value="${v}" ${Number(w.magic)===v?'selected':''}>+${v}</option>`).join('');
+    return `
+      <div class="list-row card weapon-row">
+        <label>Weapon <select data-weapon-name="${i}">${Object.keys(WEAPONS).map(name=>`<option ${name===w.name?'selected':''}>${name}</option>`).join('')}</select></label>
+        <label>Magic Bonus <select data-weapon-magic="${i}">${magicOptions}</select></label>
+        <div class="weapon-stats">${WEAPONS[w.name].damage}&nbsp;&nbsp;${WEAPONS[w.name].ability}</div>
+        <button type="button" data-remove-weapon="${i}">Remove</button>
+      </div>`;
+  }).join('');
+}
+function renderFeats(){
+  qs('featsWrap').innerHTML = state.feats.map((f, i) => `
+    <div class="feat-card">
+      <label>Feat <input type="text" list="featList" data-feat-index="${i}" value="${f}"></label>
+      <button type="button" data-remove-feat="${i}">Remove</button>
+      ${featInfoHtml(f, 'Known feat')}
+    </div>
+  `).join('') || '<div class="small muted">No feats selected.</div>';
+}
+function renderSpells(){
+  const spell = spellcastingProfile();
+  const grouped = {};
+  state.spells.forEach(s => { if (!grouped[s.level]) grouped[s.level] = []; grouped[s.level].push(s.name); });
+  qs('spellSummary').innerHTML = `
+    Spellcasting ability: ${spell.spellAbility}<br>
+    Spell slots: ${spell.slots.map((n,i)=> n ? `L${i+1} ${n}` : '').filter(Boolean).join(' · ') || 'None'}
+  `;
+  const boxes = [];
+  boxes.push(`<div class="spell-level-box"><strong>Cantrips</strong><div class="spell-list">${(grouped[0]||[]).map(n=>`<span class="pill">${n}</span>`).join('') || '<span class="muted">None</span>'}</div></div>`);
+  for (let lvl = 1; lvl <= 9; lvl++) {
+    const slots = spell.slots[lvl-1] || 0;
+    if (!slots) continue;
+    boxes.push(`<div class="spell-level-box"><strong>Level ${lvl}</strong><div class="small">Slots: ${slots}</div><div class="spell-list">${(grouped[lvl]||[]).map(n=>`<span class="pill">${n}</span>`).join('') || '<span class="muted">None</span>'}</div></div>`);
+  }
+  qs('spellsByLevel').innerHTML = boxes.join('');
+}
+function renderNotesSummary(){
+  const bg = BACKGROUNDS[state.background];
+  const species = SPECIES[state.species];
+  const classLines = state.classes.map(c => {
+    const data = CLASSES[c.name];
+    const unlocked = [];
+    for (let lvl = 1; lvl <= c.level; lvl++) {
+      const feats = (data.features && data.features[lvl]) ? data.features[lvl].join(', ') : '';
+      const asiInfo = c.asiChoices?.[lvl];
+      let asi = '';
+      if (data.asi.includes(lvl)) {
+        if (asiInfo?.type === 'feat' && asiInfo.feat) {
+          asi = ` Feat chosen: ${asiInfo.feat}. ${asiInfo.details || featDescription(asiInfo.feat)}`;
+        } else if (asiInfo?.type === 'asi' && Array.isArray(asiInfo.stats) && asiInfo.stats.length) {
+          asi = ` Ability Score Improvement: ${asiInfo.stats.join(' and ')}.`;
+        } else {
+          asi = ' ASI / feat level.';
+        }
+      }
+      const optionDetail = CLASS_OPTION_DETAILS[c.name]?.[lvl] ? ` Class-specific choice: ${CLASS_OPTION_DETAILS[c.name][lvl]}` : '';
+      unlocked.push(`Lv ${lvl}: ${feats}${asi}${optionDetail}`);
+    }
+    const classSpecific = getClassSpecificNotes(c);
+    const classSpecificBlock = classSpecific.length ? `\nClass-specific notes:\n- ${classSpecific.join('\n- ')}` : '';
+    return `${c.name} ${c.level}\nHit Die: d${data.hd}\nPrimary Abilities: ${data.primary.join(', ')}\nSpellcasting: ${data.spellcasting || 'None'}\n${unlocked.join('\n')}${classSpecificBlock}`;
+  }).join('\n\n');
+  qs('notesSummary').textContent = [
+    `${state.species}: ${species.notes}`,
+    `Traits: ${species.traits.join(', ')}`,
+    '',
+    `${state.background}: ${bg.notes}`,
+    `Background feat: ${bg.feat}`,
+    `Background skills: ${bg.skills.join(', ')}`,
+    state.extraSkillProficiencies.length ? `Extra skill proficiencies: ${state.extraSkillProficiencies.join(', ')}` : '',
+    '',
+    classLines,
+    state.notes ? `\n\nPersonal Notes:\n${state.notes}` : ''
+  ].filter(Boolean).join('\n');
+}
+function syncStaticFields(){
+  state.name = qs('name').value;
+  state.species = qs('species').value;
+  state.background = qs('background').value;
+  state.notes = qs('notes').value;
+  state.abilityMode = qs('abilityMode').value;
+  state.armor = qs('armor').value;
+  state.armorMagic = Number(qs('armorMagic').value || 0);
+  state.shield = qs('shield').value;
+  state.shieldMagic = Number(qs('shieldMagic').value || 0);
+  state.spellAbilityOverride = qs('spellAbilityOverride').value;
+  updateBackgroundBoostedAbilitiesFromInputs();
+}
+function renderBackgroundBoostControls(){
+  const opts = BACKGROUNDS[state.background].boosts;
+  const c = state.backgroundBoostChoice;
+  const modeHtml = `
+    <label class="small">Background boost pattern
+      <select id="bgMode">
+        <option value="+2/+1" ${c.mode==='+2/+1'?'selected':''}>+2 / +1</option>
+        <option value="+1/+1/+1" ${c.mode==='+1/+1/+1'?'selected':''}>+1 / +1 / +1</option>
+      </select>
+    </label>`;
+  const pick = (id, val) => `<label class="small">${id}<select id="${id}">${opts.map(a=>`<option ${a===val?'selected':''}>${a}</option>`).join('')}</select></label>`;
+  qs('pointBuyBox').insertAdjacentHTML('beforeend', `<div class="grid-4" style="margin-top:10px;">${modeHtml}${pick('bgFirst', c.first)}${pick('bgSecond', c.second)}${pick('bgThird', c.third)}</div>`);
+  ['bgMode','bgFirst','bgSecond','bgThird'].forEach(id => {
+    const el = qs(id);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      state.backgroundBoostChoice.mode = qs('bgMode').value;
+      state.backgroundBoostChoice.first = qs('bgFirst').value;
+      state.backgroundBoostChoice.second = qs('bgSecond').value;
+      state.backgroundBoostChoice.third = qs('bgThird').value;
+      updateBackgroundBoostedAbilitiesFromInputs();
+      rerender();
+    });
+  });
+}
+function updateModalFields(){
+  const idx = Number(qs('levelClass').value || 0);
+  const chosen = state.classes[idx] || state.classes[0];
+  if (!chosen) return;
+  if (!chosen.featureChoices) chosen.featureChoices = {};
+  if (!chosen.asiChoices) chosen.asiChoices = {};
+  if (chosen.subclass === undefined) chosen.subclass = '';
+  const data = CLASSES[chosen.name];
+  const nextLevel = chosen.level + 1;
+  const fixed = Math.floor(data.hd / 2) + 1;
+  qs('hpModalNote').textContent = `${chosen.name} d${data.hd}. Fixed HP gain is ${fixed} before Constitution modifier. Next class level will be ${nextLevel}.`;
+  qs('levelBenefits').textContent = nextLevelBenefitsText(chosen);
+  qs('hpFixed').value = fixed;
+  qs('hpRollWrap').classList.toggle('hidden', qs('hpMethod').value !== 'roll');
+  qs('hpFixedWrap').classList.toggle('hidden', qs('hpMethod').value === 'roll');
+
+  const subclassInfo = SUBCLASSES[chosen.name];
+  const needsSubclassChoice = subclassInfo && !chosen.subclass && nextLevel === subclassInfo.chooseAt;
+  const getsSubclassFeature = subclassInfo && !!chosen.subclass && subclassInfo.featureLevels.includes(nextLevel);
+  const extraClassPrompt = CLASS_OPTION_PROMPTS[chosen.name]?.[nextLevel] || '';
+  const showSubclassSection = needsSubclassChoice || getsSubclassFeature || !!extraClassPrompt;
+  qs('subclassSection').classList.toggle('hidden', !showSubclassSection);
+  qs('subclassPickerWrap').classList.toggle('hidden', !needsSubclassChoice);
+  qs('subclassFeatureWrap').classList.toggle('hidden', !(getsSubclassFeature || extraClassPrompt));
+  if (needsSubclassChoice) {
+    qs('levelSubclass').innerHTML = `<option value="">Choose ${subclassInfo.label}</option>` + subclassInfo.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+    qs('levelSubclass').value = chosen.subclass || '';
+  } else {
+    qs('levelSubclass').innerHTML = '<option value="">No subclass choice at this level</option>';
+  }
+  const subclassNotes = [];
+  if (needsSubclassChoice) subclassNotes.push(`${chosen.name} chooses a ${subclassInfo.label} at level ${nextLevel}.`);
+  if (getsSubclassFeature) subclassNotes.push(`${chosen.subclass} grants a subclass feature at ${chosen.name} level ${nextLevel}.`);
+  if (extraClassPrompt) subclassNotes.push(extraClassPrompt);
+  qs('subclassNote').textContent = subclassNotes.join(' ');
+  qs('subclassFeatureText').placeholder = extraClassPrompt || `Record the ${chosen.name} level ${nextLevel} subclass choice for your notes.`;
+  qs('subclassFeatureText').value = chosen.featureChoices[nextLevel] || '';
+
+  const grants = data.asi.includes(nextLevel);
+  qs('asiFeatSection').classList.toggle('hidden', !grants);
+  if (grants) qs('asiFeatNote').textContent = `${chosen.name} level ${nextLevel} grants an Ability Score Improvement. Choose a feat or increase ability scores.`;
+  const featMode = qs('asiChoice').value === 'feat';
+  qs('asiFields').classList.toggle('hidden', featMode);
+  qs('featField').classList.toggle('hidden', !featMode);
+  qs('levelFeatInfo').innerHTML = featInfoHtml(qs('levelFeat').value, 'Feat chosen for this ASI level.');
+}
+function openLevelModal(){
+  updateModalFields();
+  qs('levelModalOverlay').classList.add('open');
+  qs('levelModalOverlay').setAttribute('aria-hidden','false');
+}
+function closeLevelModal(){
+  qs('levelModalOverlay').classList.remove('open');
+  qs('levelModalOverlay').setAttribute('aria-hidden','true');
+}
+function addSpellFromPicker(){
+  const name = qs('spellPicker').value;
+  const spell = SPELLS.find(s => s.name === name);
+  if (!spell) return;
+  if (!state.spells.some(s => s.name === spell.name)) state.spells.push({ name: spell.name, level: spell.level });
+  rerender();
+  qs('spellPicker').selectedIndex = 0;
+}
+function addFeat(value='') { state.feats.push(value); rerender(); }
+function addWeapon(){ state.weapons.push({ name:'Dagger', magic:0 }); rerender(); }
+function addClass(){ state.classes.push({ name:'Wizard', level:1, hpLog:[6], subclass:'', featureChoices:{}, asiChoices:{} }); rerender(); }
+function applyLevelUp(){
+  const idx = Number(qs('levelClass').value || 0);
+  const cls = state.classes[idx];
+  if (!cls) return;
+  if (!cls.featureChoices) cls.featureChoices = {};
+  if (!cls.asiChoices) cls.asiChoices = {};
+  if (cls.subclass === undefined) cls.subclass = '';
+  const data = CLASSES[cls.name];
+  const nextLevel = cls.level + 1;
+  const subclassInfo = SUBCLASSES[cls.name];
+  const needsSubclassChoice = subclassInfo && !cls.subclass && nextLevel === subclassInfo.chooseAt;
+  const subclassValue = qs('levelSubclass').value;
+  if (needsSubclassChoice && !subclassValue) {
+    window.alert(`Choose a ${subclassInfo.label} before applying the level.`);
+    return;
+  }
+  const method = qs('hpMethod').value;
+  let gain = method === 'fixed' ? Number(qs('hpFixed').value || 1) : Number(qs('hpRoll').value || 1);
+  gain = Math.max(1, Math.floor(gain || 1));
+  cls.level = nextLevel;
+  cls.hpLog.push(gain);
+  if (needsSubclassChoice) cls.subclass = subclassValue;
+  const featureText = qs('subclassFeatureText').value.trim();
+  if (featureText) cls.featureChoices[nextLevel] = featureText;
+
+  if (data.asi.includes(nextLevel)) {
+    if (qs('asiChoice').value === 'feat') {
+      const feat = qs('levelFeat').value.trim();
+      if (feat && !state.feats.includes(feat)) state.feats.push(feat);
+      cls.asiChoices[nextLevel] = { type:'feat', feat, details: featDescription(feat) };
+    } else {
+      const s1 = qs('asiStat1').value;
+      const s2 = qs('asiStat2').value;
+      const base = getBaseAbilitiesWithoutBackground();
+      base[s1] = Number(base[s1] || 8) + 1;
+      base[s2] = Number(base[s2] || 8) + 1;
+      if (state.abilityMode === 'pointbuy') {
+        base[s1] = Math.min(15, base[s1]);
+        base[s2] = Math.min(15, base[s2]);
+      }
+      state.abilities = applyBackgroundBoostsToManualBase(base);
+      cls.asiChoices[nextLevel] = { type:'asi', stats:[`+1 ${s1}`, `+1 ${s2}`] };
+    }
+  }
+  qs('hpRoll').value = '';
+  qs('levelFeat').value = '';
+  qs('subclassFeatureText').value = '';
+  closeLevelModal();
+  rerender();
+}
+function rerender(){
+  renderSelectors();
+  renderClasses();
+  renderAbilities();
+  renderSkillList();
+  renderWeapons();
+  renderFeats();
+  renderSummary();
+  renderSpells();
+  renderNotesSummary();
+  renderBackgroundBoostControls();
+  updateModalFields();
+}
+
+qs('levelUpBtn').addEventListener('click', openLevelModal);
+qs('closeLevelModal').addEventListener('click', closeLevelModal);
+qs('applyLevelBtn').addEventListener('click', applyLevelUp);
+qs('addWeaponBtn').addEventListener('click', addWeapon);
+qs('addFeatBtn').addEventListener('click', () => addFeat(''));
+qs('addClassBtn').addEventListener('click', addClass);
+qs('addSpellBtn').addEventListener('click', addSpellFromPicker);
+
+qs('openSkillsModalBtn').addEventListener('click', openSkillsModal);
+qs('closeSkillsModal').addEventListener('click', closeSkillsModal);
+qs('applySkillsModalBtn').addEventListener('click', applySkillsModal);
+qs('clearSkillsModalBtn').addEventListener('click', () => {
+  state.extraSkillProficiencies = [];
+  renderSkillsModal();
+});
+
+qs('name').addEventListener('input', syncStaticFields);
+qs('notes').addEventListener('input', syncStaticFields);
+qs('species').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('background').addEventListener('change', () => {
+  state.background = qs('background').value;
+  const opts = BACKGROUNDS[state.background].boosts;
+  state.backgroundBoostChoice = { mode:'+2/+1', first:opts[0], second:opts[1], third:opts[2] };
+  syncStaticFields(); rerender();
+});
+qs('abilityMode').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('armor').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('armorMagic').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('shield').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('shieldMagic').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('spellAbilityOverride').addEventListener('change', () => { syncStaticFields(); rerender(); });
+qs('levelClass').addEventListener('change', updateModalFields);
+qs('hpMethod').addEventListener('change', updateModalFields);
+qs('asiChoice').addEventListener('change', updateModalFields);
+
+document.addEventListener('input', (e) => {
+  if (e.target.id?.startsWith('base-')) {
+    updateBackgroundBoostedAbilitiesFromInputs();
+    renderSkillList();
+    renderSummary();
+    renderSpells();
+    renderNotesSummary();
+    scheduleBuilderSave();
+    return;
+  }
+  if (e.target.matches('[data-feat-index]')) {
+    state.feats[Number(e.target.dataset.featIndex)] = e.target.value;
+    scheduleBuilderSave();
+    return;
+  }
+  if (e.target.matches('[data-class-level]')) {
+    const i = Number(e.target.dataset.classLevel);
+    state.classes[i].level = Math.max(1, Number(e.target.value || 1));
+    rerender();
+    return;
+  }
+  if (e.target.matches('[data-resource-current]')) {
+    state.resourceTracker[e.target.dataset.resourceCurrent] = e.target.value;
+    scheduleBuilderSave();
+    return;
+  }
+});
+document.addEventListener('change', (e) => {
+  if (e.target.matches('[data-class-name]')) {
+    const i = Number(e.target.dataset.className);
+    const prev = state.classes[i];
+    state.classes[i] = { name:e.target.value, level:prev.level, hpLog:[CLASSES[e.target.value].hd, ...prev.hpLog.slice(1)], subclass:prev.subclass || '', featureChoices:prev.featureChoices || {}, asiChoices:prev.asiChoices || {} };
+    rerender();
+  }
+  if (e.target.matches('[data-weapon-name]')) {
+    state.weapons[Number(e.target.dataset.weaponName)].name = e.target.value;
+    rerender();
+  }
+  if (e.target.matches('[data-weapon-magic]')) {
+    state.weapons[Number(e.target.dataset.weaponMagic)].magic = Number(e.target.value || 0);
+    rerender();
+  }
+});
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.dataset.removeWeapon !== undefined) { state.weapons.splice(Number(t.dataset.removeWeapon),1); rerender(); }
+  if (t.dataset.removeFeat !== undefined) { state.feats.splice(Number(t.dataset.removeFeat),1); rerender(); }
+  if (t.dataset.removeClass !== undefined) { state.classes.splice(Number(t.dataset.removeClass),1); rerender(); }
+  if (t.id === 'levelModalOverlay') closeLevelModal();
+  if (t.id === 'skillsModalOverlay') closeSkillsModal();
+});
+
+qs('name').value = state.name;
+qs('notes').value = state.notes;
+state.backgroundBoostChoice = { mode:'+2/+1', first:'Strength', second:'Constitution', third:'Wisdom' };
+rerender();
+updateModalFields();
+
+function applyLoadedBuilderState(data){
+  if (!data || typeof data !== 'object') return;
+  state.name = data.name || '';
+  state.species = data.species || state.species;
+  state.background = data.background || state.background;
+  state.notes = data.notes || '';
+  state.abilityMode = data.abilityMode || state.abilityMode;
+  state.abilities = { ...state.abilities, ...(data.abilities || {}) };
+  state.classes = Array.isArray(data.classes) && data.classes.length ? data.classes : state.classes;
+  state.backgroundBoostChoice = data.backgroundBoostChoice || state.backgroundBoostChoice;
+  state.armor = data.armor || state.armor;
+  state.armorMagic = Number(data.armorMagic || 0);
+  state.shield = data.shield || state.shield;
+  state.shieldMagic = Number(data.shieldMagic || 0);
+  state.weapons = Array.isArray(data.weapons) ? data.weapons : state.weapons;
+  state.feats = Array.isArray(data.feats) ? data.feats : state.feats;
+  state.spells = Array.isArray(data.spells) ? data.spells : state.spells;
+  state.spellAbilityOverride = data.spellAbilityOverride || '';
+  state.resourceTracker = data.resourceTracker || {};
+  state.extraSkillProficiencies = Array.isArray(data.extraSkillProficiencies) ? data.extraSkillProficiencies : [];
+  qs('name').value = state.name;
+  qs('notes').value = state.notes;
+}
+
+async function saveBuilderToFirebase(message = 'Auto-saved.') {
+  if (!firebaseUser || !code || isSavingToFirebase || suppressAutoSave) return;
+  isSavingToFirebase = true;
+  saveStatusEl.textContent = 'Saving…';
+  try {
+    syncStaticFields();
+    const builderPayload = { ...deepClone(state), updatedAt: Date.now() };
+    const existingPlayerSnap = await get(ref(db, playerPath()));
+    const existingPlayer = existingPlayerSnap.exists() ? existingPlayerSnap.val() : {};
+    const maxHp = hitPointMax();
+    const existingCurrentHp = Number(existingPlayer.currentHp);
+    const nextCurrentHp = Number.isFinite(existingCurrentHp) ? Math.max(0, Math.min(existingCurrentHp, maxHp)) : maxHp;
+
+    const playerPayload = {
+      ...(existingPlayer || {}),
+      uid: firebaseUser.uid,
+      userEmail: firebaseUser.email || '',
+      userName: firebaseUser.displayName || '',
+      mode: 'dnd',
+      name: state.name || firebaseUser.displayName || '',
+
+      ac: armorClass(),
+      baseHp: maxHp,
+      currentHp: nextCurrentHp,
+      proficiencyBonus: profBonus(),
+      initiativeBonus: initiative(),
+      strength: state.abilities.Strength,
+      dexterity: state.abilities.Dexterity,
+      constitution: state.abilities.Constitution,
+      intelligence: state.abilities.Intelligence,
+      wisdom: state.abilities.Wisdom,
+      charisma: state.abilities.Charisma,
+
+      hp: nextCurrentHp,
+      prof: profBonus(),
+      str: state.abilities.Strength,
+      dex: state.abilities.Dexterity,
+      con: state.abilities.Constitution,
+      int: state.abilities.Intelligence,
+      wis: state.abilities.Wisdom,
+      cha: state.abilities.Charisma,
+      initiative: initiative(),
+
+      classSummary: state.classes.map(c => `${c.name} ${c.level}`).join(' / '),
+      builderUpdatedAt: Date.now()
+    };
+
+    await set(ref(db, builderPath()), builderPayload);
+    await set(ref(db, playerPath()), playerPayload);
+    saveStatusEl.textContent = message;
+  } catch (error) {
+    console.error('D&D builder save failed:', error);
+    saveStatusEl.textContent = `Save failed: ${error.message || error}`;
+  } finally {
+    isSavingToFirebase = false;
+  }
+}
+
+function scheduleBuilderSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveBuilderToFirebase('Auto-saved.');
+  }, 500);
+}
+
+const originalRerender = rerender;
+rerender = function(...args){
+  const out = originalRerender(...args);
+  if (!suppressAutoSave) scheduleBuilderSave();
+  return out;
+};
+
+async function initFirebaseBuilderIntegration(){
+  try {
+    firebaseUser = await requireAuth();
+    if (!code) {
+      builderMetaEl.textContent = 'Missing game code.';
+      saveStatusEl.textContent = 'Open this page from player.html with a valid game code.';
+      return;
+    }
+    currentGame = await watchOrLoadGame(code);
+    if (!currentGame) {
+      builderMetaEl.textContent = 'Game not found.';
+      saveStatusEl.textContent = 'Could not load this room.';
+      return;
+    }
+    const mode = String(currentGame.mode || '').toLowerCase();
+    if (mode !== 'dnd') {
+      builderMetaEl.textContent = 'This builder is for D&D rooms only.';
+      saveStatusEl.textContent = 'Wrong game mode.';
+      return;
+    }
+    builderMetaEl.textContent = `Game: ${currentGame.title} · Code: ${currentGame.code}`;
+    backToPlayerLink.href = `player.html?code=${encodeURIComponent(code)}`;
+
+    suppressAutoSave = true;
+    const snap = await get(ref(db, builderPath()));
+    if (snap.exists()) {
+      applyLoadedBuilderState(snap.val());
+      saveStatusEl.textContent = 'Loaded from Firebase.';
+    } else {
+      state.name = state.name || firebaseUser.displayName || '';
+      qs('name').value = state.name;
+      saveStatusEl.textContent = 'No saved D&D builder found yet.';
+    }
+    originalRerender();
+    suppressAutoSave = false;
+    await saveBuilderToFirebase('Loaded and saved.');
+  } catch (error) {
+    console.error(error);
+    saveStatusEl.textContent = error.message || 'Could not initialize D&D builder.';
+  }
+}
+
+initFirebaseBuilderIntegration();
+
+</script>
+</body>
+</html>

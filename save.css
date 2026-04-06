@@ -1,0 +1,109 @@
+/* General container styling */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(5, 26, 20, 0.9); /* Dark background with slight opacity */
+    border-radius: 10px;
+    text-align: center;
+    color: #827b5a; /* Light parchment-like text color */
+    font-family: 'MedievalSharp', cursive; /* Consistent medieval font */
+}
+
+/* Styling for the input field */
+.input-controls {
+    margin-bottom: 20px; /* Space below the input field */
+    text-align: center;
+}
+
+#list-name {
+    padding: 10px;
+    border: 2px solid #2d3d73; /* Gold border */
+    border-radius: 5px;
+    font-size: 16px;
+    width: 300px; /* Adjusted width */
+    font-family: 'MedievalSharp', cursive; /* Medieval theme */
+    background-color: #0b2621; /* Dark input background */
+    color: #827b5a; /* Light text */
+}
+
+/* Focus effect for input fields */
+input:focus {
+    outline: none;
+    box-shadow: 0 0 5px #2d3d73; /* Golden glow around focused input */
+}
+
+/* Button container styling */
+.button-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Space between buttons */
+    margin-bottom: 20px; /* Space below buttons */
+}
+
+/* Button styling */
+button {
+    background-color: #0b2621; /* Dark brown background */
+    color: #bdb382; /* Parchment-like text color */
+    border: 2px solid #2d3d73; /* Gold border */
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px;
+    font-family: 'MedievalSharp', cursive; /* Consistent medieval font */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth hover transition */
+}
+
+/* Hover effect for buttons */
+button:hover {
+    background-color: #1a3b4a; /* Rich reddish-brown hover background */
+    color: #237768; /* Dark text on hover */
+}
+
+/* Focus effect for buttons */
+button:focus {
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 10px #2d3d73; /* Golden glow when focused */
+}
+
+/* Styling for the list of saved lists */
+ul#savedLists {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0;
+    margin-top: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Each list item in the saved list */
+ul#savedLists li {
+    background-color: #182e29; /* Dark brown background */
+    color: #827b5a; /* Parchment-like text */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for list items */
+ul#savedLists li:hover {
+    background-color: #1a3b4a; /* Lighter brown on hover */
+}
+
+/* General button link styling for 'Go Back to Main Page' button */
+#go-back-button {
+    background-color: #0b2621;
+    color: #827b5a;
+    padding: 10px 20px;
+    margin-top: 20px;
+    border-radius: 5px;
+    border: 2px solid #2d3d73;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Hover effect for 'Go Back to Main Page' button */
+#go-back-button:hover {
+    background-color: #1a3b4a; /* Rich reddish-brown hover background */
+    color: #237768; /* Dark text on hover */

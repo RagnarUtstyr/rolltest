@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpenLegend Monster List</title>
+  <link rel="stylesheet" href="list.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a href="group.html" class="button-link">View Initiative</a>
+  <h1>Permanent Monster List</h1>
+
+  <!-- 🔒 Static monster entries (for duplicate skipping) -->
+  <div id="static-monsters" style="display: none;">
+<div class="monster" data-name="Aboleth" data-health="75" data-grd="22" data-res="16" data-tgh="18"></div>
+<div class="monster" data-name="Animated Armor" data-health="30" data-grd="17" data-res="10" data-tgh="15"></div>
+<div class="monster" data-name="Ankheg" data-health="45" data-grd="15" data-res="10" data-tgh="16"></div>
+<div class="monster" data-name="Azer" data-health="39" data-grd="17" data-res="14" data-tgh="16"></div>
+<div class="monster" data-name="Basilisk" data-health="52" data-grd="16" data-res="12" data-tgh="17"></div>
+<div class="monster" data-name="Behir" data-health="168" data-grd="17" data-res="16" data-tgh="19"></div>
+<div class="monster" data-name="Black Bear" data-health="34" data-grd="15" data-res="10" data-tgh="17"></div>
+<div class="monster" data-name="Bugbear" data-health="27" data-grd="16" data-res="10" data-tgh="15"></div>
+<div class="monster" data-name="Chimera" data-health="114" data-grd="17" data-res="13" data-tgh="18"></div>
+<div class="monster" data-name="Chuul" data-health="93" data-grd="16" data-res="12" data-tgh="17"></div>
+<div class="monster" data-name="Cockatrice" data-health="27" data-grd="13" data-res="10" data-tgh="12"></div>
+<div class="monster" data-name="Cloud Giant" data-health="200" data-grd="17" data-res="14" data-tgh="20"></div>
+<div class="monster" data-name="Clay Golem" data-health="133" data-grd="17" data-res="10" data-tgh="18"></div>
+<div class="monster" data-name="Darkmantle" data-health="22" data-grd="11" data-res="10" data-tgh="12"></div>
+<div class="monster" data-name="Deva Planetar" data-health="41" data-grd="25" data-res="18" data-tgh="15"></div>
+<div class="monster" data-name="Solar Deva" data-health="32" data-grd="20" data-res="20" data-tgh="15"></div>
+<div class="monster" data-name="Balor Demon" data-health="105" data-grd="21" data-res="29" data-tgh="27"></div>
+<div class="monster" data-name="Rust Monster" data-health="22" data-grd="16" data-res="10" data-tgh="22"></div>
+<div class="monster" data-name="Storm Giant" data-health="229" data-grd="21" data-res="13" data-tgh="18"></div>
+<div class="monster" data-name="Purple Worm" data-health="247" data-grd="18" data-res="10" data-tgh="18"></div>
+<div class="monster" data-name="Otyugh" data-health="114" data-grd="14" data-res="10" data-tgh="17"></div>
+<div class="monster" data-name="Vampire (Boss)" data-health="144" data-grd="17" data-res="16" data-tgh="18"></div>
+<div class="monster" data-name="Vampire Spawn" data-health="82" data-grd="15" data-res="13" data-tgh="14"></div>
+<div class="monster" data-name="Wraith" data-health="67" data-grd="14" data-res="14" data-tgh="12"></div>
+<div class="monster" data-name="Wolf (NPC)" data-health="12" data-grd="15" data-res="12" data-tgh="13"></div>
+<div class="monster" data-name="Elven Skirmisher" data-health="18" data-grd="17" data-res="12" data-tgh="13"></div>
+<div class="monster" data-name="Crocodile" data-health="19" data-grd="14" data-res="12" data-tgh="17"></div>
+<div class="monster" data-name="Giant Frog" data-health="18" data-grd="12" data-res="11" data-tgh="15"></div>
+<div class="monster" data-name="Harpy" data-health="38" data-grd="14" data-res="13" data-tgh="12"></div>
+<div class="monster" data-name="Black Bear (Large)" data-health="42" data-grd="16" data-res="11" data-tgh="18"></div>
+<div class="monster" data-name="Ogre" data-health="59" data-grd="17" data-res="14" data-tgh="16"></div>
+<div class="monster" data-name="Skeleton Scout" data-health="13" data-grd="13" data-res="10" data-tgh="11"></div>
+<div class="monster" data-name="Ancient Red Dragon" data-health="546" data-grd="23" data-res="20" data-tgh="25"></div>
+<div class="monster" data-name="Young Red Dragon" data-health="178" data-grd="18" data-res="16" data-tgh="17"></div>
+<div class="monster" data-name="Adult Black Dragon" data-health="195" data-grd="19" data-res="17" data-tgh="18"></div>
+<div class="monster" data-name="Young Green Dragon" data-health="136" data-grd="17" data-res="15" data-tgh="16"></div>
+<div class="monster" data-name="Adult Blue Dragon" data-health="225" data-grd="20" data-res="18" data-tgh="19"></div>
+<div class="monster" data-name="Ancient White Dragon" data-health="333" data-grd="22" data-res="19" data-tgh="21"></div>
+<div class="monster" data-name="Young Bronze Dragon" data-health="142" data-grd="17" data-res="15" data-tgh="16"></div>
+<div class="monster" data-name="Adult Silver Dragon" data-health="243" data-grd="21" data-res="18" data-tgh="20"></div>
+<div class="monster" data-name="Dretch Demon" data-health="18" data-grd="12" data-res="9" data-tgh="11"></div>
+<div class="monster" data-name="Glabrezu Demon" data-health="157" data-grd="17" data-res="18" data-tgh="19"></div>
+<div class="monster" data-name="Hezrou Demon" data-health="136" data-grd="16" data-res="15" data-tgh="17"></div>
+<div class="monster" data-name="Marilith Demon" data-health="189" data-grd="18" data-res="17" data-tgh="18"></div>
+<div class="monster" data-name="Nalfeshnee Demon" data-health="184" data-grd="18" data-res="19" data-tgh="20"></div>
+<div class="monster" data-name="Vrock Demon" data-health="104" data-grd="15" data-res="14" data-tgh="16"></div>
+<div class="monster" data-name="Barbed Devil" data-health="110" data-grd="16" data-res="14" data-tgh="17"></div>
+<div class="monster" data-name="Bearded Devil" data-health="52" data-grd="15" data-res="13" data-tgh="14"></div>
+<div class="monster" data-name="Bone Devil" data-health="142" data-grd="17" data-res="16" data-tgh="18"></div>
+<div class="monster" data-name="Chain Devil" data-health="85" data-grd="16" data-res="14" data-tgh="15"></div>
+<div class="monster" data-name="Erinyes Devil" data-health="120" data-grd="18" data-res="17" data-tgh="16"></div>
+<div class="monster" data-name="Horned Devil" data-health="178" data-grd="19" data-res="17" data-tgh="19"></div>
+<div class="monster" data-name="Ice Devil" data-health="180" data-grd="18" data-res="18" data-tgh="20"></div>
+<div class="monster" data-name="Imp Devil" data-health="10" data-grd="13" data-res="12" data-tgh="10"></div>
+<div class="monster" data-name="Pit Fiend" data-health="300" data-grd="21" data-res="20" data-tgh="23"></div>
+<div class="monster" data-name="Plesiosaurus" data-health="68" data-grd="15" data-res="10" data-tgh="17"></div>
+<div class="monster" data-name="Triceratops" data-health="95" data-grd="16" data-res="10" data-tgh="19"></div>
+<div class="monster" data-name="Tyrannosaurus Rex" data-health="136" data-grd="17" data-res="10" data-tgh="20"></div>
+<div class="monster" data-name="Doppelganger" data-health="52" data-grd="14" data-res="13" data-tgh="12"></div>
+<div class="monster" data-name="Young Dragon Drider" data-health="60" data-grd="18" data-res="20" data-tgh="22"></div>
+<div class="monster" data-name="Dryad" data-health="27" data-grd="14" data-res="13" data-tgh="12"></div>
+<div class="monster" data-name="Duergar" data-health="26" data-grd="15" data-res="12" data-tgh="14"></div>
+<div class="monster" data-name="Air Elemental" data-health="90" data-grd="15" data-res="14" data-tgh="13"></div>
+<div class="monster" data-name="Earth Elemental" data-health="126" data-grd="17" data-res="14" data-tgh="18"></div>
+<div class="monster" data-name="Fire Elemental" data-health="102" data-grd="16" data-res="14" data-tgh="15"></div>
+<div class="monster" data-name="Water Elemental" data-health="114" data-grd="16" data-res="14" data-tgh="17"></div>
+<div class="monster" data-name="Efreeti" data-health="200" data-grd="17" data-res="18" data-tgh="19"></div>
+<div class="monster" data-name="Ettercap" data-health="44" data-grd="13" data-res="10" data-tgh="14"></div>
+<div class="monster" data-name="Ettin" data-health="85" data-grd="15" data-res="11" data-tgh="17"></div>
+<div class="monster" data-name="Fire Giant" data-health="162" data-grd="18" data-res="12" data-tgh="19"></div>
+<div class="monster" data-name="Frost Giant" data-health="138" data-grd="17" data-res="12" data-tgh="18"></div>
+<div class="monster" data-name="Stone Giant" data-health="126" data-grd="17" data-res="11" data-tgh="17"></div>
+<div class="monster" data-name="Gargoyle" data-health="52" data-grd="15" data-res="11" data-tgh="16"></div>
+<div class="monster" data-name="Ghoul" data-health="22" data-grd="12" data-res="10" data-tgh="11"></div>
+<div class="monster" data-name="Gorgon" data-health="114" data-grd="19" data-res="11" data-tgh="20"></div>
+<div class="monster" data-name="Grick" data-health="27" data-grd="14" data-res="10" data-tgh="14"></div>
+<div class="monster" data-name="Grick Leader" data-health="75" data-grd="17" data-res="12" data-tgh="16"></div>
+<div class="monster" data-name="Griffon" data-health="59" data-grd="15" data-res="12" data-tgh="15"></div>
+<div class="monster" data-name="Green Hag" data-health="82" data-grd="17" data-res="14" data-tgh="13"></div>
+<div class="monster" data-name="Night Hag" data-health="112" data-grd="18" data-res="16" data-tgh="16"></div>
+<div class="monster" data-name="Harpy Matriarch" data-health="70" data-grd="16" data-res="15" data-tgh="13"></div>
+<div class="monster" data-name="Hell Hound" data-health="45" data-grd="15" data-res="12" data-tgh="14"></div>
+<div class="monster" data-name="Hobgoblin Captain" data-health="39" data-grd="17" data-res="12" data-tgh="14"></div>
+<div class="monster" data-name="Hydra" data-health="172" data-grd="15" data-res="13" data-tgh="18"></div>
+<div class="monster" data-name="Kobold Wyrmpriest" data-health="27" data-grd="12" data-res="14" data-tgh="11"></div>
+<div class="monster" data-name="Kraken" data-health="472" data-grd="18" data-res="20" data-tgh="24"></div>
+<div class="monster" data-name="Lich" data-health="135" data-grd="17" data-res="20" data-tgh="15"></div>
+<div class="monster" data-name="Manticore" data-health="68" data-grd="14" data-res="11" data-tgh="13"></div>
+<div class="monster" data-name="Medusa" data-health="127" data-grd="15" data-res="16" data-tgh="13"></div>
+<div class="monster" data-name="Mimic" data-health="58" data-grd="15" data-res="10" data-tgh="16"></div>
+<div class="monster" data-name="Minotaur" data-health="76" data-grd="14" data-res="11" data-tgh="17"></div>
+<div class="monster" data-name="Mummy" data-health="58" data-grd="11" data-res="12" data-tgh="15"></div>
+<div class="monster" data-name="Nightmare" data-health="68" data-grd="16" data-res="15" data-tgh="16"></div>
+<div class="monster" data-name="Orc War Chief" data-health="93" data-grd="16" data-res="12" data-tgh="15"></div>
+<div class="monster" data-name="Remorhaz" data-health="195" data-grd="17" data-res="13" data-tgh="19"></div>
+<div class="monster" data-name="Shadow" data-health="16" data-grd="12" data-res="13" data-tgh="10"></div>
+<div class="monster" data-name="Wight" data-health="45" data-grd="15" data-res="13" data-tgh="14"></div>
+<div class="monster" data-name="Wyvern" data-health="110" data-grd="15" data-res="12" data-tgh="17"></div>
+<div class="monster" data-name="Zombie Brute" data-health="52" data-grd="8" data-res="10" data-tgh="13"></div>
+<div class="monster" data-name="Zombie Horde" data-health="85" data-grd="10" data-res="8" data-tgh="15"></div>
+<div class="monster" data-name="Giant Spider" data-health="36" data-grd="14" data-res="11" data-tgh="13"></div>
+<div class="monster" data-name="Gnoll Pack Leader" data-health="49" data-grd="15" data-res="12" data-tgh="14"></div>
+<div class="monster" data-name="Goblin Sneak" data-health="17" data-grd="14" data-res="11" data-tgh="10"></div>
+<div class="monster" data-name="Merfolk Warrior" data-health="25" data-grd="13" data-res="12" data-tgh="13"></div>
+<div class="monster" data-name="Naga Spirit" data-health="85" data-grd="16" data-res="17" data-tgh="14"></div>
+<div class="monster" data-name="Quasit" data-health="10" data-grd="13" data-res="12" data-tgh="10"></div>
+<div class="monster" data-name="Roc" data-health="248" data-grd="19" data-res="15" data-tgh="21"></div>
+<div class="monster" data-name="Satyr Trickster" data-health="38" data-grd="15" data-res="14" data-tgh="12"></div>
+<div class="monster" data-name="Scarecrow" data-health="36" data-grd="11" data-res="13" data-tgh="13"></div>
+<div class="monster" data-name="Sea Hag" data-health="52" data-grd="14" data-res="12" data-tgh="14"></div>
+<div class="monster" data-name="Skeleton Warrior" data-health="45" data-grd="15" data-res="11" data-tgh="14"></div>
+<div class="monster" data-name="Slaad Red" data-health="93" data-grd="16" data-res="14" data-tgh="17"></div>
+<div class="monster" data-name="Specter" data-health="22" data-grd="12" data-res="14" data-tgh="10"></div>
+<div class="monster" data-name="Troll" data-health="84" data-grd="15" data-res="12" data-tgh="18"></div>
+<div class="monster" data-name="Unicorn" data-health="67" data-grd="17" data-res="16" data-tgh="15"></div>
+<div class="monster" data-name="Vampiric Mist" data-health="45" data-grd="13" data-res="15" data-tgh="12"></div>
+<div class="monster" data-name="Warhorse" data-health="30" data-grd="14" data-res="11" data-tgh="15"></div>
+<div class="monster" data-name="Worg" data-health="26" data-grd="14" data-res="10" data-tgh="13"></div>
+<div class="monster" data-name="Yeti" data-health="51" data-grd="15" data-res="13" data-tgh="16"></div>
+<div class="monster" data-name="Zombie Beast" data-health="60" data-grd="10" data-res="9" data-tgh="16"></div>
+<div class="monster" data-name="Arcane Sentinel" data-health="88" data-grd="18" data-res="16" data-tgh="17"></div>
+<div class="monster" data-name="Banshee" data-health="58" data-grd="13" data-res="17" data-tgh="12"></div>
+<div class="monster" data-name="Blight Vine" data-health="72" data-grd="12" data-res="14" data-tgh="16"></div>
+<div class="monster" data-name="Cave Fisher" data-health="49" data-grd="15" data-res="11" data-tgh="16"></div>
+<div class="monster" data-name="Clockwork Defender" data-health="85" data-grd="17" data-res="12" data-tgh="18"></div>
+<div class="monster" data-name="Corrupted Treant" data-health="150" data-grd="16" data-res="14" data-tgh="20"></div>
+<div class="monster" data-name="Crystal Golem" data-health="112" data-grd="18" data-res="12" data-tgh="21"></div>
+<div class="monster" data-name="Deep One" data-health="60" data-grd="14" data-res="14" data-tgh="15"></div>
+<div class="monster" data-name="Dune Stalker" data-health="42" data-grd="15" data-res="13" data-tgh="14"></div>
+<div class="monster" data-name="Fey Panther" data-health="39" data-grd="16" data-res="14" data-tgh="13"></div>
+<div class="monster" data-name="Flame Serpent" data-health="67" data-grd="17" data-res="15" data-tgh="15"></div>
+<div class="monster" data-name="Fungal Horror" data-health="91" data-grd="14" data-res="12" data-tgh="18"></div>
+<div class="monster" data-name="Ghost Knight" data-health="88" data-grd="16" data-res="18" data-tgh="14"></div>
+<div class="monster" data-name="Hill Giant Brute" data-health="142" data-grd="15" data-res="11" data-tgh="20"></div>
+<div class="monster" data-name="Ice Drake" data-health="108" data-grd="18" data-res="15" data-tgh="18"></div>
+<div class="monster" data-name="Iron Wight" data-health="97" data-grd="17" data-res="15" data-tgh="18"></div>
+<div class="monster" data-name="Lava Spawn" data-health="84" data-grd="16" data-res="14" data-tgh="17"></div>
+<div class="monster" data-name="Moss Troll" data-health="74" data-grd="14" data-res="12" data-tgh="17"></div>
+<div class="monster" data-name="Nether Horror" data-health="128" data-grd="19" data-res="18" data-tgh="17"></div>
+<div class="monster" data-name="Plague Zombie" data-health="49" data-grd="10" data-res="12" data-tgh="15"></div>
+<div class="monster" data-name="Poison Serpent" data-health="35" data-grd="14" data-res="13" data-tgh="12"></div>
+<div class="monster" data-name="Razorbeak Raptor" data-health="42" data-grd="16" data-res="11" data-tgh="13"></div>
+<div class="monster" data-name="Sand Wyrm" data-health="170" data-grd="18" data-res="15" data-tgh="20"></div>
+<div class="monster" data-name="Shadow Revenant" data-health="88" data-grd="17" data-res="18" data-tgh="14"></div>
+<div class="monster" data-name="Spirit Bear" data-health="91" data-grd="16" data-res="15" data-tgh="17"></div>
+<div class="monster" data-name="Storm Revenant" data-health="106" data-grd="18" data-res="18" data-tgh="16"></div>
+<div class="monster" data-name="Swamp Horror" data-health="98" data-grd="15" data-res="14" data-tgh="17"></div>
+<div class="monster" data-name="Sylvan Watcher" data-health="77" data-grd="16" data-res="15" data-tgh="14"></div>
+<div class="monster" data-name="Thornhide Boar" data-health="63" data-grd="15" data-res="11" data-tgh="17"></div>
+<div class="monster" data-name="Thunder Roc" data-health="232" data-grd="20" data-res="16" data-tgh="22"></div>
+<div class="monster" data-name="Undead Knight" data-health="85" data-grd="17" data-res="13" data-tgh="17"></div>
+<div class="monster" data-name="Vile Ooze" data-health="66" data-grd="13" data-res="12" data-tgh="16"></div>
+<div class="monster" data-name="Volcanic Drake" data-health="144" data-grd="19" data-res="17" data-tgh="19"></div>
+<div class="monster" data-name="Webspinner Spider" data-health="54" data-grd="15" data-res="11" data-tgh="15"></div>
+<div class="monster" data-name="Will-o'-Wisp" data-health="30" data-grd="14" data-res="18" data-tgh="10"></div>
+<div class="monster" data-name="Winter Wight" data-health="92" data-grd="16" data-res="16" data-tgh="15"></div>
+<div class="monster" data-name="Withered Treant" data-health="132" data-grd="15" data-res="13" data-tgh="19"></div>
+<div class="monster" data-name="Wyrmspawn Adept" data-health="78" data-grd="16" data-res="17" data-tgh="13"></div>
+<div class="monster" data-name="Zombie Troll" data-health="88" data-grd="13" data-res="10" data-tgh="20"></div>
+<div class="monster" data-name="Ancient Tree Guardian" data-health="188" data-grd="19" data-res="16" data-tgh="22"></div>
+<div class="monster" data-name="Bone Horror" data-health="76" data-grd="16" data-res="14" data-tgh="17"></div>
+<div class="monster" data-name="Carrion Swarm" data-health="55" data-grd="13" data-res="13" data-tgh="14"></div>
+<div class="monster" data-name="Crystal Hydra" data-health="182" data-grd="17" data-res="16" data-tgh="21"></div>
+<div class="monster" data-name="Doom Shade" data-health="94" data-grd="15" data-res="19" data-tgh="13"></div>
+<div class="monster" data-name="Ember Wolf" data-health="43" data-grd="15" data-res="13" data-tgh="14"></div>
+<div class="monster" data-name="Frostfang Serpent" data-health="78" data-grd="17" data-res="14" data-tgh="16"></div>
+<div class="monster" data-name="Gravestone Golem" data-health="122" data-grd="18" data-res="12" data-tgh="21"></div>
+<div class="monster" data-name="Iron Serpent" data-health="88" data-grd="18" data-res="13" data-tgh="20"></div>
+<div class="monster" data-name="Lurking Horror" data-health="64" data-grd="14" data-res="15" data-tgh="15"></div>
+<div class="monster" data-name="Moonlight Stag" data-health="77" data-grd="17" data-res="17" data-tgh="13"></div>
+<div class="monster" data-name="Nether Drake" data-health="158" data-grd="19" data-res="17" data-tgh="18"></div>
+<div class="monster" data-name="Obsidian Fiend" data-health="198" data-grd="20" data-res="18" data-tgh="22"></div>
+<div class="monster" data-name="Phantom Knight" data-health="83" data-grd="16" data-res="17" data-tgh="15"></div>
+<div class="monster" data-name="Quaking Behemoth" data-health="210" data-grd="18" data-res="14" data-tgh="23"></div>
+<div class="monster" data-name="Radiant Seraph" data-health="120" data-grd="20" data-res="19" data-tgh="16"></div>
+<div class="monster" data-name="Soul Harvester" data-health="101" data-grd="17" data-res="18" data-tgh="14"></div>
+<div class="monster" data-name="Temporal Wraith" data-health="86" data-grd="15" data-res="19" data-tgh="12"></div>
+<div class="monster" data-name="Umbral Leviathan" data-health="274" data-grd="21" data-res="20" data-tgh="25"></div>
+<div class="monster" data-name="Venomscale Hydra" data-health="166" data-grd="17" data-res="14" data-tgh="20"></div>
+<div class="monster" data-name="Whispering Wight" data-health="73" data-grd="15" data-res="17" data-tgh="13"></div>
+<div class="monster" data-name="Geir" data-health="20" data-grd="14" data-res="12" data-tgh="16"></div>
+<div class="monster" data-name="Ashcoat Sergeant" data-health="24" data-grd="16" data-res="16" data-tgh="13"></div>
+<div class="monster" data-name="Ashcoat Gunner" data-health="18" data-grd="12" data-res="16" data-tgh="13"></div>
+<div class="monster" data-name="Ashcoat Flenser" data-health="18" data-grd="14" data-res="16" data-tgh="13"></div>
+<div class="monster" data-name="Ashcoat Duelist" data-health="18" data-grd="14" data-res="16" data-tgh="13"></div>
+  </div>
+
+  <div class="table-container" id="monsterTable"></div>
+
+  <div style="margin-top: 20px;">
+    <button id="download-list">Download List</button>
+    <button id="clear-list">Clear List</button>
+  </div>
+
+  <script type="module">
+    import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+    import { db } from "./firebase-config.js";
+    import { requireAuth } from "./auth.js";
+
+    await requireAuth();
+    const monsterTable = document.getElementById("monsterTable");
+    let monsterCache = [];
+
+    function getStaticMonsters() {
+      const elements = document.querySelectorAll('#static-monsters .monster');
+      return Array.from(elements).map(el => ({
+        name: el.dataset.name,
+        health: parseInt(el.dataset.health),
+        grd: parseInt(el.dataset.grd),
+        res: parseInt(el.dataset.res),
+        tgh: parseInt(el.dataset.tgh)
+      }));
+    }
+
+    function isDuplicate(a, b) {
+      return (
+        a.name === b.name &&
+        a.health === b.health &&
+        a.grd === b.grd &&
+        a.res === b.res &&
+        a.tgh === b.tgh
+      );
+    }
+
+    function renderMonster({ name, health, grd, res, tgh }) {
+      const entry = document.createElement("div");
+      entry.className = "table-entry";
+      entry.innerHTML = `
+        <div><span class='label'>Name:</span><span class='content'>${name}</span></div>
+        <div><span class='label'>GRD:</span><span class='content'>${grd}</span></div>
+        <div><span class='label'>RES:</span><span class='content'>${res}</span></div>
+        <div><span class='label'>TGH:</span><span class='content'>${tgh}</span></div>
+        <div><span class='label'>HP:</span><span class='content'>${health}</span></div>
+      `;
+      monsterTable.appendChild(entry);
+    }
+
+    function loadMonsters() {
+      const refData = ref(db, "OpenLegendMonster/");
+      const staticList = getStaticMonsters();
+
+      onValue(refData, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const seen = new Set();
+        const unique = [];
+
+        for (const monster of Object.values(data)) {
+          const isValid =
+            monster.name &&
+            monster.health !== undefined &&
+            monster.grd !== undefined &&
+            monster.res !== undefined &&
+            monster.tgh !== undefined &&
+            monster.health !== "N/A" &&
+            monster.grd !== "N/A" &&
+            monster.res !== "N/A" &&
+            monster.tgh !== "N/A";
+
+          if (!isValid) continue;
+
+          const key = `${monster.name}|${monster.health}|${monster.grd}|${monster.res}|${monster.tgh}`;
+          const isDupe = staticList.some(staticM => isDuplicate(monster, staticM));
+
+          if (!seen.has(key) && !isDupe) {
+            seen.add(key);
+            unique.push(monster);
+          }
+        }
+
+        monsterCache = unique;
+        monsterTable.innerHTML = "";
+        monsterCache.forEach(renderMonster);
+      });
+    }
+
+    function downloadMonsterList() {
+      const htmlContent = monsterCache.map(monster => `
+        <h2>${monster.name}</h2>
+        <p>HP: ${monster.health}</p>
+        <p>GRD: ${monster.grd}</p>
+        <p>RES: ${monster.res}</p>
+        <p>TGH: ${monster.tgh}</p>
+      `).join("\n");
+
+      const blob = new Blob([`<html><body>${htmlContent}</body></html>`], { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = "OpenLegendMonsters.html";
+      link.click();
+    }
+
+    function clearMonsterList() {
+      const refData = ref(db, "OpenLegendMonster/");
+      set(refData, null).then(() => {
+        monsterCache = [];
+        monsterTable.innerHTML = "";
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadMonsters();
+      document.getElementById("download-list").addEventListener("click", downloadMonsterList);
+      document.getElementById("clear-list").addEventListener("click", clearMonsterList);
+    });
+  </script>
+</body>
+</html>
