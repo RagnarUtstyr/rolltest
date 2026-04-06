@@ -100,6 +100,7 @@ function setCountdownDisplay({ remaining, active, ended }) {
 }
 
 function openStatModal({
+  entryId,
   name,
   initiative,
   url,
@@ -115,6 +116,8 @@ function openStatModal({
   const linkEl = document.getElementById("stat-url");
   const countdownInputEl = document.getElementById("stat-countdown-amount");
   const healInputEl = document.getElementById("stat-heal-amount");
+
+  currentStatEntryId = entryId;
 
   if (titleEl) titleEl.textContent = name ?? "";
   if (initEl) initEl.textContent = initiative ?? "N/A";
@@ -138,7 +141,6 @@ function openStatModal({
   if (countdownInputEl) countdownInputEl.value = "";
   if (healInputEl) healInputEl.value = "";
 
-  currentStatEntryId = null;
   modal.setAttribute("aria-hidden", "false");
 }
 
@@ -154,6 +156,12 @@ function closeEffectPickerModal() {
 
 function closeEffectsModal() {
   document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeAllModals() {
+  closeStatModal();
+  closeEffectPickerModal();
+  closeEffectsModal();
 }
 
 function openEffectsModal(entryId, effects, titleText = "Effects") {
@@ -211,8 +219,12 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
 
       removeBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        const key = sanitizeEffectKey(effect.name);
-        await remove(ref(db, `${getEntriesPath()}/${entryId}/effects/${key}`));
+        try {
+          const key = sanitizeEffectKey(effect.name);
+          await remove(ref(db, `${getEntriesPath()}/${entryId}/effects/${key}`));
+        } catch (err) {
+          console.error("Error removing effect:", err);
+        }
       });
 
       row.appendChild(leftButton);
@@ -266,20 +278,24 @@ function openEffectPickerModal(entryId, existingEffects = []) {
     addBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
 
-      const entryRef = ref(db, `${getEntriesPath()}/${currentEffectEntryId}/effects`);
-      const key = sanitizeEffectKey(effect.name);
+      try {
+        const entryRef = ref(db, `${getEntriesPath()}/${currentEffectEntryId}/effects`);
+        const key = sanitizeEffectKey(effect.name);
 
-      await update(entryRef, {
-        [key]: {
-          name: effect.name,
-          url: effect.url || "",
-          icon: effect.icon || "icons/effects/test.png",
-          type: effect.type || "",
-        },
-      });
+        await update(entryRef, {
+          [key]: {
+            name: effect.name,
+            url: effect.url || "",
+            icon: effect.icon || "icons/effects/test.png",
+            type: effect.type || "",
+          },
+        });
 
-      addBtn.textContent = "Added";
-      addBtn.disabled = true;
+        addBtn.textContent = "Added";
+        addBtn.disabled = true;
+      } catch (err) {
+        console.error("Error adding effect:", err);
+      }
     });
 
     row.appendChild(left);
@@ -352,10 +368,10 @@ function fetchRankings() {
         e.preventDefault();
         e.stopPropagation();
 
-        currentStatEntryId = id;
         const s = getCountdownState(id);
 
         openStatModal({
+          entryId: id,
           name,
           initiative: initiative ?? "N/A",
           url,
@@ -413,7 +429,8 @@ function fetchRankings() {
         effectsButton.className = "remove-button";
         effectsButton.style.marginTop = "0";
 
-        effectsButton.addEventListener("click", () => {
+        effectsButton.addEventListener("click", (e) => {
+          e.stopPropagation();
           currentEffectEntryId = id;
           openEffectsModal(id, effectArray, `${name} effects`);
         });
@@ -428,7 +445,8 @@ function fetchRankings() {
       addEffectButton.className = "remove-button";
       addEffectButton.style.marginTop = "0";
 
-      addEffectButton.addEventListener("click", () => {
+      addEffectButton.addEventListener("click", (e) => {
+        e.stopPropagation();
         currentEffectEntryId = id;
         openEffectPickerModal(id, effectArray);
       });
@@ -532,6 +550,12 @@ function removeEntry(id, listItem) {
       if (currentStatEntryId === id) {
         closeStatModal();
         currentStatEntryId = null;
+      }
+
+      if (currentEffectEntryId === id) {
+        closeEffectPickerModal();
+        closeEffectsModal();
+        currentEffectEntryId = null;
       }
     })
     .catch((error) => {
@@ -640,9 +664,6 @@ document.addEventListener("DOMContentLoaded", () => {
     statModal.addEventListener("click", (e) => {
       if (e.target === statModal) closeStatModal();
     });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeStatModal();
-    });
   }
 
   const effectPickerModal = document.getElementById("effect-picker-modal");
@@ -660,6 +681,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === effectsModal) closeEffectsModal();
     });
   }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAllModals();
+  });
 
   if (document.getElementById("rankingList")) {
     fetchRankings();
