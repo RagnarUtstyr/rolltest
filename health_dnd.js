@@ -292,6 +292,129 @@ function openEffectPickerModal(entryId, existingEffects = []) {
   modal.setAttribute("aria-hidden", "false");
 }
 
+function buildEntryRow(entry) {
+  const {
+    id,
+    name,
+    initiative,
+    ac,
+    health,
+    effects,
+  } = entry;
+
+  const listItem = document.createElement("li");
+  listItem.className = "list-item";
+  listItem.dataset.entryId = id;
+
+  const nameAcContainer = document.createElement("div");
+  nameAcContainer.className = "name-ac-container";
+
+  const nameDiv = document.createElement("div");
+  nameDiv.className = "name";
+  nameDiv.textContent = name;
+  nameDiv.dataset.entryId = id;
+  nameDiv.dataset.clickRole = "open-stat-modal";
+  nameDiv.style.cursor = "pointer";
+  nameDiv.style.userSelect = "none";
+  nameDiv.title = "Show details";
+
+  nameAcContainer.appendChild(nameDiv);
+
+  const acDiv = document.createElement("div");
+  acDiv.className = "ac";
+  acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
+  nameAcContainer.appendChild(acDiv);
+
+  listItem.appendChild(nameAcContainer);
+
+  const healthDiv = document.createElement("div");
+  healthDiv.className = "health";
+  healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
+  listItem.appendChild(healthDiv);
+
+  const effectArray = normalizeEffects(effects);
+
+  if (effectArray.length > 0) {
+    const effectWrap = document.createElement("div");
+    effectWrap.className = "row-banes";
+
+    effectArray.forEach((effect) => {
+      const iconButton = document.createElement("button");
+      iconButton.type = "button";
+      iconButton.className = "bane-icon-button";
+      iconButton.title = effect.name || "Effect";
+      iconButton.setAttribute("aria-label", effect.name || "Effect");
+
+      const icon = document.createElement("img");
+      icon.className = "bane-row-icon";
+      icon.src = effect.icon || "icons/effects/test.png";
+      icon.alt = effect.name || "Effect";
+
+      iconButton.appendChild(icon);
+
+      iconButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (effect.url) window.open(effect.url, "_blank", "noopener");
+      });
+
+      effectWrap.appendChild(iconButton);
+    });
+
+    const effectsButton = document.createElement("button");
+    effectsButton.type = "button";
+    effectsButton.textContent = "Effects";
+    effectsButton.className = "remove-button";
+    effectsButton.style.marginTop = "0";
+
+    effectsButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEffectsModal(id, effectArray, `${name} effects`);
+    });
+
+    effectWrap.appendChild(effectsButton);
+    listItem.appendChild(effectWrap);
+  }
+
+  const addEffectButton = document.createElement("button");
+  addEffectButton.type = "button";
+  addEffectButton.textContent = "Effect";
+  addEffectButton.className = "remove-button";
+  addEffectButton.style.marginTop = "0";
+
+  addEffectButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openEffectPickerModal(id, effectArray);
+  });
+
+  listItem.appendChild(addEffectButton);
+
+  const healthInput = document.createElement("input");
+  healthInput.type = "number";
+  healthInput.placeholder = "Damage";
+  healthInput.className = "damage-input";
+  healthInput.style.width = "50px";
+  healthInput.dataset.entryId = id;
+  healthInput.dataset.currentHealth = health ?? 0;
+  listItem.appendChild(healthInput);
+
+  if (health === 0) {
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "remove-button row-remove-button";
+    removeButton.addEventListener("click", () => {
+      removeEntry(id, listItem);
+    });
+    listItem.appendChild(removeButton);
+  }
+
+  if (health === 0) {
+    listItem.classList.add("defeated");
+  }
+
+  return listItem;
+}
+
 function fetchRankings() {
   const reference = ref(db, getEntriesPath());
 
@@ -317,12 +440,6 @@ function fetchRankings() {
     rankings.forEach((entry) => {
       const {
         id,
-        name,
-        initiative,
-        ac,
-        health,
-        url,
-        effects,
         countdownActive,
         countdownRemaining,
         countdownEnded,
@@ -335,136 +452,7 @@ function fetchRankings() {
         ended: countdownEnded,
       });
 
-      const listItem = document.createElement("li");
-      listItem.className = "list-item";
-      listItem.dataset.entryId = id;
-
-      const nameAcContainer = document.createElement("div");
-      nameAcContainer.className = "name-ac-container";
-
-      const nameDiv = document.createElement("button");
-      nameDiv.type = "button";
-      nameDiv.className = "name";
-      nameDiv.textContent = name;
-      nameDiv.style.cursor = "pointer";
-      nameDiv.style.background = "transparent";
-      nameDiv.style.border = "0";
-      nameDiv.style.padding = "0";
-      nameDiv.style.textAlign = "left";
-      nameDiv.title = "Show details";
-
-      nameDiv.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const s = getCountdownState(id);
-
-        openStatModal({
-          id,
-          name,
-          initiative: initiative ?? "N/A",
-          url,
-          countdownRemaining: s.remaining,
-          countdownActive: s.active,
-          countdownEnded: s.ended,
-        });
-      });
-
-      nameAcContainer.appendChild(nameDiv);
-
-      const acDiv = document.createElement("div");
-      acDiv.className = "ac";
-      acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
-      nameAcContainer.appendChild(acDiv);
-
-      listItem.appendChild(nameAcContainer);
-
-      const healthDiv = document.createElement("div");
-      healthDiv.className = "health";
-      healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-      listItem.appendChild(healthDiv);
-
-      const effectArray = normalizeEffects(effects);
-
-      if (effectArray.length > 0) {
-        const effectWrap = document.createElement("div");
-        effectWrap.className = "row-banes";
-
-        effectArray.forEach((effect) => {
-          const iconButton = document.createElement("button");
-          iconButton.type = "button";
-          iconButton.className = "bane-icon-button";
-          iconButton.title = effect.name || "Effect";
-          iconButton.setAttribute("aria-label", effect.name || "Effect");
-
-          const icon = document.createElement("img");
-          icon.className = "bane-row-icon";
-          icon.src = effect.icon || "icons/effects/test.png";
-          icon.alt = effect.name || "Effect";
-
-          iconButton.appendChild(icon);
-
-          iconButton.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (effect.url) window.open(effect.url, "_blank", "noopener");
-          });
-
-          effectWrap.appendChild(iconButton);
-        });
-
-        const effectsButton = document.createElement("button");
-        effectsButton.type = "button";
-        effectsButton.textContent = "Effects";
-        effectsButton.className = "remove-button";
-        effectsButton.style.marginTop = "0";
-
-        effectsButton.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openEffectsModal(id, effectArray, `${name} effects`);
-        });
-
-        effectWrap.appendChild(effectsButton);
-        listItem.appendChild(effectWrap);
-      }
-
-      const addEffectButton = document.createElement("button");
-      addEffectButton.type = "button";
-      addEffectButton.textContent = "Effect";
-      addEffectButton.className = "remove-button";
-      addEffectButton.style.marginTop = "0";
-
-      addEffectButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openEffectPickerModal(id, effectArray);
-      });
-
-      listItem.appendChild(addEffectButton);
-
-      const healthInput = document.createElement("input");
-      healthInput.type = "number";
-      healthInput.placeholder = "Damage";
-      healthInput.className = "damage-input";
-      healthInput.style.width = "50px";
-      healthInput.dataset.entryId = id;
-      healthInput.dataset.currentHealth = health ?? 0;
-      listItem.appendChild(healthInput);
-
-      if (health === 0) {
-        const removeButton = document.createElement("button");
-        removeButton.type = "button";
-        removeButton.textContent = "Remove";
-        removeButton.className = "remove-button row-remove-button";
-        removeButton.addEventListener("click", () => {
-          removeEntry(id, listItem);
-        });
-        listItem.appendChild(removeButton);
-      }
-
-      if (health === 0) {
-        listItem.classList.add("defeated");
-      }
-
-      rankingList.appendChild(listItem);
+      rankingList.appendChild(buildEntryRow(entry));
     });
   });
 }
@@ -631,6 +619,37 @@ function getHighlightedEntryId() {
   return document.querySelector("#rankingList li.highlighted")?.dataset.entryId || null;
 }
 
+function bindRankingListDelegatedClick() {
+  const rankingList = document.getElementById("rankingList");
+  if (!rankingList) return;
+
+  rankingList.addEventListener("click", (e) => {
+    const target = e.target.closest('[data-click-role="open-stat-modal"]');
+    if (!target) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = target.dataset.entryId;
+    if (!id) return;
+
+    const entry = dataCache[id];
+    if (!entry) return;
+
+    const s = getCountdownState(id);
+
+    openStatModal({
+      id,
+      name: entry.name,
+      initiative: entry.initiative ?? "N/A",
+      url: entry.url,
+      countdownRemaining: s.remaining,
+      countdownActive: s.active,
+      countdownEnded: s.ended,
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   try {
     getEntriesPath();
@@ -638,6 +657,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error(error);
     return;
   }
+
+  bindRankingListDelegatedClick();
 
   if (document.getElementById("rankingList")) {
     fetchRankings();
