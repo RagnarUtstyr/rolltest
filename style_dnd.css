@@ -292,3 +292,145 @@ li {
 li button {
     flex: 0 0 auto;
 }
+
+/* Modal overlay */
+.ol-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10000;
+  box-sizing: border-box;
+}
+
+/* Show modal when opened */
+.ol-modal[aria-hidden="false"] {
+  display: flex;
+}
+
+/* Hide when closed */
+.ol-modal[aria-hidden="true"] {
+  display: none;
+}
+
+/* Modal panel */
+.ol-modal__dialog {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: rgba(46, 27, 24, 0.98);
+  border: 2px solid #D4AF37;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  color: #E0D8B0;
+  padding: 20px;
+  text-align: left;
+}
+
+/* Wider modal variant for effect lists */
+.ol-modal__dialog--wide {
+  width: min(760px, 100%);
+}
+
+/* Close button */
+.ol-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #2E1B18;
+  color: #E0D8B0;
+  border: 2px solid #D4AF37;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 10px;
+}
+
+.ol-modal__close:hover {
+  background-color: #8C5A4A;
+  color: #2E1B18;
+}
+
+/* Modal text rows */
+.ol-meta {
+  margin: 10px 0;
+  font-size: 1rem;
+}
+
+.ol-meta .label {
+  font-weight: bold;
+  color: #D4AF37;
+  margin-right: 6px;
+}
+
+.ol-meta .value {
+  color: #E0D8B0;
+}
+
+/* Effect picker / effect manager rows */
+.bane-picker-list,
+.banes-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.bane-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #8C5A4A;
+  border-radius: 8px;
+  background-color: rgba(165, 123, 91, 0.18);
+}
+
+.bane-picker-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.bane-picker-open {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #E0D8B0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.bane-icon,
+.bane-row-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.bane-icon-button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.row-banes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.muted {
+  opacity: 0.8;
+}
