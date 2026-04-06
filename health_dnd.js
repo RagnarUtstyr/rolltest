@@ -47,10 +47,10 @@ function normalizeEntry(id, entry) {
       typeof entry.countdownRemaining === "number"
         ? entry.countdownRemaining
         : entry.countdownRemaining === null
-        ? null
-        : (entry.countdownRemaining !== undefined && entry.countdownRemaining !== "")
-          ? Number(entry.countdownRemaining)
-          : null,
+          ? null
+          : entry.countdownRemaining !== undefined && entry.countdownRemaining !== ""
+            ? Number(entry.countdownRemaining)
+            : null,
     countdownEnded: !!entry.countdownEnded,
   };
 }
@@ -99,16 +99,7 @@ function setCountdownDisplay({ remaining, active, ended }) {
   }
 }
 
-function closeEffectPickerModal() {
-  document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
-}
-
-function closeEffectsModal() {
-  document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
-}
-
 function openStatModal({
-  id,
   name,
   initiative,
   url,
@@ -119,35 +110,39 @@ function openStatModal({
   const modal = document.getElementById("stat-modal");
   if (!modal) return;
 
-  currentStatEntryId = id;
+  document.getElementById("stat-modal-title").textContent = name ?? "";
+  document.getElementById("stat-init").textContent = initiative ?? "N/A";
 
-  const titleEl = document.getElementById("stat-modal-title");
-  const initEl = document.getElementById("stat-init");
-  const urlEl = document.getElementById("stat-url");
-  const healInputEl = document.getElementById("stat-heal-amount");
-  const countdownInputEl = document.getElementById("stat-countdown-amount");
-
-  if (titleEl) titleEl.textContent = name ?? "";
-  if (initEl) initEl.textContent = initiative ?? "N/A";
-
-  if (urlEl) {
+  const link = document.getElementById("stat-url");
+  if (link) {
     if (url) {
-      urlEl.style.display = "";
-      urlEl.href = url;
+      link.style.display = "";
+      link.href = url;
     } else {
-      urlEl.style.display = "none";
-      urlEl.removeAttribute("href");
+      link.style.display = "none";
+      link.removeAttribute("href");
     }
   }
 
-  setCountdownDisplay({
-    remaining: countdownRemaining,
-    active: countdownActive,
-    ended: countdownEnded,
-  });
+  const remainingEl = document.getElementById("stat-countdown-remaining");
+  const inputEl = document.getElementById("stat-countdown-amount");
 
-  if (healInputEl) healInputEl.value = "";
-  if (countdownInputEl) countdownInputEl.value = "";
+  if (remainingEl) {
+    if (countdownEnded) {
+      remainingEl.textContent = "ENDED (0)";
+    } else if (countdownActive) {
+      remainingEl.textContent = `${countdownRemaining ?? "—"}`;
+    } else if (countdownRemaining === 0) {
+      remainingEl.textContent = "0";
+    } else {
+      remainingEl.textContent = "—";
+    }
+  }
+
+  if (inputEl) inputEl.value = "";
+
+  const healEl = document.getElementById("stat-heal-amount");
+  if (healEl) healEl.value = "";
 
   modal.setAttribute("aria-hidden", "false");
 }
@@ -156,6 +151,14 @@ function closeStatModal() {
   const modal = document.getElementById("stat-modal");
   if (!modal) return;
   modal.setAttribute("aria-hidden", "true");
+}
+
+function closeEffectPickerModal() {
+  document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeEffectsModal() {
+  document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function openEffectsModal(entryId, effects, titleText = "Effects") {
@@ -292,129 +295,6 @@ function openEffectPickerModal(entryId, existingEffects = []) {
   modal.setAttribute("aria-hidden", "false");
 }
 
-function buildEntryRow(entry) {
-  const {
-    id,
-    name,
-    initiative,
-    ac,
-    health,
-    effects,
-  } = entry;
-
-  const listItem = document.createElement("li");
-  listItem.className = "list-item";
-  listItem.dataset.entryId = id;
-
-  const nameAcContainer = document.createElement("div");
-  nameAcContainer.className = "name-ac-container";
-
-  const nameDiv = document.createElement("div");
-  nameDiv.className = "name";
-  nameDiv.textContent = name;
-  nameDiv.dataset.entryId = id;
-  nameDiv.dataset.clickRole = "open-stat-modal";
-  nameDiv.style.cursor = "pointer";
-  nameDiv.style.userSelect = "none";
-  nameDiv.title = "Show details";
-
-  nameAcContainer.appendChild(nameDiv);
-
-  const acDiv = document.createElement("div");
-  acDiv.className = "ac";
-  acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
-  nameAcContainer.appendChild(acDiv);
-
-  listItem.appendChild(nameAcContainer);
-
-  const healthDiv = document.createElement("div");
-  healthDiv.className = "health";
-  healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-  listItem.appendChild(healthDiv);
-
-  const effectArray = normalizeEffects(effects);
-
-  if (effectArray.length > 0) {
-    const effectWrap = document.createElement("div");
-    effectWrap.className = "row-banes";
-
-    effectArray.forEach((effect) => {
-      const iconButton = document.createElement("button");
-      iconButton.type = "button";
-      iconButton.className = "bane-icon-button";
-      iconButton.title = effect.name || "Effect";
-      iconButton.setAttribute("aria-label", effect.name || "Effect");
-
-      const icon = document.createElement("img");
-      icon.className = "bane-row-icon";
-      icon.src = effect.icon || "icons/effects/test.png";
-      icon.alt = effect.name || "Effect";
-
-      iconButton.appendChild(icon);
-
-      iconButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (effect.url) window.open(effect.url, "_blank", "noopener");
-      });
-
-      effectWrap.appendChild(iconButton);
-    });
-
-    const effectsButton = document.createElement("button");
-    effectsButton.type = "button";
-    effectsButton.textContent = "Effects";
-    effectsButton.className = "remove-button";
-    effectsButton.style.marginTop = "0";
-
-    effectsButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openEffectsModal(id, effectArray, `${name} effects`);
-    });
-
-    effectWrap.appendChild(effectsButton);
-    listItem.appendChild(effectWrap);
-  }
-
-  const addEffectButton = document.createElement("button");
-  addEffectButton.type = "button";
-  addEffectButton.textContent = "Effect";
-  addEffectButton.className = "remove-button";
-  addEffectButton.style.marginTop = "0";
-
-  addEffectButton.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openEffectPickerModal(id, effectArray);
-  });
-
-  listItem.appendChild(addEffectButton);
-
-  const healthInput = document.createElement("input");
-  healthInput.type = "number";
-  healthInput.placeholder = "Damage";
-  healthInput.className = "damage-input";
-  healthInput.style.width = "50px";
-  healthInput.dataset.entryId = id;
-  healthInput.dataset.currentHealth = health ?? 0;
-  listItem.appendChild(healthInput);
-
-  if (health === 0) {
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.textContent = "Remove";
-    removeButton.className = "remove-button row-remove-button";
-    removeButton.addEventListener("click", () => {
-      removeEntry(id, listItem);
-    });
-    listItem.appendChild(removeButton);
-  }
-
-  if (health === 0) {
-    listItem.classList.add("defeated");
-  }
-
-  return listItem;
-}
-
 function fetchRankings() {
   const reference = ref(db, getEntriesPath());
 
@@ -437,23 +317,159 @@ function fetchRankings() {
       .map(([id, entry]) => normalizeEntry(id, entry))
       .sort((a, b) => (b.number || 0) - (a.number || 0));
 
-    rankings.forEach((entry) => {
-      const {
+    rankings.forEach(
+      ({
         id,
-        countdownActive,
+        name,
+        ac,
+        health,
+        url,
+        initiative,
+        effects,
         countdownRemaining,
+        countdownActive,
         countdownEnded,
-      } = entry;
+      }) => {
+        dataCache[id] = {
+          id,
+          name,
+          ac,
+          health,
+          url,
+          initiative,
+          effects,
+        };
 
-      dataCache[id] = entry;
-      setCountdownState(id, {
-        active: countdownActive,
-        remaining: countdownRemaining,
-        ended: countdownEnded,
-      });
+        setCountdownState(id, {
+          remaining: typeof countdownRemaining === "number" ? countdownRemaining : null,
+          active: !!countdownActive,
+          ended: !!countdownEnded,
+        });
 
-      rankingList.appendChild(buildEntryRow(entry));
-    });
+        const listItem = document.createElement("li");
+        listItem.className = "list-item";
+        listItem.dataset.entryId = id;
+
+        const nameAcContainer = document.createElement("div");
+        nameAcContainer.className = "name-ac-container";
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "name";
+        nameDiv.textContent = name;
+        nameDiv.style.cursor = "pointer";
+        nameDiv.title = "Show details";
+
+        nameDiv.addEventListener("click", () => {
+          currentStatEntryId = id;
+          const s = getCountdownState(id);
+
+          openStatModal({
+            name,
+            initiative: initiative ?? "N/A",
+            url,
+            countdownRemaining: s.remaining,
+            countdownActive: s.active,
+            countdownEnded: s.ended,
+          });
+        });
+
+        nameAcContainer.appendChild(nameDiv);
+
+        const acDiv = document.createElement("div");
+        acDiv.className = "ac";
+        acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
+        nameAcContainer.appendChild(acDiv);
+
+        listItem.appendChild(nameAcContainer);
+
+        const healthDiv = document.createElement("div");
+        healthDiv.className = "health";
+        healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
+        listItem.appendChild(healthDiv);
+
+        const effectArray = normalizeEffects(effects);
+
+        if (effectArray.length > 0) {
+          const effectWrap = document.createElement("div");
+          effectWrap.className = "row-banes";
+
+          effectArray.forEach((effect) => {
+            const iconButton = document.createElement("button");
+            iconButton.type = "button";
+            iconButton.className = "bane-icon-button";
+            iconButton.title = effect.name || "Effect";
+            iconButton.setAttribute("aria-label", effect.name || "Effect");
+
+            const icon = document.createElement("img");
+            icon.className = "bane-row-icon";
+            icon.src = effect.icon || "icons/effects/test.png";
+            icon.alt = effect.name || "Effect";
+
+            iconButton.appendChild(icon);
+
+            iconButton.addEventListener("click", (e) => {
+              e.stopPropagation();
+              if (effect.url) window.open(effect.url, "_blank", "noopener");
+            });
+
+            effectWrap.appendChild(iconButton);
+          });
+
+          const effectsButton = document.createElement("button");
+          effectsButton.type = "button";
+          effectsButton.textContent = "Effects";
+          effectsButton.className = "remove-button";
+          effectsButton.style.marginTop = "0";
+
+          effectsButton.addEventListener("click", () => {
+            currentEffectEntryId = id;
+            openEffectsModal(id, effectArray, `${name} effects`);
+          });
+
+          effectWrap.appendChild(effectsButton);
+          listItem.appendChild(effectWrap);
+        }
+
+        const addEffectButton = document.createElement("button");
+        addEffectButton.type = "button";
+        addEffectButton.textContent = "Effect";
+        addEffectButton.className = "remove-button";
+        addEffectButton.style.marginTop = "0";
+
+        addEffectButton.addEventListener("click", () => {
+          currentEffectEntryId = id;
+          openEffectPickerModal(id, effectArray);
+        });
+
+        listItem.appendChild(addEffectButton);
+
+        const healthInput = document.createElement("input");
+        healthInput.type = "number";
+        healthInput.placeholder = "Damage";
+        healthInput.className = "damage-input";
+        healthInput.style.width = "50px";
+        healthInput.dataset.entryId = id;
+        healthInput.dataset.currentHealth = health ?? 0;
+        listItem.appendChild(healthInput);
+
+        if (health === 0) {
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.textContent = "Remove";
+          removeButton.className = "remove-button row-remove-button";
+          removeButton.addEventListener("click", () => {
+            removeEntry(id, listItem);
+          });
+          listItem.appendChild(removeButton);
+        }
+
+        if (health === 0) {
+          listItem.classList.add("defeated");
+        }
+
+        rankingList.appendChild(listItem);
+      }
+    );
   });
 }
 
@@ -619,37 +635,6 @@ function getHighlightedEntryId() {
   return document.querySelector("#rankingList li.highlighted")?.dataset.entryId || null;
 }
 
-function bindRankingListDelegatedClick() {
-  const rankingList = document.getElementById("rankingList");
-  if (!rankingList) return;
-
-  rankingList.addEventListener("click", (e) => {
-    const target = e.target.closest('[data-click-role="open-stat-modal"]');
-    if (!target) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const id = target.dataset.entryId;
-    if (!id) return;
-
-    const entry = dataCache[id];
-    if (!entry) return;
-
-    const s = getCountdownState(id);
-
-    openStatModal({
-      id,
-      name: entry.name,
-      initiative: entry.initiative ?? "N/A",
-      url: entry.url,
-      countdownRemaining: s.remaining,
-      countdownActive: s.active,
-      countdownEnded: s.ended,
-    });
-  });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   try {
     getEntriesPath();
@@ -658,36 +643,38 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  bindRankingListDelegatedClick();
+  const statModal = document.getElementById("stat-modal");
+  if (statModal) {
+    document.getElementById("stat-modal-close")?.addEventListener("click", closeStatModal);
+    statModal.addEventListener("click", (e) => {
+      if (e.target === statModal) closeStatModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeStatModal();
+    });
+  }
+
+  const effectPickerModal = document.getElementById("effect-picker-modal");
+  if (effectPickerModal) {
+    document.getElementById("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
+    effectPickerModal.addEventListener("click", (e) => {
+      if (e.target === effectPickerModal) closeEffectPickerModal();
+    });
+  }
+
+  const effectsModal = document.getElementById("effects-modal");
+  if (effectsModal) {
+    document.getElementById("effects-modal-close")?.addEventListener("click", closeEffectsModal);
+    effectsModal.addEventListener("click", (e) => {
+      if (e.target === effectsModal) closeEffectsModal();
+    });
+  }
 
   if (document.getElementById("rankingList")) {
     fetchRankings();
   }
 
   document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
-  document.getElementById("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
-  document.getElementById("effects-modal-close")?.addEventListener("click", closeEffectsModal);
-  document.getElementById("stat-modal-close")?.addEventListener("click", closeStatModal);
-
-  document.getElementById("effect-picker-modal")?.addEventListener("click", (e) => {
-    if (e.target?.id === "effect-picker-modal") closeEffectPickerModal();
-  });
-
-  document.getElementById("effects-modal")?.addEventListener("click", (e) => {
-    if (e.target?.id === "effects-modal") closeEffectsModal();
-  });
-
-  document.getElementById("stat-modal")?.addEventListener("click", (e) => {
-    if (e.target?.id === "stat-modal") closeStatModal();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      closeEffectPickerModal();
-      closeEffectsModal();
-      closeStatModal();
-    }
-  });
 
   document.getElementById("stat-delete")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;

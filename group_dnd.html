@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png" />
 
   <title>Initiative</title>
 
-  <script type="module" src="server_dnd.js?v=20260406h" defer></script>
-  <script type="module" src="health_dnd.js?v=20260406h" defer></script>
+  <script type="module" src="server_dnd.js?v=20260406i" defer></script>
+  <script type="module" src="health_dnd.js?v=20260406i" defer></script>
 
-  <link rel="stylesheet" href="style_dnd.css?v=20260406h">
-  <link rel="stylesheet" href="turn_dnd.css">
-  <link rel="stylesheet" href="save_dnd.css">
+  <link rel="stylesheet" href="style_dnd.css?v=20260406i" />
+  <link rel="stylesheet" href="turn_dnd.css" />
+  <link rel="stylesheet" href="save_dnd.css" />
   <script src="turn_dnd.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 </head>
 
 <style>
@@ -40,11 +40,11 @@
     <h1>Initiative</h1>
     <div id="game-code-badge">Code: ----</div>
 
-    <br>
+    <br />
 
     <a href="lobby.html" class="button-link">Lobby</a>
 
-    <br>
+    <br />
 
     <ul id="rankingList"></ul>
 
@@ -53,35 +53,36 @@
       <button id="next-button">Next</button>
     </div>
 
-    <br>
+    <br />
 
     <button id="clear-list-button">Clear List</button>
 
-    <br><br>
-    <br><br>
+    <br /><br />
+    <br /><br />
 
     <h2>Submit a New Entry</h2>
 
     <label for="name">Name:</label>
-    <input type="text" id="name" required>
+    <input type="text" id="name" required />
 
     <label for="initiative">Initiative:</label>
-    <input type="number" id="initiative" required>
+    <input type="number" id="initiative" required />
 
     <label for="health">Health:</label>
-    <input type="number" id="health">
+    <input type="number" id="health" />
 
     <label for="ac">AC:</label>
-    <input type="number" id="ac">
+    <input type="number" id="ac" />
 
     <button id="submit-button">Submit</button>
 
-    <br><br>
+    <br /><br />
 
     <a id="save-link" href="save.html" class="button-link">Go to Lists</a>
     <a id="monster-link" href="monster.html" class="button-link">Go to Monster List</a>
   </div>
 
+  <!-- Stats Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
       <button class="ol-modal__close" id="stat-modal-close" aria-label="Close">×</button>
@@ -104,12 +105,23 @@
       </a>
 
       <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
-        <input id="stat-heal-amount" type="number" placeholder="Heal amount" style="flex:1; padding:6px 8px;">
+        <input
+          id="stat-heal-amount"
+          type="number"
+          placeholder="Heal amount"
+          style="flex:1; padding:6px 8px;"
+        />
         <button id="stat-heal" class="remove-button" type="button">Heal</button>
       </div>
 
       <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
-        <input id="stat-countdown-amount" type="number" min="1" placeholder="Countdown (turns)" style="flex:1; padding:6px 8px;">
+        <input
+          id="stat-countdown-amount"
+          type="number"
+          min="1"
+          placeholder="Countdown (turns)"
+          style="flex:1; padding:6px 8px;"
+        />
         <button id="stat-countdown-set" class="remove-button" type="button">Start</button>
         <button id="stat-countdown-clear" class="remove-button" type="button">Clear</button>
       </div>
@@ -121,7 +133,9 @@
 
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="stat-add-effect" type="button">Effect</button>
-        <button id="stat-delete" class="remove-button" type="button" style="margin-top:0;">Delete from list</button>
+        <button id="stat-delete" class="remove-button" type="button" style="margin-top:0;">
+          Delete from list
+        </button>
       </div>
     </div>
   </div>
@@ -151,8 +165,13 @@
       const saveLink = document.getElementById("save-link");
       const monsterLink = document.getElementById("monster-link");
 
-      if (saveLink) saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
-      if (monsterLink) monsterLink.href = `monster.html?code=${encodeURIComponent(code)}`;
+      if (saveLink) {
+        saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
+      }
+
+      if (monsterLink) {
+        monsterLink.href = `monster.html?code=${encodeURIComponent(code)}`;
+      }
     })();
   </script>
 
@@ -163,6 +182,7 @@
       const badge = document.getElementById("game-code-badge");
 
       if (!badge) return;
+
       badge.textContent = code ? `Code: ${code}` : `No code in URL`;
     })();
   </script>
