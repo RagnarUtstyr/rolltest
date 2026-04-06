@@ -138,6 +138,7 @@ function openStatModal({
   if (countdownInputEl) countdownInputEl.value = "";
   if (healInputEl) healInputEl.value = "";
 
+  currentStatEntryId = null;
   modal.setAttribute("aria-hidden", "false");
 }
 
