@@ -7,10 +7,10 @@
 
   <title>Initiative</title>
 
-  <script type="module" src="server_dnd.js?v=20260406g" defer></script>
-  <script type="module" src="health_dnd.js?v=20260406g" defer></script>
+  <script type="module" src="server_dnd.js?v=20260406h" defer></script>
+  <script type="module" src="health_dnd.js?v=20260406h" defer></script>
 
-  <link rel="stylesheet" href="style_dnd.css">
+  <link rel="stylesheet" href="style_dnd.css?v=20260406h">
   <link rel="stylesheet" href="turn_dnd.css">
   <link rel="stylesheet" href="save_dnd.css">
   <script src="turn_dnd.js" defer></script>
@@ -82,7 +82,6 @@
     <a id="monster-link" href="monster.html" class="button-link">Go to Monster List</a>
   </div>
 
-  <!-- Stats Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
       <button class="ol-modal__close" id="stat-modal-close" aria-label="Close">×</button>
@@ -105,23 +104,12 @@
       </a>
 
       <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
-        <input
-          id="stat-heal-amount"
-          type="number"
-          placeholder="Heal amount"
-          style="flex:1; padding:6px 8px;"
-        >
+        <input id="stat-heal-amount" type="number" placeholder="Heal amount" style="flex:1; padding:6px 8px;">
         <button id="stat-heal" class="remove-button" type="button">Heal</button>
       </div>
 
       <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
-        <input
-          id="stat-countdown-amount"
-          type="number"
-          min="1"
-          placeholder="Countdown (turns)"
-          style="flex:1; padding:6px 8px;"
-        >
+        <input id="stat-countdown-amount" type="number" min="1" placeholder="Countdown (turns)" style="flex:1; padding:6px 8px;">
         <button id="stat-countdown-set" class="remove-button" type="button">Start</button>
         <button id="stat-countdown-clear" class="remove-button" type="button">Clear</button>
       </div>
@@ -133,9 +121,7 @@
 
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="stat-add-effect" type="button">Effect</button>
-        <button id="stat-delete" class="remove-button" type="button" style="margin-top:0;">
-          Delete from list
-        </button>
+        <button id="stat-delete" class="remove-button" type="button" style="margin-top:0;">Delete from list</button>
       </div>
     </div>
   </div>
@@ -165,13 +151,8 @@
       const saveLink = document.getElementById("save-link");
       const monsterLink = document.getElementById("monster-link");
 
-      if (saveLink) {
-        saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
-      }
-
-      if (monsterLink) {
-        monsterLink.href = `monster.html?code=${encodeURIComponent(code)}`;
-      }
+      if (saveLink) saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
+      if (monsterLink) monsterLink.href = `monster.html?code=${encodeURIComponent(code)}`;
     })();
   </script>
 
@@ -182,11 +163,7 @@
       const badge = document.getElementById("game-code-badge");
 
       if (!badge) return;
-
       badge.textContent = code ? `Code: ${code}` : `No code in URL`;
-
-      console.log("Full URL:", window.location.href);
-      console.log("Code from URL:", code);
     })();
   </script>
 </body>

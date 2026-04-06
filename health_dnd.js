@@ -342,13 +342,19 @@ function fetchRankings() {
       const nameAcContainer = document.createElement("div");
       nameAcContainer.className = "name-ac-container";
 
-      const nameDiv = document.createElement("div");
+      const nameDiv = document.createElement("button");
+      nameDiv.type = "button";
       nameDiv.className = "name";
       nameDiv.textContent = name;
       nameDiv.style.cursor = "pointer";
+      nameDiv.style.background = "transparent";
+      nameDiv.style.border = "0";
+      nameDiv.style.padding = "0";
+      nameDiv.style.textAlign = "left";
       nameDiv.title = "Show details";
 
       nameDiv.addEventListener("click", (e) => {
+        e.preventDefault();
         e.stopPropagation();
 
         const s = getCountdownState(id);
@@ -460,24 +466,6 @@ function fetchRankings() {
 
       rankingList.appendChild(listItem);
     });
-
-    if (currentStatEntryId && dataCache[currentStatEntryId]) {
-      const entry = dataCache[currentStatEntryId];
-      const s = getCountdownState(currentStatEntryId);
-
-      openStatModal({
-        id: currentStatEntryId,
-        name: entry.name,
-        initiative: entry.initiative ?? "N/A",
-        url: entry.url,
-        countdownRemaining: s.remaining,
-        countdownActive: s.active,
-        countdownEnded: s.ended,
-      });
-    } else if (currentStatEntryId && !dataCache[currentStatEntryId]) {
-      closeStatModal();
-      currentStatEntryId = null;
-    }
   });
 }
 
@@ -655,22 +643,10 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchRankings();
   }
 
-  const applyDamageButton = document.getElementById("apply-damage-button");
-  if (applyDamageButton) {
-    applyDamageButton.addEventListener("click", applyDamageToAll);
-  }
-
-  document
-    .getElementById("effect-picker-close")
-    ?.addEventListener("click", closeEffectPickerModal);
-
-  document
-    .getElementById("effects-modal-close")
-    ?.addEventListener("click", closeEffectsModal);
-
-  document
-    .getElementById("stat-modal-close")
-    ?.addEventListener("click", closeStatModal);
+  document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
+  document.getElementById("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
+  document.getElementById("effects-modal-close")?.addEventListener("click", closeEffectsModal);
+  document.getElementById("stat-modal-close")?.addEventListener("click", closeStatModal);
 
   document.getElementById("effect-picker-modal")?.addEventListener("click", (e) => {
     if (e.target?.id === "effect-picker-modal") closeEffectPickerModal();
@@ -700,80 +676,65 @@ document.addEventListener("DOMContentLoaded", () => {
     removeEntry(currentStatEntryId, row);
   });
 
-  const healBtn = document.getElementById("stat-heal");
-  const healAmtInput = document.getElementById("stat-heal-amount");
+  document.getElementById("stat-heal")?.addEventListener("click", () => {
+    if (!currentStatEntryId) return;
 
-  if (healBtn && healAmtInput) {
-    healBtn.addEventListener("click", () => {
-      if (!currentStatEntryId) return;
+    const healAmtInput = document.getElementById("stat-heal-amount");
+    const amount = parseInt(healAmtInput?.value, 10);
+    if (Number.isNaN(amount) || amount <= 0) return;
 
-      const amount = parseInt(healAmtInput.value, 10);
-      if (Number.isNaN(amount) || amount <= 0) return;
+    const dmgInput = getHealthInput(currentStatEntryId);
+    if (!dmgInput) return;
 
-      const dmgInput = getHealthInput(currentStatEntryId);
-      if (!dmgInput) return;
+    const current = parseInt(dmgInput.dataset.currentHealth, 10) || 0;
+    const newHealth = Math.max(current + amount, 0);
 
-      const current = parseInt(dmgInput.dataset.currentHealth, 10) || 0;
-      const newHealth = Math.max(current + amount, 0);
+    updateHealth(currentStatEntryId, newHealth, dmgInput);
+    if (healAmtInput) healAmtInput.value = "";
+  });
 
-      updateHealth(currentStatEntryId, newHealth, dmgInput);
-      healAmtInput.value = "";
-    });
-  }
+  document.getElementById("stat-countdown-set")?.addEventListener("click", async () => {
+    if (!currentStatEntryId) return;
 
-  const countdownSetBtn = document.getElementById("stat-countdown-set");
-  const countdownClearBtn = document.getElementById("stat-countdown-clear");
-  const countdownAmtInput = document.getElementById("stat-countdown-amount");
+    const countdownAmtInput = document.getElementById("stat-countdown-amount");
+    const turns = parseInt(countdownAmtInput?.value, 10);
+    if (Number.isNaN(turns) || turns < 1) return;
 
-  if (countdownSetBtn && countdownAmtInput) {
-    countdownSetBtn.addEventListener("click", async () => {
-      if (!currentStatEntryId) return;
+    try {
+      await setCountdown(currentStatEntryId, turns);
+      if (countdownAmtInput) countdownAmtInput.value = "";
+    } catch (err) {
+      console.error("Error setting countdown:", err);
+    }
+  });
 
-      const turns = parseInt(countdownAmtInput.value, 10);
-      if (Number.isNaN(turns) || turns < 1) return;
+  document.getElementById("stat-countdown-clear")?.addEventListener("click", async () => {
+    if (!currentStatEntryId) return;
 
-      try {
-        await setCountdown(currentStatEntryId, turns);
-        countdownAmtInput.value = "";
-      } catch (err) {
-        console.error("Error setting countdown:", err);
-      }
-    });
-  }
-
-  if (countdownClearBtn) {
-    countdownClearBtn.addEventListener("click", async () => {
-      if (!currentStatEntryId) return;
-
-      try {
-        await clearCountdown(currentStatEntryId);
-      } catch (err) {
-        console.error("Error clearing countdown:", err);
-      }
-    });
-  }
+    try {
+      await clearCountdown(currentStatEntryId);
+    } catch (err) {
+      console.error("Error clearing countdown:", err);
+    }
+  });
 
   document.getElementById("stat-add-effect")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
-
     const entry = dataCache[currentStatEntryId];
     openEffectPickerModal(currentStatEntryId, entry?.effects || []);
   });
 
-  const nextButton = document.getElementById("next-button");
-  if (nextButton) {
-    nextButton.addEventListener("click", () => {
-      const previousId = getHighlightedEntryId();
+  document.getElementById("next-button")?.addEventListener("click", () => {
+    const previousId = getHighlightedEntryId();
 
-      setTimeout(async () => {
-        if (!previousId) return;
+    setTimeout(async () => {
+      if (!previousId) return;
 
-        try {
-          await decrementCountdownIfNeeded(previousId);
-        } catch (err) {
-          console.error("Error decrementing countdown:", err);
-        }
-      }, 0);
-    });
-  }
+      try {
+        await decrementCountdownIfNeeded(previousId);
+      } catch (err) {
+        console.error("Error decrementing countdown:", err);
+      }
+    }, 0);
+  });
 });
