@@ -19,13 +19,11 @@ function getEntriesPath() {
 }
 
 function openModal(modal) {
-  if (!modal) return;
-  modal.setAttribute("aria-hidden", "false");
+  if (modal) modal.setAttribute("aria-hidden", "false");
 }
 
 function closeModal(modal) {
-  if (!modal) return;
-  modal.setAttribute("aria-hidden", "true");
+  if (modal) modal.setAttribute("aria-hidden", "true");
 }
 
 function closeAllModals() {
@@ -36,13 +34,13 @@ function closeAllModals() {
 }
 
 function fillStatModalFromRow(row) {
-  const name = row.dataset.name || "Unknown";
-  const initiative = row.dataset.initiative || "N/A";
-  const ac = row.dataset.ac || "N/A";
-  const hp = row.dataset.health || "N/A";
-  const url = row.dataset.url || "";
-
   currentEntryId = row.dataset.entryId || null;
+
+  const name = row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
+  const initiative = row.dataset.initiative || "N/A";
+  const ac = row.dataset.ac || row.querySelector(".ac")?.textContent?.replace(/^AC:\s*/, "") || "N/A";
+  const hp = row.dataset.health || row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") || "N/A";
+  const url = row.dataset.url || "";
 
   if (qs("stat-modal-title")) qs("stat-modal-title").textContent = name;
   if (qs("stat-init")) qs("stat-init").textContent = initiative;
@@ -64,10 +62,10 @@ function fillStatModalFromRow(row) {
 }
 
 function fillHpModalFromRow(row) {
-  const name = row.dataset.name || "Unknown";
-  const hp = row.dataset.health || "";
-
   currentEntryId = row.dataset.entryId || null;
+
+  const name = row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
+  const hp = row.dataset.health || row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") || "";
 
   if (qs("hp-modal-title")) qs("hp-modal-title").textContent = `${name} HP`;
   if (qs("hp-set-amount")) qs("hp-set-amount").value = hp === "N/A" ? "" : hp;
@@ -78,7 +76,6 @@ function bindCloseBehavior(modalId, closeId) {
   if (!modal) return;
 
   qs(closeId)?.addEventListener("click", () => closeModal(modal));
-
   modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal(modal);
   });
@@ -103,12 +100,10 @@ async function healCurrentEntry() {
 
   await update(ref(db, `${getEntriesPath()}/${currentEntryId}`), { health: nextHealth });
 
-  input.value = "";
   row.dataset.health = String(nextHealth);
-
-  const hpField = row.querySelector(".health");
-  if (hpField) hpField.textContent = `HP: ${nextHealth}`;
+  row.querySelector(".health").textContent = `HP: ${nextHealth}`;
   if (qs("stat-hp")) qs("stat-hp").textContent = String(nextHealth);
+  input.value = "";
 }
 
 async function setCurrentEntryHp() {
@@ -124,9 +119,7 @@ async function setCurrentEntryHp() {
   await update(ref(db, `${getEntriesPath()}/${currentEntryId}`), { health: amount });
 
   row.dataset.health = String(amount);
-
-  const hpField = row.querySelector(".health");
-  if (hpField) hpField.textContent = `HP: ${amount}`;
+  row.querySelector(".health").textContent = `HP: ${amount}`;
   if (qs("stat-hp")) qs("stat-hp").textContent = String(amount);
 
   closeModal(qs("hp-modal"));
@@ -143,8 +136,6 @@ async function deleteCurrentEntry() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const rankingList = qs("rankingList");
-  const statModal = qs("stat-modal");
-  const hpModal = qs("hp-modal");
 
   bindCloseBehavior("stat-modal", "stat-modal-close");
   bindCloseBehavior("hp-modal", "hp-modal-close");
@@ -161,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = nameEl.closest("li");
       if (!row) return;
       fillStatModalFromRow(row);
-      openModal(statModal);
+      openModal(qs("stat-modal"));
       return;
     }
 
@@ -170,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = healthEl.closest("li");
       if (!row) return;
       fillHpModalFromRow(row);
-      openModal(hpModal);
+      openModal(qs("hp-modal"));
     }
   });
 
