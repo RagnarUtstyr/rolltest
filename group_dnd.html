@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png">
+
   <title>Initiative</title>
+
   <script type="module" src="server_dnd.js?v=20260406e" defer></script>
   <script type="module" src="health_dnd.js?v=20260406e" defer></script>
+
   <link rel="stylesheet" href="style_dnd.css">
   <link rel="stylesheet" href="turn_dnd.css">
   <link rel="stylesheet" href="save_dnd.css">
@@ -37,8 +39,11 @@
   <div class="container">
     <h1>Initiative</h1>
     <div id="game-code-badge">Code: ----</div>
+
     <br>
+
     <a href="lobby.html" class="button-link">Lobby</a>
+
     <br>
 
     <ul id="rankingList"></ul>
@@ -49,10 +54,12 @@
     </div>
 
     <br>
+
     <button id="clear-list-button">Clear List</button>
-    <br><br>
 
     <br><br>
+    <br><br>
+
     <h2>Submit a New Entry</h2>
 
     <label for="name">Name:</label>
@@ -70,8 +77,67 @@
     <button id="submit-button">Submit</button>
 
     <br><br>
+
     <a id="save-link" href="save.html" class="button-link">Go to Lists</a>
     <a id="monster-link" href="monster.html" class="button-link">Go to Monster List</a>
+  </div>
+
+  <!-- Stats Modal -->
+  <div id="stat-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
+      <button class="ol-modal__close" id="stat-modal-close" aria-label="Close">×</button>
+
+      <h3 id="stat-modal-title"></h3>
+
+      <p class="ol-meta">
+        <span class="label">Initiative:</span>
+        <span class="value" id="stat-init"></span>
+      </p>
+
+      <a
+        id="stat-url"
+        class="button-link"
+        target="_blank"
+        rel="noopener"
+        style="display:none; margin-top:12px;"
+      >
+        Open monster page
+      </a>
+
+      <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
+        <input
+          id="stat-heal-amount"
+          type="number"
+          placeholder="Heal amount"
+          style="flex:1; padding:6px 8px;"
+        >
+        <button id="stat-heal" class="remove-button" type="button">Heal</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
+        <input
+          id="stat-countdown-amount"
+          type="number"
+          min="1"
+          placeholder="Countdown (turns)"
+          style="flex:1; padding:6px 8px;"
+        >
+        <button id="stat-countdown-set" class="remove-button" type="button">Start</button>
+        <button id="stat-countdown-clear" class="remove-button" type="button">Clear</button>
+      </div>
+
+      <p class="ol-meta" style="margin-top:10px;">
+        <span class="label">Countdown remaining:</span>
+        <span class="value" id="stat-countdown-remaining">—</span>
+      </p>
+
+      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button id="stat-add-effect" type="button">Effect</button>
+        <button id="stat-delete" class="remove-button" type="button" style="margin-top:0;">
+          Delete from list
+        </button>
+      </div>
+    </div>
   </div>
 
   <div id="effect-picker-modal" class="ol-modal" aria-hidden="true">
@@ -118,6 +184,7 @@
       if (!badge) return;
 
       badge.textContent = code ? `Code: ${code}` : `No code in URL`;
+
       console.log("Full URL:", window.location.href);
       console.log("Code from URL:", code);
     })();
