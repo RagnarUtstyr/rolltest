@@ -99,14 +99,6 @@ function setCountdownDisplay({ remaining, active, ended }) {
   }
 }
 
-function onReady(fn) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fn);
-  } else {
-    fn();
-  }
-}
-
 function closeEffectPickerModal() {
   document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
 }
@@ -387,6 +379,7 @@ function fetchRankings() {
       listItem.appendChild(healthDiv);
 
       const effectArray = normalizeEffects(effects);
+
       if (effectArray.length > 0) {
         const effectWrap = document.createElement("div");
         effectWrap.className = "row-banes";
@@ -512,6 +505,7 @@ function updateHealth(id, newHealth, healthInput) {
     .then(() => {
       const listItem = healthInput.parentElement;
       const healthDiv = listItem.querySelector(".health");
+
       if (healthDiv) {
         healthDiv.textContent = `HP: ${newHealth}`;
       }
@@ -782,8 +776,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 0);
     });
   }
-});
-
-onReady(() => {
-  // reserved for future startup helpers if needed
 });
