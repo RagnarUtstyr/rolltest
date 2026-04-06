@@ -1,5 +1,12 @@
 import { db } from "./firebase-config.js";
-import { ref, push, onValue, remove, set, update } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+import {
+  ref,
+  push,
+  onValue,
+  remove,
+  set,
+  update,
+} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);
@@ -12,6 +19,16 @@ function getEntriesPath() {
   return `games/${code}/entries`;
 }
 
+function normalizeEffects(effects) {
+  if (!effects) return [];
+  if (Array.isArray(effects)) return effects.filter(Boolean);
+  return Object.values(effects).filter(Boolean);
+}
+
+function sanitizeEffectKey(value) {
+  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
+}
+
 function normalizeEntry(id, entry) {
   return {
     id,
@@ -21,6 +38,7 @@ function normalizeEntry(id, entry) {
     health: entry.health ?? null,
     ac: entry.ac ?? null,
     url: entry.url ?? null,
+    effects: normalizeEffects(entry.effects),
   };
 }
 
@@ -49,6 +67,7 @@ async function submitData() {
       initiative: number,
       health,
       ac,
+      effects: {},
       createdByAdmin: true,
       updatedAt: Date.now(),
     });
@@ -63,6 +82,27 @@ async function submitData() {
   } catch (error) {
     console.error("Error submitting data:", error);
   }
+}
+
+function createEffectIcon(effect) {
+  const icon = document.createElement("img");
+  icon.className = "effect-row-icon";
+  icon.src = effect.icon || "icons/effects/test.png";
+  icon.alt = effect.name || "Effect";
+  icon.title = effect.name || "Effect";
+  icon.width = 22;
+  icon.height = 22;
+  icon.style.marginLeft = "6px";
+  icon.style.verticalAlign = "middle";
+  icon.style.borderRadius = "4px";
+  if (effect.url) {
+    icon.style.cursor = "pointer";
+    icon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.open(effect.url, "_blank", "noopener");
+    });
+  }
+  return icon;
 }
 
 function fetchRankings() {
@@ -86,7 +126,7 @@ function fetchRankings() {
         .map(([id, entry]) => normalizeEntry(id, entry))
         .sort((a, b) => (b.number || 0) - (a.number || 0));
 
-      rankings.forEach(({ id, name, ac, health, url, initiative }) => {
+      rankings.forEach(({ id, name, ac, health, url, initiative, effects }) => {
         const listItem = document.createElement("li");
         listItem.className = "list-item";
         listItem.dataset.entryId = id;
@@ -95,6 +135,7 @@ function fetchRankings() {
         listItem.dataset.ac = ac !== null && ac !== undefined ? String(ac) : "N/A";
         listItem.dataset.health = health !== null && health !== undefined ? String(health) : "N/A";
         listItem.dataset.url = url ?? "";
+        listItem.dataset.effects = JSON.stringify(effects || []);
 
         const nameAcContainer = document.createElement("div");
         nameAcContainer.className = "name-ac-container";
@@ -117,6 +158,13 @@ function fetchRankings() {
         healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
         healthDiv.style.cursor = "pointer";
         listItem.appendChild(healthDiv);
+
+        const effectsRow = document.createElement("div");
+        effectsRow.className = "row-effects";
+        effects.forEach((effect) => {
+          effectsRow.appendChild(createEffectIcon(effect));
+        });
+        listItem.appendChild(effectsRow);
 
         const healthInput = document.createElement("input");
         healthInput.type = "number";

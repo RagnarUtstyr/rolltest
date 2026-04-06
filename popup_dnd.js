@@ -1,5 +1,6 @@
 import { db } from "./firebase-config.js";
 import { ref, update, remove } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+import { EFFECTS } from "./effects.js";
 
 let currentEntryId = null;
 
@@ -18,6 +19,10 @@ function getEntriesPath() {
   return `games/${code}/entries`;
 }
 
+function sanitizeEffectKey(value) {
+  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
+}
+
 function openModal(modal) {
   if (modal) modal.setAttribute("aria-hidden", "false");
 }
@@ -31,6 +36,49 @@ function closeAllModals() {
   closeModal(qs("hp-modal"));
   closeModal(qs("effect-picker-modal"));
   closeModal(qs("effects-modal"));
+}
+
+function getEffectsFromRow(row) {
+  try {
+    return JSON.parse(row.dataset.effects || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function setEffectsOnRow(row, effects) {
+  row.dataset.effects = JSON.stringify(effects || []);
+}
+
+function renderEffectsSummary(row) {
+  const container = row.querySelector(".row-effects");
+  if (!container) return;
+
+  const effects = getEffectsFromRow(row);
+  container.innerHTML = "";
+
+  effects.forEach((effect) => {
+    const icon = document.createElement("img");
+    icon.className = "effect-row-icon";
+    icon.src = effect.icon || "icons/effects/test.png";
+    icon.alt = effect.name || "Effect";
+    icon.title = effect.name || "Effect";
+    icon.width = 22;
+    icon.height = 22;
+    icon.style.marginLeft = "6px";
+    icon.style.verticalAlign = "middle";
+    icon.style.borderRadius = "4px";
+
+    if (effect.url) {
+      icon.style.cursor = "pointer";
+      icon.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.open(effect.url, "_blank", "noopener");
+      });
+    }
+
+    container.appendChild(icon);
+  });
 }
 
 function fillStatModalFromRow(row) {
@@ -59,6 +107,7 @@ function fillStatModalFromRow(row) {
   }
 
   if (qs("stat-heal-amount")) qs("stat-heal-amount").value = "";
+  renderEffectsModal(row);
 }
 
 function fillHpModalFromRow(row) {
@@ -134,6 +183,131 @@ async function deleteCurrentEntry() {
   currentEntryId = null;
 }
 
+function renderEffectsModal(row) {
+  const list = qs("effects-modal-list");
+  if (!list) return;
+
+  const effects = getEffectsFromRow(row);
+  list.innerHTML = "";
+
+  if (!effects.length) {
+    const p = document.createElement("p");
+    p.textContent = "No effects added.";
+    list.appendChild(p);
+    return;
+  }
+
+  effects.forEach((effect) => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "effect-picker-row";
+
+    const left = document.createElement("div");
+    left.className = "effect-picker-left";
+
+    const icon = document.createElement("img");
+    icon.className = "effect-icon";
+    icon.src = effect.icon || "icons/effects/test.png";
+    icon.alt = effect.name || "Effect";
+    icon.width = 24;
+    icon.height = 24;
+
+    const name = document.createElement("span");
+    name.textContent = effect.name || "Unknown";
+
+    left.appendChild(icon);
+    left.appendChild(name);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "remove-button";
+    removeBtn.textContent = "Remove";
+
+    removeBtn.addEventListener("click", async () => {
+      const entryRow = findRow(currentEntryId);
+      if (!entryRow) return;
+
+      const currentEffects = getEffectsFromRow(entryRow);
+      const nextEffects = currentEffects.filter((e) => e.name !== effect.name);
+      setEffectsOnRow(entryRow, nextEffects);
+      renderEffectsSummary(entryRow);
+      renderEffectsModal(entryRow);
+
+      await remove(ref(db, `${getEntriesPath()}/${currentEntryId}/effects/${sanitizeEffectKey(effect.name)}`));
+    });
+
+    rowEl.appendChild(left);
+    rowEl.appendChild(removeBtn);
+    list.appendChild(rowEl);
+  });
+}
+
+function renderEffectPicker() {
+  const list = qs("effect-picker-list");
+  if (!list) return;
+
+  const row = findRow(currentEntryId);
+  if (!row) return;
+
+  const currentEffects = getEffectsFromRow(row);
+  const currentNames = new Set(currentEffects.map((e) => e.name));
+  list.innerHTML = "";
+
+  EFFECTS.forEach((effect) => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "effect-picker-row";
+
+    const left = document.createElement("div");
+    left.className = "effect-picker-left";
+
+    const icon = document.createElement("img");
+    icon.className = "effect-icon";
+    icon.src = effect.icon || "icons/effects/test.png";
+    icon.alt = effect.name || "Effect";
+    icon.width = 24;
+    icon.height = 24;
+
+    const name = document.createElement("span");
+    name.textContent = effect.name;
+
+    left.appendChild(icon);
+    left.appendChild(name);
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "remove-button";
+    addBtn.textContent = currentNames.has(effect.name) ? "Added" : "Add";
+    addBtn.disabled = currentNames.has(effect.name);
+
+    addBtn.addEventListener("click", async () => {
+      const entryRow = findRow(currentEntryId);
+      if (!entryRow) return;
+
+      const nextEffect = {
+        name: effect.name,
+        type: effect.type || "",
+        url: effect.url || "",
+        icon: effect.icon || "icons/effects/test.png",
+        description: effect.description || "",
+      };
+
+      const key = sanitizeEffectKey(effect.name);
+      await update(ref(db, `${getEntriesPath()}/${currentEntryId}/effects`), {
+        [key]: nextEffect,
+      });
+
+      const updatedEffects = [...getEffectsFromRow(entryRow), nextEffect];
+      setEffectsOnRow(entryRow, updatedEffects);
+      renderEffectsSummary(entryRow);
+      renderEffectsModal(entryRow);
+      renderEffectPicker();
+    });
+
+    rowEl.appendChild(left);
+    rowEl.appendChild(addBtn);
+    list.appendChild(rowEl);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const rankingList = qs("rankingList");
 
@@ -162,12 +336,28 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!row) return;
       fillHpModalFromRow(row);
       openModal(qs("hp-modal"));
+      return;
+    }
+
+    const effectsEl = e.target.closest(".row-effects");
+    if (effectsEl) {
+      const row = effectsEl.closest("li");
+      if (!row) return;
+      currentEntryId = row.dataset.entryId || null;
+      renderEffectsModal(row);
+      openModal(qs("effects-modal"));
     }
   });
 
   qs("stat-heal")?.addEventListener("click", healCurrentEntry);
   qs("hp-set-button")?.addEventListener("click", setCurrentEntryHp);
   qs("stat-delete")?.addEventListener("click", deleteCurrentEntry);
+
+  qs("stat-add-effect")?.addEventListener("click", () => {
+    if (!currentEntryId) return;
+    renderEffectPicker();
+    openModal(qs("effect-picker-modal"));
+  });
 
   qs("hp-set-amount")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
