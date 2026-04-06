@@ -288,8 +288,7 @@
       .top-character-row > .compact-panel,
       .top-character-row > .name-panel,
       .top-character-row > .initiative-panel,
-      .top-character-row > #player-banes-panel,
-      .top-character-row > #player-effects-panel {
+      .top-character-row > #player-banes-panel {
         width: 100% !important;
         min-width: 0 !important;
         max-width: none !important;
@@ -305,8 +304,7 @@
         grid-column: 2 / 3 !important;
       }
 
-      .top-character-row > #player-banes-panel,
-      .top-character-row > #player-effects-panel {
+      .top-character-row > #player-banes-panel {
         grid-column: 1 / -1 !important;
       }
     }
@@ -352,22 +350,22 @@
           <span class="muted player-banes-empty">No banes added.</span>
         </div>
       </div>
-
-      <div id="player-effects-panel" class="player-panel compact-panel player-banes-panel hidden">
-        <h2>Effects</h2>
-        <p class="muted">D&amp;D only.</p>
-        <div class="bane-toolbar">
-          <button id="player-add-effect-btn" type="button">Add effect</button>
-          <button id="player-view-effects-btn" type="button">Manage effects</button>
-        </div>
-        <div id="player-effects-preview" class="player-banes-preview">
-          <span class="muted player-banes-empty">No effects added.</span>
-        </div>
-      </div>
     </div>
 
     <section id="player-dnd-section" class="hidden">
       <div class="player-panel">
+        <div id="player-effects-panel" class="player-panel compact-panel player-banes-panel hidden">
+          <h2>Effects</h2>
+          <p class="muted">D&amp;D only.</p>
+          <div class="bane-toolbar">
+            <button id="player-add-effect-btn" type="button">Add effect</button>
+            <button id="player-view-effects-btn" type="button">Manage effects</button>
+          </div>
+          <div id="player-effects-preview" class="player-banes-preview">
+            <span class="muted player-banes-empty">No effects added.</span>
+          </div>
+        </div>
+
         <div class="builder-link-row">
           <h2>Stats</h2>
           <a id="dnd-builder-link" class="button-link" href="dnd_character_builder_firebase.html">Open Builder</a>
