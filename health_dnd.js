@@ -23,7 +23,7 @@ function getEntriesPath() {
 }
 
 function sanitizeEffectKey(value) {
-  return String(value ?? "").replace(/[.#$\\[\\]/]/g, "_");
+  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
 }
 
 function normalizeEffects(effects) {
