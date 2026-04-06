@@ -1,5 +1,5 @@
 /**
- * D&D 5e effects list using PNG filenames for icons.
+ * D&D 5e effects list using PNG filenames for icon.
  *
  * Assumes your PNG files are named like:
  * blinded.png
@@ -7,7 +7,7 @@
  * concentrating.png
  *
  * And stored in:
- * /icons/
+ * /icon/
  */
 
 const dndEffects = [
@@ -16,7 +16,7 @@ const dndEffects = [
     name: "Blinded",
     type: "condition",
     official: true,
-    icon: "icons/blinded.png",
+    icon: "icon/blinded.png",
     iconKey: "blinded",
     description:
       "A blinded creature can't see and automatically fails checks that require sight. Attack rolls against it have advantage, and its own attack rolls have disadvantage.",
@@ -26,7 +26,7 @@ const dndEffects = [
     name: "Charmed",
     type: "condition",
     official: true,
-    icon: "icons/charmed.png",
+    icon: "icon/charmed.png",
     iconKey: "charmed",
     description:
       "A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects. The charmer has advantage on social checks involving the creature.",
@@ -36,7 +36,7 @@ const dndEffects = [
     name: "Deafened",
     type: "condition",
     official: true,
-    icon: "icons/deafened.png",
+    icon: "icon/deafened.png",
     iconKey: "deafened",
     description: "A deafened creature can't hear.",
   },
@@ -45,7 +45,7 @@ const dndEffects = [
     name: "Exhaustion",
     type: "condition",
     official: true,
-    icon: "icons/exhaustion.png",
+    icon: "icon/exhaustion.png",
     iconKey: "exhaustion",
     description:
       "Exhaustion is tracked in levels. Higher levels impose worsening penalties, and extreme exhaustion can be fatal.",
@@ -55,7 +55,7 @@ const dndEffects = [
     name: "Frightened",
     type: "condition",
     official: true,
-    icon: "icons/frightened.png",
+    icon: "icon/frightened.png",
     iconKey: "frightened",
     description:
       "A frightened creature has disadvantage on checks and attack rolls while the source of its fear is in line of sight, and it can't willingly move closer to that source.",
@@ -65,7 +65,7 @@ const dndEffects = [
     name: "Grappled",
     type: "condition",
     official: true,
-    icon: "icons/grappled.png",
+    icon: "icon/grappled.png",
     iconKey: "grappled",
     description:
       "A grappled creature's speed becomes 0, and it can't benefit from bonuses to speed until the grapple ends.",
@@ -75,7 +75,7 @@ const dndEffects = [
     name: "Incapacitated",
     type: "condition",
     official: true,
-    icon: "icons/incapacitated.png",
+    icon: "icon/incapacitated.png",
     iconKey: "incapacitated",
     description:
       "An incapacitated creature can't take actions or reactions.",
@@ -85,7 +85,7 @@ const dndEffects = [
     name: "Invisible",
     type: "condition",
     official: true,
-    icon: "icons/invisible.png",
+    icon: "icon/invisible.png",
     iconKey: "invisible",
     description:
       "An invisible creature can't be seen without special senses or magic. For attack purposes, it is treated as heavily obscured; its attacks have advantage, and attacks against it have disadvantage.",
@@ -95,7 +95,7 @@ const dndEffects = [
     name: "Paralyzed",
     type: "condition",
     official: true,
-    icon: "icons/paralyzed.png",
+    icon: "icon/paralyzed.png",
     iconKey: "paralyzed",
     description:
       "A paralyzed creature is incapacitated and can't move or speak. It automatically fails Strength and Dexterity saves, attacks against it have advantage, and nearby hits can become critical hits.",
@@ -105,7 +105,7 @@ const dndEffects = [
     name: "Petrified",
     type: "condition",
     official: true,
-    icon: "icons/petrified.png",
+    icon: "icon/petrified.png",
     iconKey: "petrified",
     description:
       "A petrified creature is transformed into a solid inanimate substance, along with nonmagical worn or carried gear. It is incapacitated, unaware, can't move or speak, and gains strong defensive protections.",
@@ -115,7 +115,7 @@ const dndEffects = [
     name: "Poisoned",
     type: "condition",
     official: true,
-    icon: "icons/poisoned.png",
+    icon: "icon/poisoned.png",
     iconKey: "poisoned",
     description:
       "A poisoned creature has disadvantage on attack rolls and ability checks.",
@@ -125,7 +125,7 @@ const dndEffects = [
     name: "Prone",
     type: "condition",
     official: true,
-    icon: "icons/prone.png",
+    icon: "icon/prone.png",
     iconKey: "prone",
     description:
       "A prone creature's only movement option is to crawl unless it stands up. It has disadvantage on attack rolls, nearby attacks against it have advantage, and distant attacks against it have disadvantage.",
@@ -135,7 +135,7 @@ const dndEffects = [
     name: "Restrained",
     type: "condition",
     official: true,
-    icon: "icons/restrained.png",
+    icon: "icon/restrained.png",
     iconKey: "restrained",
     description:
       "A restrained creature's speed becomes 0, attacks against it have advantage, its own attacks have disadvantage, and it has disadvantage on Dexterity saves.",
@@ -145,7 +145,7 @@ const dndEffects = [
     name: "Stunned",
     type: "condition",
     official: true,
-    icon: "icons/stunned.png",
+    icon: "icon/stunned.png",
     iconKey: "stunned",
     description:
       "A stunned creature is incapacitated, can't move, and can speak only falteringly. It automatically fails Strength and Dexterity saves, and attacks against it have advantage.",
@@ -155,7 +155,7 @@ const dndEffects = [
     name: "Unconscious",
     type: "condition",
     official: true,
-    icon: "icons/unconscious.png",
+    icon: "icon/unconscious.png",
     iconKey: "unconscious",
     description:
       "An unconscious creature is incapacitated, can't move or speak, is unaware of its surroundings, drops what it is holding, falls prone, automatically fails Strength and Dexterity saves, and attacks against it have advantage.",
@@ -166,7 +166,7 @@ const dndEffects = [
     name: "Concentrating",
     type: "status",
     official: true,
-    icon: "icons/concentrating.png",
+    icon: "icon/concentrating.png",
     iconKey: "concentrating",
     description:
       "The creature is maintaining a concentration spell. It can usually concentrate on only one spell at a time, and concentration can be broken by damage or other disruptions.",
@@ -176,7 +176,7 @@ const dndEffects = [
     name: "Surprised",
     type: "status",
     official: true,
-    icon: "icons/surprised.png",
+    icon: "icon/surprised.png",
     iconKey: "surprised",
     description:
       "At the start of combat, a surprised creature can't move or take an action on its first turn and can't take a reaction until that turn ends.",
@@ -186,7 +186,7 @@ const dndEffects = [
     name: "Hidden",
     type: "status",
     official: true,
-    icon: "icons/hidden.png",
+    icon: "icon/hidden.png",
     iconKey: "hidden",
     description:
       "The creature is successfully hidden from another creature or creatures, usually through the Hide action and a successful Dexterity (Stealth) check.",
@@ -196,7 +196,7 @@ const dndEffects = [
     name: "Unseen",
     type: "status",
     official: true,
-    icon: "icons/unseen.png",
+    icon: "icon/unseen.png",
     iconKey: "unseen",
     description:
       "The creature or target can't currently be seen, whether from invisibility, darkness, obstruction, or another effect. This often changes attack-roll interactions.",
@@ -206,7 +206,7 @@ const dndEffects = [
     name: "Dying / 0 HP",
     type: "status",
     official: true,
-    icon: "icons/dying.png",
+    icon: "icon/dying.png",
     iconKey: "dying",
     description:
       "The creature is at 0 hit points and typically falls unconscious. It may begin making death saving throws unless another rule says otherwise.",
@@ -216,7 +216,7 @@ const dndEffects = [
     name: "Stable",
     type: "status",
     official: true,
-    icon: "icons/stable.png",
+    icon: "icon/stable.png",
     iconKey: "stable",
     description:
       "A stable creature at 0 hit points is not making death saving throws, though it remains unconscious until it regains hit points or another rule changes its state.",
