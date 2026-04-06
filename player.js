@@ -1,4 +1,3 @@
-// Firebase test-project ready: shared config + authenticated access.
 import { requireAuth } from "./auth.js";
 import { db } from "./firebase-config.js";
 import { watchOrLoadGame } from "./game-service.js";
@@ -127,14 +126,20 @@ function sanitizeBaneKey(value) {
   return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
 }
 
+function sanitizeEffectKey(value) {
+  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
+}
+
 function normalizeBanes(banes) {
   if (!banes) return [];
   if (Array.isArray(banes)) return banes.filter(Boolean);
   return Object.values(banes).filter(Boolean);
 }
 
-function getCurrentBanes() {
-  return normalizeBanes(getCurrentSheetCache()?.banes);
+function normalizeEffects(effects) {
+  if (!effects) return [];
+  if (Array.isArray(effects)) return effects.filter(Boolean);
+  return Object.values(effects).filter(Boolean);
 }
 
 function getCurrentSheetCache() {
@@ -145,11 +150,26 @@ function setCurrentSheetCache(data) {
   window.__playerSheetCache = data || null;
 }
 
+function getCurrentBanes() {
+  return normalizeBanes(getCurrentSheetCache()?.banes);
+}
+
+function getCurrentEffects() {
+  return normalizeEffects(getCurrentSheetCache()?.effects);
+}
+
 function setPlayerBanes(banes) {
   const safeBanes = normalizeBanes(banes);
   const existing = getCurrentSheetCache() || {};
   setCurrentSheetCache({ ...existing, banes: safeBanes });
   renderPlayerBanes(safeBanes);
+}
+
+function setPlayerEffects(effects) {
+  const safeEffects = normalizeEffects(effects);
+  const existing = getCurrentSheetCache() || {};
+  setCurrentSheetCache({ ...existing, effects: safeEffects });
+  renderPlayerEffects(safeEffects);
 }
 
 function renderPlayerBanes(banes = []) {
@@ -185,12 +205,53 @@ function renderPlayerBanes(banes = []) {
   }
 }
 
+function renderPlayerEffects(effects = []) {
+  if (!playerEffectsPreviewEl) return;
+
+  const safeEffects = normalizeEffects(effects);
+  if (!safeEffects.length) {
+    playerEffectsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No effects added.</span>';
+    return;
+  }
+
+  playerEffectsPreviewEl.innerHTML = "";
+  safeEffects.slice(0, 4).forEach((effect) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "player-bane-chip";
+    chip.title = effect.name || "Effect";
+    chip.innerHTML = `
+      <img src="${effect.icon || "icons/effects/test.png"}" alt="${effect.name || "Effect"}">
+      <span>${effect.name || "Unknown"}</span>
+    `;
+    chip.addEventListener("click", () => {
+      openEffectDescriptionModal(effect);
+    });
+    playerEffectsPreviewEl.appendChild(chip);
+  });
+
+  if (safeEffects.length > 4) {
+    const more = document.createElement("span");
+    more.className = "muted";
+    more.textContent = `+${safeEffects.length - 4} more`;
+    playerEffectsPreviewEl.appendChild(more);
+  }
+}
+
 function closeBanePickerModal() {
   document.getElementById("bane-picker-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function closeBanesModal() {
   document.getElementById("banes-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeEffectPickerModal() {
+  document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeEffectsModal() {
+  document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function openBanePickerModal() {
@@ -298,99 +359,47 @@ function openBanesModal() {
   modal.setAttribute("aria-hidden", "false");
 }
 
-async function persistPlayerBanes(banes, statusMessage = "Banes updated.") {
-  const existing = (await getCurrentSheet()) || {};
-  const payload = buildSheetPayload(existing);
-  payload.banes = normalizeBanes(banes);
-  payload.updatedAt = Date.now();
+function openEffectDescriptionModal(effect) {
+  const modal = document.getElementById("effects-modal");
+  const list = document.getElementById("effects-modal-list");
+  const title = document.getElementById("effects-modal-title");
+  if (!modal || !list) return;
 
-  await set(ref(db, playerSheetPath()), payload);
-  setCurrentSheetCache(payload);
-  renderPlayerBanes(payload.banes);
-  statusEl.textContent = statusMessage;
-}
+  list.innerHTML = "";
 
-async function addPlayerBane(bane) {
-  const current = getCurrentBanes();
-  if (current.some((item) => item?.name === bane.name)) return;
-
-  await persistPlayerBanes([
-    ...current,
-    {
-      name: bane.name,
-      url: bane.url,
-      icon: bane.icon || "icons/banes/test.png",
-      key: sanitizeBaneKey(bane.name)
-    }
-  ], `${bane.name} added.`);
-}
-
-async function removePlayerBane(baneName) {
-  const current = getCurrentBanes();
-  const next = current.filter((bane) => bane?.name !== baneName);
-  await persistPlayerBanes(next, `${baneName} removed.`);
-}
-
-function sanitizeEffectKey(value) {
-  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
-}
-
-function normalizeEffects(effects) {
-  if (!effects) return [];
-  if (Array.isArray(effects)) return effects.filter(Boolean);
-  return Object.values(effects).filter(Boolean);
-}
-
-function getCurrentEffects() {
-  return normalizeEffects(getCurrentSheetCache()?.effects);
-}
-
-function setPlayerEffects(effects) {
-  const safeEffects = normalizeEffects(effects);
-  const existing = getCurrentSheetCache() || {};
-  setCurrentSheetCache({ ...existing, effects: safeEffects });
-  renderPlayerEffects(safeEffects);
-}
-
-function renderPlayerEffects(effects = []) {
-  if (!playerEffectsPreviewEl) return;
-
-  const safeEffects = normalizeEffects(effects);
-  if (!safeEffects.length) {
-    playerEffectsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No effects added.</span>';
-    return;
+  if (title) {
+    title.textContent = effect?.name || "Effect";
   }
 
-  playerEffectsPreviewEl.innerHTML = "";
-  safeEffects.slice(0, 4).forEach((effect) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "player-bane-chip";
-    chip.title = effect.name || "Effect";
-    chip.innerHTML = `
-      <img src="${effect.icon || "icons/effects/test.png"}" alt="${effect.name || "Effect"}">
-      <span>${effect.name || "Unknown"}</span>
-    `;
-    chip.addEventListener("click", () => {
-      openEffectsModal();
-    });
-    playerEffectsPreviewEl.appendChild(chip);
-  });
+  const wrap = document.createElement("div");
+  wrap.className = "bane-picker-row";
+  wrap.style.display = "block";
 
-  if (safeEffects.length > 4) {
-    const more = document.createElement("span");
-    more.className = "muted";
-    more.textContent = `+${safeEffects.length - 4} more`;
-    playerEffectsPreviewEl.appendChild(more);
-  }
-}
+  const header = document.createElement("div");
+  header.className = "bane-picker-left";
+  header.style.marginBottom = "12px";
 
-function closeEffectPickerModal() {
-  document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
-}
+  const icon = document.createElement("img");
+  icon.className = "bane-icon";
+  icon.src = effect?.icon || "icons/effects/test.png";
+  icon.alt = effect?.name || "Effect";
 
-function closeEffectsModal() {
-  document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
+  const name = document.createElement("strong");
+  name.textContent = effect?.name || "Unknown";
+
+  header.appendChild(icon);
+  header.appendChild(name);
+
+  const desc = document.createElement("p");
+  desc.className = "muted";
+  desc.style.margin = "0";
+  desc.textContent = effect?.description || "No description available.";
+
+  wrap.appendChild(header);
+  wrap.appendChild(desc);
+  list.appendChild(wrap);
+
+  modal.setAttribute("aria-hidden", "false");
 }
 
 function openEffectPickerModal() {
@@ -442,7 +451,12 @@ function openEffectPickerModal() {
 function openEffectsModal() {
   const modal = document.getElementById("effects-modal");
   const list = document.getElementById("effects-modal-list");
+  const title = document.getElementById("effects-modal-title");
   if (!modal || !list) return;
+
+  if (title) {
+    title.textContent = "Manage effects";
+  }
 
   const effects = getCurrentEffects();
   list.innerHTML = "";
@@ -476,7 +490,7 @@ function openEffectsModal() {
       left.appendChild(name);
       leftButton.appendChild(left);
       leftButton.addEventListener("click", () => {
-        if (effect.url) window.open(effect.url, "_blank", "noopener");
+        openEffectDescriptionModal(effect);
       });
 
       const removeBtn = document.createElement("button");
@@ -498,6 +512,18 @@ function openEffectsModal() {
   modal.setAttribute("aria-hidden", "false");
 }
 
+async function persistPlayerBanes(banes, statusMessage = "Banes updated.") {
+  const existing = (await getCurrentSheet()) || {};
+  const payload = buildSheetPayload(existing);
+  payload.banes = normalizeBanes(banes);
+  payload.updatedAt = Date.now();
+
+  await set(ref(db, playerSheetPath()), payload);
+  setCurrentSheetCache(payload);
+  renderPlayerBanes(payload.banes);
+  statusEl.textContent = statusMessage;
+}
+
 async function persistPlayerEffects(effects, statusMessage = "Effects updated.") {
   const existing = (await getCurrentSheet()) || {};
   const payload = buildSheetPayload(existing);
@@ -510,6 +536,27 @@ async function persistPlayerEffects(effects, statusMessage = "Effects updated.")
   statusEl.textContent = statusMessage;
 }
 
+async function addPlayerBane(bane) {
+  const current = getCurrentBanes();
+  if (current.some((item) => item?.name === bane.name)) return;
+
+  await persistPlayerBanes([
+    ...current,
+    {
+      name: bane.name,
+      url: bane.url,
+      icon: bane.icon || "icons/banes/test.png",
+      key: sanitizeBaneKey(bane.name)
+    }
+  ], `${bane.name} added.`);
+}
+
+async function removePlayerBane(baneName) {
+  const current = getCurrentBanes();
+  const next = current.filter((bane) => bane?.name !== baneName);
+  await persistPlayerBanes(next, `${baneName} removed.`);
+}
+
 async function addPlayerEffect(effect) {
   const current = getCurrentEffects();
   if (current.some((item) => item?.name === effect.name)) return;
@@ -519,9 +566,10 @@ async function addPlayerEffect(effect) {
       ...current,
       {
         name: effect.name,
-        url: effect.url,
+        url: effect.url || "",
         icon: effect.icon || "icons/effects/test.png",
         type: effect.type || "",
+        description: effect.description || "",
         key: sanitizeEffectKey(effect.name)
       }
     ],
@@ -778,7 +826,8 @@ async function resetDndFromBuilder() {
     con: Number(builderData?.abilities?.Constitution ?? ""),
     int: Number(builderData?.abilities?.Intelligence ?? ""),
     wis: Number(builderData?.abilities?.Wisdom ?? ""),
-    cha: Number(builderData?.abilities?.Charisma ?? "")
+    cha: Number(builderData?.abilities?.Charisma ?? ""),
+    effects: getCurrentEffects()
   });
 
   setDndResult("D&D fields reset from character builder.");
@@ -1066,7 +1115,8 @@ async function saveInitiativeToGame() {
     name: shared.name,
     number: shared.initiative,
     updatedAt: Date.now(),
-    banes: mode === "dnd" ? [] : normalizeBanes(sheetPayload.banes)
+    banes: mode === "dnd" ? [] : normalizeBanes(sheetPayload.banes),
+    effects: mode === "dnd" ? normalizeEffects(sheetPayload.effects) : []
   };
 
   try {

@@ -135,6 +135,8 @@
 
     #player-add-bane-btn,
     #player-view-banes-btn,
+    #player-add-effect-btn,
+    #player-view-effects-btn,
     .bane-picker-add-btn,
     .player-bane-remove-btn {
       background-color: #0b2621;
@@ -150,6 +152,8 @@
 
     #player-add-bane-btn:hover,
     #player-view-banes-btn:hover,
+    #player-add-effect-btn:hover,
+    #player-view-effects-btn:hover,
     .bane-picker-add-btn:hover,
     .player-bane-remove-btn:hover {
       background-color: #1a3b4a;
@@ -175,6 +179,7 @@
       background: rgba(11, 38, 33, 0.45);
       color: #bdb382;
       font-size: 0.95rem;
+      cursor: pointer;
     }
 
     .player-bane-chip img,
@@ -288,7 +293,8 @@
       .top-character-row > .compact-panel,
       .top-character-row > .name-panel,
       .top-character-row > .initiative-panel,
-      .top-character-row > #player-banes-panel {
+      .top-character-row > #player-banes-panel,
+      .top-character-row > #player-effects-panel {
         width: 100% !important;
         min-width: 0 !important;
         max-width: none !important;
@@ -304,7 +310,8 @@
         grid-column: 2 / 3 !important;
       }
 
-      .top-character-row > #player-banes-panel {
+      .top-character-row > #player-banes-panel,
+      .top-character-row > #player-effects-panel {
         grid-column: 1 / -1 !important;
       }
     }
@@ -339,6 +346,18 @@
         <button id="save-initiative-button" type="button">Initiative</button>
       </div>
 
+      <div id="player-effects-panel" class="player-panel compact-panel player-banes-panel hidden">
+        <h2>Effects</h2>
+        <p class="muted">D&amp;D only.</p>
+        <div class="bane-toolbar">
+          <button id="player-add-effect-btn" type="button">Add effect</button>
+          <button id="player-view-effects-btn" type="button">Manage effects</button>
+        </div>
+        <div id="player-effects-preview" class="player-banes-preview">
+          <span class="muted player-banes-empty">No effects added.</span>
+        </div>
+      </div>
+
       <div id="player-banes-panel" class="player-panel compact-panel player-banes-panel hidden">
         <h2>Banes</h2>
         <p class="muted">Open Legend only.</p>
@@ -354,18 +373,6 @@
 
     <section id="player-dnd-section" class="hidden">
       <div class="player-panel">
-        <div id="player-effects-panel" class="player-panel compact-panel player-banes-panel hidden">
-          <h2>Effects</h2>
-          <p class="muted">D&amp;D only.</p>
-          <div class="bane-toolbar">
-            <button id="player-add-effect-btn" type="button">Add effect</button>
-            <button id="player-view-effects-btn" type="button">Manage effects</button>
-          </div>
-          <div id="player-effects-preview" class="player-banes-preview">
-            <span class="muted player-banes-empty">No effects added.</span>
-          </div>
-        </div>
-
         <div class="builder-link-row">
           <h2>Stats</h2>
           <a id="dnd-builder-link" class="button-link" href="dnd_character_builder_firebase.html">Open Builder</a>
