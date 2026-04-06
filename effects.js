@@ -1,251 +1,180 @@
-/**
- * D&D 5e effects list using PNG filenames for icon.
- *
- * Assumes your PNG files are named like:
- * blinded.png
- * charmed.png
- * concentrating.png
- *
- * And stored in:
- * /icon/
- */
-
-const dndEffects = [
+export const EFFECTS = [
   {
-    id: "blinded",
     name: "Blinded",
     type: "condition",
-    official: true,
-    icon: "icon/blinded.png",
-    iconKey: "blinded",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#BlindedCondition",
+    icon: "icons/effects/blinded.png",
     description:
-      "A blinded creature can't see and automatically fails checks that require sight. Attack rolls against it have advantage, and its own attack rolls have disadvantage.",
+      "A blinded creature can't see and automatically fails checks that require sight. Attack rolls against it have advantage, and its own attack rolls have disadvantage."
   },
   {
-    id: "charmed",
     name: "Charmed",
     type: "condition",
-    official: true,
-    icon: "icon/charmed.png",
-    iconKey: "charmed",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#CharmedCondition",
+    icon: "icons/effects/charmed.png",
     description:
-      "A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects. The charmer has advantage on social checks involving the creature.",
+      "A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects. The charmer has advantage on social checks involving the creature."
   },
   {
-    id: "deafened",
     name: "Deafened",
     type: "condition",
-    official: true,
-    icon: "icon/deafened.png",
-    iconKey: "deafened",
-    description: "A deafened creature can't hear.",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#DeafenedCondition",
+    icon: "icons/effects/deafened.png",
+    description: "A deafened creature can't hear."
   },
   {
-    id: "exhaustion",
     name: "Exhaustion",
     type: "condition",
-    official: true,
-    icon: "icon/exhaustion.png",
-    iconKey: "exhaustion",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#ExhaustionCondition",
+    icon: "icons/effects/exhaustion.png",
     description:
-      "Exhaustion is tracked in levels. Higher levels impose worsening penalties, and extreme exhaustion can be fatal.",
+      "Exhaustion is tracked in levels. Higher levels impose worsening penalties, and extreme exhaustion can be fatal."
   },
   {
-    id: "frightened",
     name: "Frightened",
     type: "condition",
-    official: true,
-    icon: "icon/frightened.png",
-    iconKey: "frightened",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#FrightenedCondition",
+    icon: "icons/effects/frightened.png",
     description:
-      "A frightened creature has disadvantage on checks and attack rolls while the source of its fear is in line of sight, and it can't willingly move closer to that source.",
+      "A frightened creature has disadvantage on checks and attack rolls while the source of its fear is in line of sight, and it can't willingly move closer to that source."
   },
   {
-    id: "grappled",
     name: "Grappled",
     type: "condition",
-    official: true,
-    icon: "icon/grappled.png",
-    iconKey: "grappled",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#GrappledCondition",
+    icon: "icons/effects/grappled.png",
     description:
-      "A grappled creature's speed becomes 0, and it can't benefit from bonuses to speed until the grapple ends.",
+      "A grappled creature's speed becomes 0, and it can't benefit from bonuses to speed until the grapple ends."
   },
   {
-    id: "incapacitated",
     name: "Incapacitated",
     type: "condition",
-    official: true,
-    icon: "icon/incapacitated.png",
-    iconKey: "incapacitated",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#IncapacitatedCondition",
+    icon: "icons/effects/incapacitated.png",
     description:
-      "An incapacitated creature can't take actions or reactions.",
+      "An incapacitated creature can't take actions or reactions."
   },
   {
-    id: "invisible",
     name: "Invisible",
     type: "condition",
-    official: true,
-    icon: "icon/invisible.png",
-    iconKey: "invisible",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#InvisibleCondition",
+    icon: "icons/effects/invisible.png",
     description:
-      "An invisible creature can't be seen without special senses or magic. For attack purposes, it is treated as heavily obscured; its attacks have advantage, and attacks against it have disadvantage.",
+      "An invisible creature can't be seen without special senses or magic. For attack purposes, it is treated as heavily obscured; its attacks have advantage, and attacks against it have disadvantage."
   },
   {
-    id: "paralyzed",
     name: "Paralyzed",
     type: "condition",
-    official: true,
-    icon: "icon/paralyzed.png",
-    iconKey: "paralyzed",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#ParalyzedCondition",
+    icon: "icons/effects/paralyzed.png",
     description:
-      "A paralyzed creature is incapacitated and can't move or speak. It automatically fails Strength and Dexterity saves, attacks against it have advantage, and nearby hits can become critical hits.",
+      "A paralyzed creature is incapacitated and can't move or speak. It automatically fails Strength and Dexterity saves, attacks against it have advantage, and nearby hits can become critical hits."
   },
   {
-    id: "petrified",
     name: "Petrified",
     type: "condition",
-    official: true,
-    icon: "icon/petrified.png",
-    iconKey: "petrified",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#PetrifiedCondition",
+    icon: "icons/effects/petrified.png",
     description:
-      "A petrified creature is transformed into a solid inanimate substance, along with nonmagical worn or carried gear. It is incapacitated, unaware, can't move or speak, and gains strong defensive protections.",
+      "A petrified creature is transformed into a solid inanimate substance, along with nonmagical worn or carried gear. It is incapacitated, unaware, can't move or speak, and gains strong defensive protections."
   },
   {
-    id: "poisoned",
     name: "Poisoned",
     type: "condition",
-    official: true,
-    icon: "icon/poisoned.png",
-    iconKey: "poisoned",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#PoisonedCondition",
+    icon: "icons/effects/poisoned.png",
     description:
-      "A poisoned creature has disadvantage on attack rolls and ability checks.",
+      "A poisoned creature has disadvantage on attack rolls and ability checks."
   },
   {
-    id: "prone",
     name: "Prone",
     type: "condition",
-    official: true,
-    icon: "icon/prone.png",
-    iconKey: "prone",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#ProneCondition",
+    icon: "icons/effects/prone.png",
     description:
-      "A prone creature's only movement option is to crawl unless it stands up. It has disadvantage on attack rolls, nearby attacks against it have advantage, and distant attacks against it have disadvantage.",
+      "A prone creature's only movement option is to crawl unless it stands up. It has disadvantage on attack rolls, nearby attacks against it have advantage, and distant attacks against it have disadvantage."
   },
   {
-    id: "restrained",
     name: "Restrained",
     type: "condition",
-    official: true,
-    icon: "icon/restrained.png",
-    iconKey: "restrained",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#RestrainedCondition",
+    icon: "icons/effects/restrained.png",
     description:
-      "A restrained creature's speed becomes 0, attacks against it have advantage, its own attacks have disadvantage, and it has disadvantage on Dexterity saves.",
+      "A restrained creature's speed becomes 0, attacks against it have advantage, its own attacks have disadvantage, and it has disadvantage on Dexterity saves."
   },
   {
-    id: "stunned",
     name: "Stunned",
     type: "condition",
-    official: true,
-    icon: "icon/stunned.png",
-    iconKey: "stunned",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#StunnedCondition",
+    icon: "icons/effects/stunned.png",
     description:
-      "A stunned creature is incapacitated, can't move, and can speak only falteringly. It automatically fails Strength and Dexterity saves, and attacks against it have advantage.",
+      "A stunned creature is incapacitated, can't move, and can speak only falteringly. It automatically fails Strength and Dexterity saves, and attacks against it have advantage."
   },
   {
-    id: "unconscious",
     name: "Unconscious",
     type: "condition",
-    official: true,
-    icon: "icon/unconscious.png",
-    iconKey: "unconscious",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#UnconsciousCondition",
+    icon: "icons/effects/unconscious.png",
     description:
-      "An unconscious creature is incapacitated, can't move or speak, is unaware of its surroundings, drops what it is holding, falls prone, automatically fails Strength and Dexterity saves, and attacks against it have advantage.",
+      "An unconscious creature is incapacitated, can't move or speak, is unaware of its surroundings, drops what it is holding, falls prone, automatically fails Strength and Dexterity saves, and attacks against it have advantage."
   },
-
   {
-    id: "concentrating",
     name: "Concentrating",
     type: "status",
-    official: true,
-    icon: "icon/concentrating.png",
-    iconKey: "concentrating",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/spells#Concentration",
+    icon: "icons/effects/concentrating.png",
     description:
-      "The creature is maintaining a concentration spell. It can usually concentrate on only one spell at a time, and concentration can be broken by damage or other disruptions.",
+      "The creature is maintaining a concentration spell. It can usually concentrate on only one spell at a time, and concentration can be broken by damage or other disruptions."
   },
   {
-    id: "surprised",
     name: "Surprised",
     type: "status",
-    official: true,
-    icon: "icon/surprised.png",
-    iconKey: "surprised",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/combat#Surprise",
+    icon: "icons/effects/surprised.png",
     description:
-      "At the start of combat, a surprised creature can't move or take an action on its first turn and can't take a reaction until that turn ends.",
+      "At the start of combat, a surprised creature can't move or take an action on its first turn and can't take a reaction until that turn ends."
   },
   {
-    id: "hidden",
     name: "Hidden",
     type: "status",
-    official: true,
-    icon: "icon/hidden.png",
-    iconKey: "hidden",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/playing-the-game#HideAction",
+    icon: "icons/effects/hidden.png",
     description:
-      "The creature is successfully hidden from another creature or creatures, usually through the Hide action and a successful Dexterity (Stealth) check.",
+      "The creature is successfully hidden from another creature or creatures, usually through the Hide action and a successful Dexterity (Stealth) check."
   },
   {
-    id: "unseen",
     name: "Unseen",
     type: "status",
-    official: true,
-    icon: "icon/unseen.png",
-    iconKey: "unseen",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/playing-the-game#UnseenAttackersandTargets",
+    icon: "icons/effects/unseen.png",
     description:
-      "The creature or target can't currently be seen, whether from invisibility, darkness, obstruction, or another effect. This often changes attack-roll interactions.",
+      "The creature or target can't currently be seen, whether from invisibility, darkness, obstruction, or another effect. This often changes attack-roll interactions."
   },
   {
-    id: "dying",
     name: "Dying / 0 HP",
     type: "status",
-    official: true,
-    icon: "icon/dying.png",
-    iconKey: "dying",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#HitPoints",
+    icon: "icons/effects/dying.png",
     description:
-      "The creature is at 0 hit points and typically falls unconscious. It may begin making death saving throws unless another rule says otherwise.",
+      "The creature is at 0 hit points and typically falls unconscious. It may begin making death saving throws unless another rule says otherwise."
   },
   {
-    id: "stable",
     name: "Stable",
     type: "status",
-    official: true,
-    icon: "icon/stable.png",
-    iconKey: "stable",
+    url: "https://www.dndbeyond.com/sources/dnd/free-rules/rules-glossary#HitPoints",
+    icon: "icons/effects/stable.png",
     description:
-      "A stable creature at 0 hit points is not making death saving throws, though it remains unconscious until it regains hit points or another rule changes its state.",
-  },
+      "A stable creature at 0 hit points is not making death saving throws, though it remains unconscious until it regains hit points or another rule changes its state."
+  }
 ];
 
-const conditions = dndEffects.filter((effect) => effect.type === "condition");
-const statuses = dndEffects.filter((effect) => effect.type === "status");
+export const CONDITIONS = EFFECTS.filter((effect) => effect.type === "condition");
+export const STATUSES = EFFECTS.filter((effect) => effect.type === "status");
 
-function getEffectById(id) {
-  return dndEffects.find((effect) => effect.id === id) || null;
-}
-
-function getEffectByName(name) {
+export function getEffectByName(name) {
   return (
-    dndEffects.find(
+    EFFECTS.find(
       (effect) => effect.name.toLowerCase() === String(name).toLowerCase()
     ) || null
   );
-}
-
-export { dndEffects, conditions, statuses, getEffectById, getEffectByName };
-
-if (typeof module !== "undefined") {
-  module.exports = {
-    dndEffects,
-    conditions,
-    statuses,
-    getEffectById,
-    getEffectByName,
-  };
 }
