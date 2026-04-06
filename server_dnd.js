@@ -91,19 +91,19 @@ function fetchRankings() {
         listItem.className = "list-item";
         listItem.dataset.entryId = id;
         listItem.dataset.name = name;
-        listItem.dataset.initiative = initiative ?? "";
-        listItem.dataset.ac = ac ?? "";
-        listItem.dataset.health = health ?? "";
+        listItem.dataset.initiative = String(initiative ?? "");
+        listItem.dataset.ac = ac !== null && ac !== undefined ? String(ac) : "N/A";
+        listItem.dataset.health = health !== null && health !== undefined ? String(health) : "N/A";
         listItem.dataset.url = url ?? "";
 
         const nameAcContainer = document.createElement("div");
         nameAcContainer.className = "name-ac-container";
 
-        const nameButton = document.createElement("button");
-        nameButton.type = "button";
-        nameButton.className = "name name-button";
-        nameButton.textContent = name;
-        nameAcContainer.appendChild(nameButton);
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "name";
+        nameDiv.textContent = name;
+        nameDiv.style.cursor = "pointer";
+        nameAcContainer.appendChild(nameDiv);
 
         const acDiv = document.createElement("div");
         acDiv.className = "ac";
@@ -112,15 +112,11 @@ function fetchRankings() {
 
         listItem.appendChild(nameAcContainer);
 
-        const healthButton = document.createElement("button");
-        healthButton.type = "button";
-        healthButton.className = "health-button";
-
         const healthDiv = document.createElement("div");
         healthDiv.className = "health";
         healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-        healthButton.appendChild(healthDiv);
-        listItem.appendChild(healthButton);
+        healthDiv.style.cursor = "pointer";
+        listItem.appendChild(healthDiv);
 
         const healthInput = document.createElement("input");
         healthInput.type = "number";
@@ -180,7 +176,7 @@ function updateHealth(id, newHealth, healthInput) {
       }
 
       listItem.dataset.health = String(newHealth);
-      healthInput.dataset.currentHealth = newHealth;
+      healthInput.dataset.currentHealth = String(newHealth);
 
       if (newHealth <= 0) {
         listItem.classList.add("defeated");
