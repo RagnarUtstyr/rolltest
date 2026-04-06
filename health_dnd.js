@@ -110,39 +110,33 @@ function openStatModal({
   const modal = document.getElementById("stat-modal");
   if (!modal) return;
 
-  document.getElementById("stat-modal-title").textContent = name ?? "";
-  document.getElementById("stat-init").textContent = initiative ?? "N/A";
+  const titleEl = document.getElementById("stat-modal-title");
+  const initEl = document.getElementById("stat-init");
+  const linkEl = document.getElementById("stat-url");
+  const countdownInputEl = document.getElementById("stat-countdown-amount");
+  const healInputEl = document.getElementById("stat-heal-amount");
 
-  const link = document.getElementById("stat-url");
-  if (link) {
+  if (titleEl) titleEl.textContent = name ?? "";
+  if (initEl) initEl.textContent = initiative ?? "N/A";
+
+  if (linkEl) {
     if (url) {
-      link.style.display = "";
-      link.href = url;
+      linkEl.style.display = "";
+      linkEl.href = url;
     } else {
-      link.style.display = "none";
-      link.removeAttribute("href");
+      linkEl.style.display = "none";
+      linkEl.removeAttribute("href");
     }
   }
 
-  const remainingEl = document.getElementById("stat-countdown-remaining");
-  const inputEl = document.getElementById("stat-countdown-amount");
+  setCountdownDisplay({
+    remaining: countdownRemaining,
+    active: countdownActive,
+    ended: countdownEnded,
+  });
 
-  if (remainingEl) {
-    if (countdownEnded) {
-      remainingEl.textContent = "ENDED (0)";
-    } else if (countdownActive) {
-      remainingEl.textContent = `${countdownRemaining ?? "—"}`;
-    } else if (countdownRemaining === 0) {
-      remainingEl.textContent = "0";
-    } else {
-      remainingEl.textContent = "—";
-    }
-  }
-
-  if (inputEl) inputEl.value = "";
-
-  const healEl = document.getElementById("stat-heal-amount");
-  if (healEl) healEl.value = "";
+  if (countdownInputEl) countdownInputEl.value = "";
+  if (healInputEl) healInputEl.value = "";
 
   modal.setAttribute("aria-hidden", "false");
 }
@@ -317,8 +311,8 @@ function fetchRankings() {
       .map(([id, entry]) => normalizeEntry(id, entry))
       .sort((a, b) => (b.number || 0) - (a.number || 0));
 
-    rankings.forEach(
-      ({
+    rankings.forEach((entry) => {
+      const {
         id,
         name,
         ac,
@@ -329,147 +323,152 @@ function fetchRankings() {
         countdownRemaining,
         countdownActive,
         countdownEnded,
-      }) => {
-        dataCache[id] = {
-          id,
+      } = entry;
+
+      dataCache[id] = entry;
+
+      setCountdownState(id, {
+        remaining: typeof countdownRemaining === "number" ? countdownRemaining : null,
+        active: !!countdownActive,
+        ended: !!countdownEnded,
+      });
+
+      const listItem = document.createElement("li");
+      listItem.className = "list-item";
+      listItem.dataset.entryId = id;
+
+      const nameAcContainer = document.createElement("div");
+      nameAcContainer.className = "name-ac-container";
+
+      const nameButton = document.createElement("button");
+      nameButton.type = "button";
+      nameButton.className = "name";
+      nameButton.textContent = name;
+      nameButton.title = "Show details";
+      nameButton.setAttribute("aria-label", `Open details for ${name}`);
+      nameButton.style.cursor = "pointer";
+      nameButton.style.background = "transparent";
+      nameButton.style.border = "none";
+      nameButton.style.padding = "0 5px";
+      nameButton.style.margin = "0";
+      nameButton.style.font = "inherit";
+      nameButton.style.color = "inherit";
+      nameButton.style.textAlign = "center";
+      nameButton.style.flex = "2";
+
+      nameButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        currentStatEntryId = id;
+        const s = getCountdownState(id);
+
+        openStatModal({
           name,
-          ac,
-          health,
+          initiative: initiative ?? "N/A",
           url,
-          initiative,
-          effects,
-        };
+          countdownRemaining: s.remaining,
+          countdownActive: s.active,
+          countdownEnded: s.ended,
+        });
+      });
 
-        setCountdownState(id, {
-          remaining: typeof countdownRemaining === "number" ? countdownRemaining : null,
-          active: !!countdownActive,
-          ended: !!countdownEnded,
+      nameAcContainer.appendChild(nameButton);
+
+      const acDiv = document.createElement("div");
+      acDiv.className = "ac";
+      acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
+      nameAcContainer.appendChild(acDiv);
+
+      listItem.appendChild(nameAcContainer);
+
+      const healthDiv = document.createElement("div");
+      healthDiv.className = "health";
+      healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
+      listItem.appendChild(healthDiv);
+
+      const effectArray = normalizeEffects(effects);
+
+      if (effectArray.length > 0) {
+        const effectWrap = document.createElement("div");
+        effectWrap.className = "row-banes";
+
+        effectArray.forEach((effect) => {
+          const iconButton = document.createElement("button");
+          iconButton.type = "button";
+          iconButton.className = "bane-icon-button";
+          iconButton.title = effect.name || "Effect";
+          iconButton.setAttribute("aria-label", effect.name || "Effect");
+
+          const icon = document.createElement("img");
+          icon.className = "bane-row-icon";
+          icon.src = effect.icon || "icons/effects/test.png";
+          icon.alt = effect.name || "Effect";
+
+          iconButton.appendChild(icon);
+
+          iconButton.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (effect.url) window.open(effect.url, "_blank", "noopener");
+          });
+
+          effectWrap.appendChild(iconButton);
         });
 
-        const listItem = document.createElement("li");
-        listItem.className = "list-item";
-        listItem.dataset.entryId = id;
+        const effectsButton = document.createElement("button");
+        effectsButton.type = "button";
+        effectsButton.textContent = "Effects";
+        effectsButton.className = "remove-button";
+        effectsButton.style.marginTop = "0";
 
-        const nameAcContainer = document.createElement("div");
-        nameAcContainer.className = "name-ac-container";
-
-        const nameDiv = document.createElement("div");
-        nameDiv.className = "name";
-        nameDiv.textContent = name;
-        nameDiv.style.cursor = "pointer";
-        nameDiv.title = "Show details";
-
-        nameDiv.addEventListener("click", () => {
-          currentStatEntryId = id;
-          const s = getCountdownState(id);
-
-          openStatModal({
-            name,
-            initiative: initiative ?? "N/A",
-            url,
-            countdownRemaining: s.remaining,
-            countdownActive: s.active,
-            countdownEnded: s.ended,
-          });
-        });
-
-        nameAcContainer.appendChild(nameDiv);
-
-        const acDiv = document.createElement("div");
-        acDiv.className = "ac";
-        acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
-        nameAcContainer.appendChild(acDiv);
-
-        listItem.appendChild(nameAcContainer);
-
-        const healthDiv = document.createElement("div");
-        healthDiv.className = "health";
-        healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-        listItem.appendChild(healthDiv);
-
-        const effectArray = normalizeEffects(effects);
-
-        if (effectArray.length > 0) {
-          const effectWrap = document.createElement("div");
-          effectWrap.className = "row-banes";
-
-          effectArray.forEach((effect) => {
-            const iconButton = document.createElement("button");
-            iconButton.type = "button";
-            iconButton.className = "bane-icon-button";
-            iconButton.title = effect.name || "Effect";
-            iconButton.setAttribute("aria-label", effect.name || "Effect");
-
-            const icon = document.createElement("img");
-            icon.className = "bane-row-icon";
-            icon.src = effect.icon || "icons/effects/test.png";
-            icon.alt = effect.name || "Effect";
-
-            iconButton.appendChild(icon);
-
-            iconButton.addEventListener("click", (e) => {
-              e.stopPropagation();
-              if (effect.url) window.open(effect.url, "_blank", "noopener");
-            });
-
-            effectWrap.appendChild(iconButton);
-          });
-
-          const effectsButton = document.createElement("button");
-          effectsButton.type = "button";
-          effectsButton.textContent = "Effects";
-          effectsButton.className = "remove-button";
-          effectsButton.style.marginTop = "0";
-
-          effectsButton.addEventListener("click", () => {
-            currentEffectEntryId = id;
-            openEffectsModal(id, effectArray, `${name} effects`);
-          });
-
-          effectWrap.appendChild(effectsButton);
-          listItem.appendChild(effectWrap);
-        }
-
-        const addEffectButton = document.createElement("button");
-        addEffectButton.type = "button";
-        addEffectButton.textContent = "Effect";
-        addEffectButton.className = "remove-button";
-        addEffectButton.style.marginTop = "0";
-
-        addEffectButton.addEventListener("click", () => {
+        effectsButton.addEventListener("click", () => {
           currentEffectEntryId = id;
-          openEffectPickerModal(id, effectArray);
+          openEffectsModal(id, effectArray, `${name} effects`);
         });
 
-        listItem.appendChild(addEffectButton);
-
-        const healthInput = document.createElement("input");
-        healthInput.type = "number";
-        healthInput.placeholder = "Damage";
-        healthInput.className = "damage-input";
-        healthInput.style.width = "50px";
-        healthInput.dataset.entryId = id;
-        healthInput.dataset.currentHealth = health ?? 0;
-        listItem.appendChild(healthInput);
-
-        if (health === 0) {
-          const removeButton = document.createElement("button");
-          removeButton.type = "button";
-          removeButton.textContent = "Remove";
-          removeButton.className = "remove-button row-remove-button";
-          removeButton.addEventListener("click", () => {
-            removeEntry(id, listItem);
-          });
-          listItem.appendChild(removeButton);
-        }
-
-        if (health === 0) {
-          listItem.classList.add("defeated");
-        }
-
-        rankingList.appendChild(listItem);
+        effectWrap.appendChild(effectsButton);
+        listItem.appendChild(effectWrap);
       }
-    );
+
+      const addEffectButton = document.createElement("button");
+      addEffectButton.type = "button";
+      addEffectButton.textContent = "Effect";
+      addEffectButton.className = "remove-button";
+      addEffectButton.style.marginTop = "0";
+
+      addEffectButton.addEventListener("click", () => {
+        currentEffectEntryId = id;
+        openEffectPickerModal(id, effectArray);
+      });
+
+      listItem.appendChild(addEffectButton);
+
+      const healthInput = document.createElement("input");
+      healthInput.type = "number";
+      healthInput.placeholder = "Damage";
+      healthInput.className = "damage-input";
+      healthInput.style.width = "50px";
+      healthInput.dataset.entryId = id;
+      healthInput.dataset.currentHealth = health ?? 0;
+      listItem.appendChild(healthInput);
+
+      if (health === 0) {
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.textContent = "Remove";
+        removeButton.className = "remove-button row-remove-button";
+        removeButton.addEventListener("click", () => {
+          removeEntry(id, listItem);
+        });
+        listItem.appendChild(removeButton);
+      }
+
+      if (health === 0) {
+        listItem.classList.add("defeated");
+      }
+
+      rankingList.appendChild(listItem);
+    });
   });
 }
 
