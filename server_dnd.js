@@ -25,10 +25,6 @@ function normalizeEffects(effects) {
   return Object.values(effects).filter(Boolean);
 }
 
-function sanitizeEffectKey(value) {
-  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
-}
-
 function normalizeEntry(id, entry) {
   return {
     id,
@@ -95,6 +91,7 @@ function createEffectIcon(effect) {
   icon.style.marginLeft = "6px";
   icon.style.verticalAlign = "middle";
   icon.style.borderRadius = "4px";
+
   if (effect.url) {
     icon.style.cursor = "pointer";
     icon.addEventListener("click", (e) => {
@@ -102,6 +99,7 @@ function createEffectIcon(effect) {
       window.open(effect.url, "_blank", "noopener");
     });
   }
+
   return icon;
 }
 

@@ -5,15 +5,14 @@
   <title>Initiative</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script type="module" src="server_dnd.js" defer></script>
-  <script type="module" src="health_dnd.js" defer></script>
-  <script type="module" src="popup_dnd.js" defer></script>
-  <script type="module" src="effects.js" defer></script>
+  <script type="module" src="server_dnd.js?v=20260406i" defer></script>
+  <script type="module" src="health_dnd.js?v=20260406i" defer></script>
+  <script type="module" src="popup_dnd.js?v=20260406i" defer></script>
   <script src="turn_dnd.js" defer></script>
 
-  <link rel="stylesheet" href="style_dnd.css">
-  <link rel="stylesheet" href="turn_dnd.css">
-  <link rel="stylesheet" href="save_dnd.css">
+  <link rel="stylesheet" href="style_dnd.css" />
+  <link rel="stylesheet" href="turn_dnd.css" />
+  <link rel="stylesheet" href="save.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
   <style>
@@ -31,23 +30,6 @@
       font-weight: 600;
       letter-spacing: 0.2px;
       border: 1px solid #2d3d73;
-    }
-
-    .name-button,
-    .health-button {
-      background: none;
-      border: 0;
-      padding: 0;
-      margin: 0;
-      color: inherit;
-      font: inherit;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .health-button {
-      display: block;
-      width: 100%;
     }
 
     .ol-modal[aria-hidden="true"] {
@@ -79,6 +61,10 @@
       position: relative;
     }
 
+    .ol-modal__dialog--wide {
+      width: min(92vw, 560px);
+    }
+
     .ol-modal__close {
       position: absolute;
       top: 8px;
@@ -88,6 +74,7 @@
       color: #f3e7c1;
       font-size: 24px;
       cursor: pointer;
+      line-height: 1;
     }
 
     .ol-modal__stats {
@@ -105,6 +92,46 @@
     .ol-modal .label {
       font-weight: 700;
       margin-right: 6px;
+    }
+
+    .ol-modal .value {
+      font-weight: 400;
+    }
+
+    .ol-modal input[type="number"] {
+      min-width: 0;
+    }
+
+    .effect-picker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .effect-picker-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .effect-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      object-fit: cover;
+      display: block;
+    }
+
+    #effect-picker-list,
+    #effects-modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -180,6 +207,7 @@
     })();
   </script>
 
+  <!-- Stat Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
       <button class="ol-modal__close" id="stat-modal-close" aria-label="Close">×</button>
@@ -188,47 +216,77 @@
 
       <p class="ol-meta">
         <span class="label">Initiative:</span>
-        <span id="stat-init"></span>
+        <span class="value" id="stat-init"></span>
       </p>
 
       <div class="ol-modal__stats">
         <div>
           <span class="label">AC:</span>
-          <span id="stat-ac"></span>
+          <span class="value" id="stat-ac"></span>
         </div>
         <div>
           <span class="label">HP:</span>
-          <span id="stat-hp"></span>
+          <span class="value" id="stat-hp"></span>
         </div>
       </div>
 
-      <a id="stat-url" class="button-link" target="_blank" rel="noopener" style="display:none; margin-top:12px;">
+      <a
+        id="stat-url"
+        class="button-link"
+        target="_blank"
+        rel="noopener"
+        style="display:none; margin-top:12px;"
+      >
         Open details
       </a>
+
+      <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
+        <input
+          id="stat-heal-amount"
+          type="number"
+          placeholder="Heal amount"
+          style="flex:1; padding:6px 8px;"
+        />
+        <button id="stat-heal" class="remove-button">Heal</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button id="stat-add-effect" type="button">Effect</button>
+        <button id="stat-delete" class="remove-button" style="margin-top:0;">Delete from list</button>
+      </div>
     </div>
   </div>
 
+  <!-- HP Modal -->
   <div id="hp-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="hp-modal-title">
       <button class="ol-modal__close" id="hp-modal-close" aria-label="Close">×</button>
       <h3 id="hp-modal-title">Set HP</h3>
 
       <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
-        <input id="hp-set-amount" type="number" placeholder="Set HP" style="flex:1; padding:6px 8px;" />
+        <input
+          id="hp-set-amount"
+          type="number"
+          placeholder="Set HP"
+          style="flex:1; padding:6px 8px;"
+        />
+        <button id="hp-set-button" class="remove-button">Set</button>
       </div>
     </div>
   </div>
 
+  <!-- Effect Picker Modal -->
   <div id="effect-picker-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="effect-picker-title">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effect-picker-title">
       <button class="ol-modal__close" id="effect-picker-close" aria-label="Close">×</button>
-      <h3 id="effect-picker-title">Effects</h3>
+      <h3 id="effect-picker-title">Add effect</h3>
       <div id="effect-picker-list"></div>
     </div>
   </div>
 
+  <!-- Effects Modal -->
   <div id="effects-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="effects-modal-title">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effects-modal-title">
       <button class="ol-modal__close" id="effects-modal-close" aria-label="Close">×</button>
       <h3 id="effects-modal-title">Effects</h3>
       <div id="effects-modal-list"></div>
