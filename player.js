@@ -3,6 +3,7 @@ import { requireAuth } from "./auth.js";
 import { db } from "./firebase-config.js";
 import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
+import { EFFECTS } from "./effects.js";
 import {
   ref,
   get,
@@ -26,6 +27,8 @@ const trackerListEl = document.getElementById("tracker-list");
 const trackerEmptyEl = document.getElementById("tracker-empty");
 const playerBanesPanel = document.getElementById("player-banes-panel");
 const playerBanesPreviewEl = document.getElementById("player-banes-preview");
+const playerEffectsPanel = document.getElementById("player-effects-panel");
+const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
 
 const user = await requireAuth();
 
@@ -71,6 +74,7 @@ metaEl.innerHTML = `
 
 if (mode === "dnd") {
   dndSection.classList.remove("hidden");
+  playerEffectsPanel?.classList.remove("hidden");
 
   if (dndBuilderLink) {
     dndBuilderLink.href = `dnd_character_builder_firebase.html?code=${encodeURIComponent(code)}`;
@@ -327,6 +331,210 @@ async function removePlayerBane(baneName) {
   await persistPlayerBanes(next, `${baneName} removed.`);
 }
 
+function sanitizeEffectKey(value) {
+  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
+}
+
+function normalizeEffects(effects) {
+  if (!effects) return [];
+  if (Array.isArray(effects)) return effects.filter(Boolean);
+  return Object.values(effects).filter(Boolean);
+}
+
+function getCurrentEffects() {
+  return normalizeEffects(getCurrentSheetCache()?.effects);
+}
+
+function setPlayerEffects(effects) {
+  const safeEffects = normalizeEffects(effects);
+  const existing = getCurrentSheetCache() || {};
+  setCurrentSheetCache({ ...existing, effects: safeEffects });
+  renderPlayerEffects(safeEffects);
+}
+
+function renderPlayerEffects(effects = []) {
+  if (!playerEffectsPreviewEl) return;
+
+  const safeEffects = normalizeEffects(effects);
+  if (!safeEffects.length) {
+    playerEffectsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No effects added.</span>';
+    return;
+  }
+
+  playerEffectsPreviewEl.innerHTML = "";
+  safeEffects.slice(0, 4).forEach((effect) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "player-bane-chip";
+    chip.title = effect.name || "Effect";
+    chip.innerHTML = `
+      <img src="${effect.icon || "icons/effects/test.png"}" alt="${effect.name || "Effect"}">
+      <span>${effect.name || "Unknown"}</span>
+    `;
+    chip.addEventListener("click", () => {
+      openEffectsModal();
+    });
+    playerEffectsPreviewEl.appendChild(chip);
+  });
+
+  if (safeEffects.length > 4) {
+    const more = document.createElement("span");
+    more.className = "muted";
+    more.textContent = `+${safeEffects.length - 4} more`;
+    playerEffectsPreviewEl.appendChild(more);
+  }
+}
+
+function closeEffectPickerModal() {
+  document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeEffectsModal() {
+  document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function openEffectPickerModal() {
+  if (mode !== "dnd") return;
+
+  const modal = document.getElementById("effect-picker-modal");
+  const list = document.getElementById("effect-picker-list");
+  if (!modal || !list) return;
+
+  const selectedNames = new Set(getCurrentEffects().map((effect) => effect.name));
+  list.innerHTML = "";
+
+  EFFECTS.forEach((effect) => {
+    const row = document.createElement("div");
+    row.className = "bane-picker-row";
+
+    const left = document.createElement("div");
+    left.className = "bane-picker-left";
+
+    const icon = document.createElement("img");
+    icon.className = "bane-icon";
+    icon.src = effect.icon || "icons/effects/test.png";
+    icon.alt = effect.name || "Effect";
+
+    const name = document.createElement("span");
+    name.textContent = effect.name || "Unknown";
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.textContent = selectedNames.has(effect.name) ? "Added" : "Add";
+    addBtn.className = "bane-picker-add-btn";
+    addBtn.disabled = selectedNames.has(effect.name);
+    addBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await addPlayerEffect(effect);
+      openEffectPickerModal();
+    });
+
+    left.appendChild(icon);
+    left.appendChild(name);
+    row.appendChild(left);
+    row.appendChild(addBtn);
+    list.appendChild(row);
+  });
+
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function openEffectsModal() {
+  const modal = document.getElementById("effects-modal");
+  const list = document.getElementById("effects-modal-list");
+  if (!modal || !list) return;
+
+  const effects = getCurrentEffects();
+  list.innerHTML = "";
+
+  if (!effects.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted";
+    empty.textContent = "No effects added.";
+    list.appendChild(empty);
+  } else {
+    effects.forEach((effect) => {
+      const row = document.createElement("div");
+      row.className = "bane-picker-row";
+
+      const leftButton = document.createElement("button");
+      leftButton.type = "button";
+      leftButton.className = "bane-picker-open";
+
+      const left = document.createElement("div");
+      left.className = "bane-picker-left";
+
+      const icon = document.createElement("img");
+      icon.className = "bane-icon";
+      icon.src = effect.icon || "icons/effects/test.png";
+      icon.alt = effect.name || "Effect";
+
+      const name = document.createElement("span");
+      name.textContent = effect.name || "Unknown";
+
+      left.appendChild(icon);
+      left.appendChild(name);
+      leftButton.appendChild(left);
+      leftButton.addEventListener("click", () => {
+        if (effect.url) window.open(effect.url, "_blank", "noopener");
+      });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "Remove";
+      removeBtn.className = "player-bane-remove-btn";
+      removeBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await removePlayerEffect(effect.name);
+        openEffectsModal();
+      });
+
+      row.appendChild(leftButton);
+      row.appendChild(removeBtn);
+      list.appendChild(row);
+    });
+  }
+
+  modal.setAttribute("aria-hidden", "false");
+}
+
+async function persistPlayerEffects(effects, statusMessage = "Effects updated.") {
+  const existing = (await getCurrentSheet()) || {};
+  const payload = buildSheetPayload(existing);
+  payload.effects = normalizeEffects(effects);
+  payload.updatedAt = Date.now();
+
+  await set(ref(db, playerSheetPath()), payload);
+  setCurrentSheetCache(payload);
+  renderPlayerEffects(payload.effects);
+  statusEl.textContent = statusMessage;
+}
+
+async function addPlayerEffect(effect) {
+  const current = getCurrentEffects();
+  if (current.some((item) => item?.name === effect.name)) return;
+
+  await persistPlayerEffects(
+    [
+      ...current,
+      {
+        name: effect.name,
+        url: effect.url,
+        icon: effect.icon || "icons/effects/test.png",
+        type: effect.type || "",
+        key: sanitizeEffectKey(effect.name)
+      }
+    ],
+    `${effect.name} added.`
+  );
+}
+
+async function removePlayerEffect(effectName) {
+  const current = getCurrentEffects();
+  const next = current.filter((effect) => effect?.name !== effectName);
+  await persistPlayerEffects(next, `${effectName} removed.`);
+}
+
 function getSharedValues() {
   return {
     name: document.getElementById("player-name").value.trim(),
@@ -352,7 +560,8 @@ function getDndValues() {
     con: numberOrNull(document.getElementById("player-con").value),
     int: numberOrNull(document.getElementById("player-int").value),
     wis: numberOrNull(document.getElementById("player-wis").value),
-    cha: numberOrNull(document.getElementById("player-cha").value)
+    cha: numberOrNull(document.getElementById("player-cha").value),
+    effects: getCurrentEffects()
   };
 }
 
@@ -382,6 +591,7 @@ function setDndValues(data = {}) {
   document.getElementById("player-int").value = mapped.int ?? "";
   document.getElementById("player-wis").value = mapped.wis ?? "";
   document.getElementById("player-cha").value = mapped.cha ?? "";
+  setPlayerEffects(data.effects ?? []);
 }
 
 function setDndResult(message) {
@@ -825,9 +1035,10 @@ async function loadExistingCharacter() {
     return;
   }
 
-  setCurrentSheetCache({ name: user.displayName ?? "", banes: [] });
+  setCurrentSheetCache({ name: user.displayName ?? "", banes: [], effects: [] });
   setSharedValues({ name: user.displayName ?? "" });
-  if (mode !== "dnd") setPlayerBanes([]);
+  if (mode === "dnd") setPlayerEffects([]);
+  else setPlayerBanes([]);
   renderTrackerList([]);
 }
 
@@ -958,13 +1169,32 @@ document.getElementById("bane-picker-modal")?.addEventListener("click", (e) => {
 document.getElementById("banes-modal")?.addEventListener("click", (e) => {
   if (e.target?.id === "banes-modal") closeBanesModal();
 });
+
+document.getElementById("player-add-effect-btn")?.addEventListener("click", openEffectPickerModal);
+document.getElementById("player-view-effects-btn")?.addEventListener("click", openEffectsModal);
+document.getElementById("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
+document.getElementById("effects-modal-close")?.addEventListener("click", closeEffectsModal);
+document.getElementById("effect-picker-modal")?.addEventListener("click", (e) => {
+  if (e.target?.id === "effect-picker-modal") closeEffectPickerModal();
+});
+document.getElementById("effects-modal")?.addEventListener("click", (e) => {
+  if (e.target?.id === "effects-modal") closeEffectsModal();
+});
+
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
+
   if (document.getElementById("bane-picker-modal")?.getAttribute("aria-hidden") === "false") {
     closeBanePickerModal();
   }
   if (document.getElementById("banes-modal")?.getAttribute("aria-hidden") === "false") {
     closeBanesModal();
+  }
+  if (document.getElementById("effect-picker-modal")?.getAttribute("aria-hidden") === "false") {
+    closeEffectPickerModal();
+  }
+  if (document.getElementById("effects-modal")?.getAttribute("aria-hidden") === "false") {
+    closeEffectsModal();
   }
 });
 
