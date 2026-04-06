@@ -17,13 +17,13 @@ function normalizeEntry(id, entry) {
     id,
     name: entry.name ?? entry.playerName ?? "Unknown",
     number: entry.number ?? entry.initiative ?? 0,
+    initiative: entry.initiative ?? entry.number ?? 0,
     health: entry.health ?? null,
     ac: entry.ac ?? null,
-    url: entry.url ?? null
+    url: entry.url ?? null,
   };
 }
 
-// Function to submit data to Firebase
 async function submitData() {
   const name = document.getElementById("name")?.value?.trim();
   const initiativeEl = document.getElementById("initiative") || document.getElementById("number");
@@ -42,13 +42,15 @@ async function submitData() {
 
   try {
     const reference = ref(db, getEntriesPath());
+
     await push(reference, {
       name,
       number,
+      initiative: number,
       health,
       ac,
       createdByAdmin: true,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     });
 
     document.getElementById("name").value = "";
@@ -63,7 +65,6 @@ async function submitData() {
   }
 }
 
-// Function to fetch and display rankings with health update functionality
 function fetchRankings() {
   const reference = ref(db, getEntriesPath());
 
@@ -72,6 +73,8 @@ function fetchRankings() {
     (snapshot) => {
       const data = snapshot.val();
       const rankingList = document.getElementById("rankingList");
+      if (!rankingList) return;
+
       rankingList.innerHTML = "";
 
       if (!data) {
@@ -83,25 +86,24 @@ function fetchRankings() {
         .map(([id, entry]) => normalizeEntry(id, entry))
         .sort((a, b) => (b.number || 0) - (a.number || 0));
 
-      rankings.forEach(({ id, name, ac, health, url }) => {
+      rankings.forEach(({ id, name, ac, health, url, initiative }) => {
         const listItem = document.createElement("li");
         listItem.className = "list-item";
+        listItem.dataset.entryId = id;
+        listItem.dataset.name = name;
+        listItem.dataset.initiative = initiative ?? "";
+        listItem.dataset.ac = ac ?? "";
+        listItem.dataset.health = health ?? "";
+        listItem.dataset.url = url ?? "";
 
         const nameAcContainer = document.createElement("div");
         nameAcContainer.className = "name-ac-container";
 
-        const nameDiv = document.createElement("div");
-        nameDiv.className = "name";
-        nameDiv.textContent = name;
-
-        if (url) {
-          nameDiv.style.cursor = "pointer";
-          nameDiv.addEventListener("click", () => {
-            window.open(url, "_blank");
-          });
-        }
-
-        nameAcContainer.appendChild(nameDiv);
+        const nameButton = document.createElement("button");
+        nameButton.type = "button";
+        nameButton.className = "name name-button";
+        nameButton.textContent = name;
+        nameAcContainer.appendChild(nameButton);
 
         const acDiv = document.createElement("div");
         acDiv.className = "ac";
@@ -110,10 +112,15 @@ function fetchRankings() {
 
         listItem.appendChild(nameAcContainer);
 
+        const healthButton = document.createElement("button");
+        healthButton.type = "button";
+        healthButton.className = "health-button";
+
         const healthDiv = document.createElement("div");
         healthDiv.className = "health";
         healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-        listItem.appendChild(healthDiv);
+        healthButton.appendChild(healthDiv);
+        listItem.appendChild(healthButton);
 
         const healthInput = document.createElement("input");
         healthInput.type = "number";
@@ -132,9 +139,6 @@ function fetchRankings() {
             removeEntry(id, listItem);
           });
           listItem.appendChild(removeButton);
-        }
-
-        if (health === 0) {
           listItem.classList.add("defeated");
         }
 
@@ -147,7 +151,6 @@ function fetchRankings() {
   );
 }
 
-// Function to apply damage to all entries
 function applyDamageToAll() {
   const damageInputs = document.querySelectorAll(".damage-input");
 
@@ -156,7 +159,7 @@ function applyDamageToAll() {
     const currentHealth = parseInt(input.dataset.currentHealth, 10);
     const damage = parseInt(input.value, 10);
 
-    if (!isNaN(damage) && !isNaN(currentHealth)) {
+    if (!Number.isNaN(damage) && !Number.isNaN(currentHealth)) {
       const updatedHealth = currentHealth - damage;
       updateHealth(entryId, updatedHealth > 0 ? updatedHealth : 0, input);
     }
@@ -165,22 +168,22 @@ function applyDamageToAll() {
   });
 }
 
-// Function to update health in Firebase and UI
 function updateHealth(id, newHealth, healthInput) {
   const reference = ref(db, `${getEntriesPath()}/${id}`);
 
   update(reference, { health: newHealth })
     .then(() => {
-      const healthDiv = healthInput.parentElement.querySelector(".health");
-      healthDiv.textContent = `HP: ${newHealth}`;
-
       const listItem = healthInput.parentElement;
+      const healthDiv = listItem.querySelector(".health");
+      if (healthDiv) {
+        healthDiv.textContent = `HP: ${newHealth}`;
+      }
+
+      listItem.dataset.health = String(newHealth);
+      healthInput.dataset.currentHealth = newHealth;
 
       if (newHealth <= 0) {
         listItem.classList.add("defeated");
-        healthInput.disabled = false;
-        healthInput.style.display = "inline-block";
-        healthInput.dataset.currentHealth = newHealth;
 
         let removeButton = listItem.querySelector(".remove-button");
         if (!removeButton) {
@@ -193,9 +196,7 @@ function updateHealth(id, newHealth, healthInput) {
           listItem.appendChild(removeButton);
         }
       } else {
-        healthInput.dataset.currentHealth = newHealth;
         listItem.classList.remove("defeated");
-
         const removeButton = listItem.querySelector(".remove-button");
         if (removeButton) {
           removeButton.remove();
@@ -207,7 +208,6 @@ function updateHealth(id, newHealth, healthInput) {
     });
 }
 
-// Function to remove an entry
 function removeEntry(id, listItem = null) {
   const reference = ref(db, `${getEntriesPath()}/${id}`);
 
@@ -221,7 +221,6 @@ function removeEntry(id, listItem = null) {
     });
 }
 
-// Function to clear all entries from this room only
 function clearAllEntries() {
   const reference = ref(db, getEntriesPath());
 
@@ -236,7 +235,6 @@ function clearAllEntries() {
     });
 }
 
-// Event listeners for page-specific actions
 document.addEventListener("DOMContentLoaded", () => {
   try {
     getEntriesPath();
@@ -245,20 +243,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  if (document.getElementById("submit-button")) {
-    document.getElementById("submit-button").addEventListener("click", submitData);
-  }
-
+  document.getElementById("submit-button")?.addEventListener("click", submitData);
   if (document.getElementById("rankingList")) {
     fetchRankings();
   }
 
-  const applyDamageButton = document.getElementById("apply-damage-button");
-  if (applyDamageButton) {
-    applyDamageButton.addEventListener("click", applyDamageToAll);
-  }
-
-  if (document.getElementById("clear-list-button")) {
-    document.getElementById("clear-list-button").addEventListener("click", clearAllEntries);
-  }
+  document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
+  document.getElementById("clear-list-button")?.addEventListener("click", clearAllEntries);
 });
