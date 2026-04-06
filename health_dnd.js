@@ -23,7 +23,7 @@ function getEntriesPath() {
 }
 
 function sanitizeEffectKey(value) {
-  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
+  return String(value ?? "").replace(/[.#$\\[\\]/]/g, "_");
 }
 
 function normalizeEffects(effects) {
@@ -346,15 +346,6 @@ function fetchRankings() {
       nameButton.textContent = name;
       nameButton.title = "Show details";
       nameButton.setAttribute("aria-label", `Open details for ${name}`);
-      nameButton.style.cursor = "pointer";
-      nameButton.style.background = "transparent";
-      nameButton.style.border = "none";
-      nameButton.style.padding = "0 5px";
-      nameButton.style.margin = "0";
-      nameButton.style.font = "inherit";
-      nameButton.style.color = "inherit";
-      nameButton.style.textAlign = "center";
-      nameButton.style.flex = "2";
 
       nameButton.addEventListener("click", (e) => {
         e.preventDefault();
