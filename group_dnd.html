@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Initiative</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script type="module" src="server_dnd.js?v=20260406e" defer></script>
-  <script type="module" src="health_dnd.js?v=20260406e" defer></script>
-
-  <link rel="stylesheet" href="style_dnd.css">
-  <link rel="stylesheet" href="turn_dnd.css">
-  <link rel="stylesheet" href="save_dnd.css">
-
+  <script type="module" src="server_dnd.js?v=20260406f" defer></script>
+  <script type="module" src="health_dnd.js?v=20260406f" defer></script>
   <script src="turn_dnd.js" defer></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style_dnd.css" />
+  <link rel="stylesheet" href="turn_dnd.css" />
+  <link rel="stylesheet" href="save_dnd.css" />
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
   <style>
     #game-code-badge {
@@ -33,7 +31,10 @@
       border: 1px solid #2d3d73;
     }
 
-    .name-button {
+    .name-button,
+    .health-button,
+    .effect-icon-button,
+    .effect-picker-open {
       background: none;
       border: 0;
       padding: 0;
@@ -42,6 +43,56 @@
       font: inherit;
       text-align: left;
       cursor: pointer;
+    }
+
+    .health-button {
+      display: block;
+      width: 100%;
+    }
+
+    .row-effects {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .effect-row-icon,
+    .effect-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .effect-picker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .effect-picker-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .effect-picker-list,
+    .effects-modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .muted {
+      opacity: 0.8;
     }
 
     .ol-modal[aria-hidden="true"] {
@@ -63,7 +114,7 @@
     }
 
     .ol-modal__dialog {
-      width: min(92vw, 420px);
+      width: min(92vw, 440px);
       background: #1c1c1c;
       color: #f3e7c1;
       border: 1px solid #8b6f2b;
@@ -71,6 +122,10 @@
       padding: 18px;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
       position: relative;
+    }
+
+    .ol-modal__dialog--wide {
+      width: min(92vw, 560px);
     }
 
     .ol-modal__close {
@@ -114,14 +169,11 @@
 <body>
   <div class="container">
     <h1>Initiative</h1>
-
     <div id="game-code-badge">Code: ----</div>
 
-    <br>
-
+    <br />
     <a href="lobby.html" class="button-link">Lobby</a>
-
-    <br>
+    <br />
 
     <ul id="rankingList"></ul>
 
@@ -130,30 +182,29 @@
       <button id="next-button">Next</button>
     </div>
 
-    <br>
-
+    <br />
     <button id="clear-list-button">Clear List</button>
 
-    <br><br>
-    <br><br>
+    <br /><br />
+    <br /><br />
 
     <h2>Submit a New Entry</h2>
 
     <label for="name">Name:</label>
-    <input type="text" id="name" required>
+    <input type="text" id="name" required />
 
     <label for="initiative">Initiative:</label>
-    <input type="number" id="initiative" required>
+    <input type="number" id="initiative" required />
 
     <label for="health">Health:</label>
-    <input type="number" id="health">
+    <input type="number" id="health" />
 
     <label for="ac">AC:</label>
-    <input type="number" id="ac">
+    <input type="number" id="ac" />
 
     <button id="submit-button">Submit</button>
 
-    <br><br>
+    <br /><br />
 
     <a id="save-link" href="save.html" class="button-link">Go to Lists</a>
     <a id="monster-link" href="monster.html" class="button-link">Go to Monster List</a>
@@ -182,18 +233,15 @@
     (function () {
       const params = new URLSearchParams(window.location.search);
       const code = (params.get("code") || "").trim().toUpperCase();
-
       const badge = document.getElementById("game-code-badge");
       if (!badge) return;
 
-      badge.textContent = code ? `Code: ${code}` : `No code in URL`;
-
+      badge.textContent = code ? `Code: ${code}` : "No code in URL";
       console.log("Full URL:", window.location.href);
       console.log("Code from URL:", code);
     })();
   </script>
 
-  <!-- Stats Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
       <button class="ol-modal__close" id="stat-modal-close" aria-label="Close">×</button>
@@ -221,13 +269,53 @@
       </a>
 
       <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
-        <input id="stat-heal-amount" type="number" placeholder="Heal amount" style="flex:1; padding:6px 8px;">
+        <input id="stat-heal-amount" type="number" placeholder="Heal amount" style="flex:1; padding:6px 8px;" />
         <button id="stat-heal" class="remove-button">Heal</button>
       </div>
 
+      <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
+        <input id="stat-countdown-amount" type="number" min="1" placeholder="Countdown (turns)" style="flex:1; padding:6px 8px;" />
+        <button id="stat-countdown-set" class="remove-button">Start</button>
+        <button id="stat-countdown-clear" class="remove-button">Clear</button>
+      </div>
+
+      <p class="ol-meta" style="margin-top:10px;">
+        <span class="label">Countdown remaining:</span>
+        <span class="value" id="stat-countdown-remaining">—</span>
+      </p>
+
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button id="stat-add-effect" type="button">Effect</button>
         <button id="stat-delete" class="remove-button" style="margin-top:0;">Delete from list</button>
       </div>
+    </div>
+  </div>
+
+  <div id="hp-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="hp-modal-title">
+      <button class="ol-modal__close" id="hp-modal-close" aria-label="Close">×</button>
+      <h3 id="hp-modal-title">Set HP</h3>
+
+      <div style="display:flex; gap:8px; margin-top:12px; align-items:center;">
+        <input id="hp-set-amount" type="number" placeholder="Set HP" style="flex:1; padding:6px 8px;" />
+        <button id="hp-set-button" class="remove-button">Set</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="effect-picker-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effect-picker-title">
+      <button class="ol-modal__close" id="effect-picker-close" aria-label="Close">×</button>
+      <h3 id="effect-picker-title">Effects</h3>
+      <div id="effect-picker-list" class="effect-picker-list"></div>
+    </div>
+  </div>
+
+  <div id="effects-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effects-modal-title">
+      <button class="ol-modal__close" id="effects-modal-close" aria-label="Close">×</button>
+      <h3 id="effects-modal-title">Effects</h3>
+      <div id="effects-modal-list" class="effects-modal-list"></div>
     </div>
   </div>
 </body>
