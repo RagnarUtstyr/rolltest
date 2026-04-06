@@ -18,11 +18,8 @@ body {
 body::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(46, 27, 24, 0.9); /* Dark brown overlay */
+    inset: 0;
+    background-color: rgba(46, 27, 24, 0.9);
     z-index: -1;
 }
 
@@ -32,8 +29,8 @@ body::before {
     width: 100%;
     margin: 0 auto;
     padding: 20px;
-    background-color: rgba(46, 27, 24, 0.8); /* Darker brown with opacity */
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    background-color: rgba(46, 27, 24, 0.8);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     border-radius: 10px;
     box-sizing: border-box;
     text-align: center;
@@ -43,15 +40,16 @@ body::before {
 }
 
 /* Input Fields */
-input[type="text"], input[type="number"] {
+input[type="text"],
+input[type="number"] {
     padding: 10px;
-    border: 2px solid #D4AF37; /* Gold border for input fields */
+    border: 2px solid #D4AF37;
     border-radius: 5px;
     width: calc(100% - 20px);
     margin-bottom: 15px;
     box-sizing: border-box;
-    background-color: rgba(255, 255, 255, 0.15); /* Slightly transparent white */
-    color: #E0D8B0; /* Parchment-like text color for input text */
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #E0D8B0;
     font-family: 'MedievalSharp', serif;
     font-size: 1em;
     outline: none;
@@ -70,84 +68,90 @@ input[type="number"] {
 }
 
 /* Focused Input Fields */
-input[type="text"]:focus, input[type="number"]:focus {
-    border: 2px solid #8C5A4A; /* Darker reddish-brown border on focus */
-    background-color: rgba(255, 255, 255, 0.25); /* Slightly brighter background on focus */
+input[type="text"]:focus,
+input[type="number"]:focus {
+    border: 2px solid #8C5A4A;
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Headings */
-h1, h2 {
-    color: #D4AF37; /* Gold color for headings */
+h1,
+h2 {
+    color: #D4AF37;
     font-weight: bold;
     font-family: 'MedievalSharp', serif;
     text-align: center;
     margin-bottom: 15px;
 }
 
-/* List Items */
+/* Style for the gathered list */
+#rankingList {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    list-style-type: none;
+}
+
+/* Individual List Items */
 li {
-    display: flex; /* Flexbox layout */
-    align-items: center; /* Vertically align elements */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 10px;
-    margin-bottom: 10px;
+    margin: 0 auto 10px auto;
     border: 1px solid #8C5A4A;
     border-radius: 5px;
     background-color: rgba(165, 123, 91, 0.8);
-    max-width: 600px; /* Limit the total width */
-    margin: 0 auto 10px auto; /* Center the list item */
-    gap: 10px; /* Adds spacing between elements */
+    width: 100%;
+    max-width: 600px;
+    gap: 10px;
+    box-sizing: border-box;
 }
 
-/* Flex properties for the name, number, health, and ac elements */
-li .name, li .number, li .health, li .ac {
-    padding: 0 5px; /* Add a little padding to the left and right */
-    flex: 1; /* Distribute space equally */
-    white-space: nowrap; /* Prevent text from breaking into multiple lines */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis (...) if content overflows */
-    text-align: center; /* Center the text */
-}
-
-/* Optionally make the name field wider */
-li .name {
-    flex: 2; /* Make the name field take up more space */
-}
-
-/* Specific styling for .ac class */
+/* Standard row text blocks */
+li .number,
+li .health,
 li .ac {
-    color: #E0D8B0; /* Parchment-like text color */
-    font-size: 1em;
+    padding: 0 5px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 
 /* Input fields inside list items */
 input.damage-input {
-    flex: 0 0 auto; /* Do not let the input box grow unnecessarily */
-    width: 60px; /* Limit the width for mobile */
-    height: 30px; /* Set a consistent height */
+    flex: 0 0 auto;
+    width: 60px;
+    height: 30px;
     padding: 5px;
-    border: 2px solid #D4AF37; /* Gold border */
+    border: 2px solid #D4AF37;
     border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.15); /* Slightly transparent white */
-    color: #726c4b; /* Parchment-like text color */
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #726c4b;
     font-family: 'MedievalSharp', serif;
     font-size: 1em;
     outline: none;
-    text-align: center; /* Center the number inside the input */
-    vertical-align: middle; /* Align it vertically */
-    margin: 0; /* Remove extra margins to better align it with other elements */
-    box-sizing: border-box; /* Ensure padding doesn't affect overall width */
+    text-align: center;
+    vertical-align: middle;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 /* Defeated class for list items with 0 HP */
 .defeated {
-    background-color: #8B0000; /* Dark red background */
-    color: white; /* White text for better contrast */
-    border: 2px solid #FF0000; /* Optional: Red border to emphasize the defeated state */
-    transition: background-color 0.3s ease; /* Smooth transition when the item becomes defeated */
+    background-color: #8B0000;
+    color: white;
+    border: 2px solid #FF0000;
+    transition: background-color 0.3s ease;
 }
 
-/* Submit and Clear List Buttons */
-#submit-button, #clear-list-button, #apply-damage-button {
+/* Submit and action buttons */
+#submit-button,
+#clear-list-button,
+#apply-damage-button {
     background-color: #2E1B18;
     color: #E0D8B0;
     border: 2px solid #D4AF37;
@@ -157,27 +161,21 @@ input.damage-input {
     margin-top: 10px;
     font-size: 1em;
     width: fit-content;
+    font-family: 'MedievalSharp', serif;
 }
 
-/* Apply Damage button styling */
 #apply-damage-button {
-    background-color: #2E1B18; /* Dark brown background */
-    color: #E0D8B0; /* Parchment-like text color */
-    border: 2px solid #D4AF37; /* Gold border */
-    padding: 10px 20px; /* Larger padding for the button */
-    cursor: pointer;
-    border-radius: 5px; /* Rounded corners */
-    font-family: 'MedievalSharp', serif; /* Use the same font */
-    font-size: 1em;
-    transition: background-color 0.3s, color 0.3s; /* Smooth hover effect */
-    width: fit-content; /* Adjust the width to the content */
-    margin: 20px auto; /* Center the button */
-    display: block; /* Make sure the button is a block element */
+    padding: 10px 20px;
+    transition: background-color 0.3s, color 0.3s;
+    margin: 20px auto;
+    display: block;
 }
 
-#apply-damage-button:hover {
-    background-color: #8C5A4A; /* Rich reddish-brown hover background */
-    color: #2E1B18; /* Dark text on hover */
+#apply-damage-button:hover,
+#submit-button:hover,
+#clear-list-button:hover {
+    background-color: #8C5A4A;
+    color: #2E1B18;
 }
 
 /* Link Styled as Button */
@@ -194,7 +192,8 @@ a.button-link {
     transition: background-color 0.3s, color 0.3s;
     text-align: center;
     width: fit-content;
-    align-self: center; /* Ensure it's centered within the flex container */
+    align-self: center;
+    font-family: 'MedievalSharp', serif;
 }
 
 a.button-link:hover {
@@ -202,52 +201,19 @@ a.button-link:hover {
     color: #2E1B18;
 }
 
-/* Media Queries for Mobile Devices */
-@media (max-width: 768px) {
-    input.damage-input {
-        width: 50px; /* Reduce width even further on mobile */
-        height: 25px; /* Adjust height for smaller screens */
-        font-size: 0.9em; /* Slightly smaller font size */
-    }
-
-    li .name, li .number, li .health, li .ac {
-        flex: 1; /* Ensure better distribution of space on smaller screens */
-        text-align: center; /* Center the text for smaller screens */
-    }
-}
-
-/* Style for the gathered list */
-#rankingList {
-    max-width: 800px; /* Increase max-width to make the list wider */
-    width: 100%; /* Ensure it takes full width up to max-width */
-    margin: 0 auto; /* Center the list */
-    padding: 0;
-    list-style-type: none; /* Remove default bullet points */
-}
-
-/* Individual List Items (li) */
-li {
-    display: flex; /* Flexbox layout */
-    align-items: center; /* Vertically align elements */
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #8C5A4A;
-    border-radius: 5px;
-    background-color: rgba(165, 123, 91, 0.8);
-    width: 100%; /* Take full width of the container */
-    gap: 10px; /* Space between child elements */
-}
 /* Style for the name and AC container */
 .name-ac-container {
     display: flex;
     flex-direction: row;
     align-items: center;
-    flex: 2; /* Adjust as needed */
+    flex: 2;
     gap: 5px;
+    min-width: 0;
 }
 
-/* Flex properties for the name, ac, number, and health elements */
-.name-ac-container .name, .name-ac-container .ac, li .number, li .health {
+/* Name and AC layout */
+.name-ac-container .ac,
+li .health {
     padding: 0 5px;
     flex: 1;
     white-space: nowrap;
@@ -256,181 +222,214 @@ li {
     text-align: center;
 }
 
-/* Optionally adjust the flex for name and AC */
-.name-ac-container .name, .name-ac-container .ac {
-    flex: 1; /* Together they take up the space assigned to name-ac-container */
+.name-ac-container .ac {
+    color: #E0D8B0;
+    font-size: 1em;
 }
 
-/* Ensure buttons don't stretch */
+/* Generic buttons inside list items */
 li button {
     flex: 0 0 auto;
 }
-li .name, li .health {
+
+/* Collected-list name is a real button */
+#rankingList .name-ac-container .name {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font: inherit;
+    text-align: center;
     padding: 0 5px;
-    flex: 1;
+    margin: 0;
+    cursor: pointer;
+
+    flex: 1 1 auto;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center;
+
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
 }
 
-/* Adjust flex properties to center the elements */
-li {
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Center the items horizontally */
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #8C5A4A;
-    border-radius: 5px;
-    background-color: rgba(165, 123, 91, 0.8);
-    width: 100%;
-    gap: 10px;
+#rankingList .name-ac-container button.name {
+    flex: 1 1 auto;
 }
 
-/* Ensure buttons don't stretch */
-li button {
-    flex: 0 0 auto;
+#rankingList .name-ac-container .name:hover {
+    text-decoration: underline;
+}
+
+#rankingList .name-ac-container .name:focus {
+    outline: 2px solid #D4AF37;
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* Modal overlay */
 .ol-modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.65);
-  z-index: 10000;
-  box-sizing: border-box;
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 10000;
+    box-sizing: border-box;
 }
 
 /* Show modal when opened */
 .ol-modal[aria-hidden="false"] {
-  display: flex;
+    display: flex;
 }
 
 /* Hide when closed */
 .ol-modal[aria-hidden="true"] {
-  display: none;
+    display: none;
 }
 
 /* Modal panel */
 .ol-modal__dialog {
-  position: relative;
-  width: min(560px, 100%);
-  max-height: 90vh;
-  overflow-y: auto;
-  background-color: rgba(46, 27, 24, 0.98);
-  border: 2px solid #D4AF37;
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-  color: #E0D8B0;
-  padding: 20px;
-  text-align: left;
+    position: relative;
+    width: min(560px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: rgba(46, 27, 24, 0.98);
+    border: 2px solid #D4AF37;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    color: #E0D8B0;
+    padding: 20px;
+    text-align: left;
 }
 
-/* Wider modal variant for effect lists */
 .ol-modal__dialog--wide {
-  width: min(760px, 100%);
+    width: min(760px, 100%);
 }
 
 /* Close button */
 .ol-modal__close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #2E1B18;
-  color: #E0D8B0;
-  border: 2px solid #D4AF37;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-  padding: 4px 10px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px 10px;
+    font-family: 'MedievalSharp', serif;
 }
 
 .ol-modal__close:hover {
-  background-color: #8C5A4A;
-  color: #2E1B18;
+    background-color: #8C5A4A;
+    color: #2E1B18;
 }
 
 /* Modal text rows */
 .ol-meta {
-  margin: 10px 0;
-  font-size: 1rem;
+    margin: 10px 0;
+    font-size: 1rem;
 }
 
 .ol-meta .label {
-  font-weight: bold;
-  color: #D4AF37;
-  margin-right: 6px;
+    font-weight: bold;
+    color: #D4AF37;
+    margin-right: 6px;
 }
 
 .ol-meta .value {
-  color: #E0D8B0;
+    color: #E0D8B0;
 }
 
 /* Effect picker / effect manager rows */
 .bane-picker-list,
 .banes-modal-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
 }
 
 .bane-picker-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid #8C5A4A;
-  border-radius: 8px;
-  background-color: rgba(165, 123, 91, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #8C5A4A;
+    border-radius: 8px;
+    background-color: rgba(165, 123, 91, 0.18);
 }
 
 .bane-picker-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
 }
 
 .bane-picker-open {
-  flex: 1;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  color: #E0D8B0;
-  cursor: pointer;
-  padding: 0;
+    flex: 1;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    color: #E0D8B0;
+    cursor: pointer;
+    padding: 0;
+    font-family: 'MedievalSharp', serif;
 }
 
 .bane-icon,
 .bane-row-icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 4px;
 }
 
 .bane-icon-button {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
 }
 
 .row-banes {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .muted {
-  opacity: 0.8;
+    opacity: 0.8;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    input.damage-input {
+        width: 50px;
+        height: 25px;
+        font-size: 0.9em;
+    }
+
+    li .number,
+    li .health,
+    li .ac,
+    #rankingList .name-ac-container .name {
+        flex: 1;
+        text-align: center;
+    }
+
+    .name-ac-container {
+        flex: 2;
+    }
 }
