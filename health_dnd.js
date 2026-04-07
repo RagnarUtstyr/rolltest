@@ -1,4 +1,10 @@
-import { ref, update, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+import {
+  ref,
+  update,
+  onValue,
+  remove,
+  set
+} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth.js";
 import { EFFECTS } from "./effects.js";
@@ -10,6 +16,10 @@ let currentEffectEntryId = null;
 
 const countdownById = new Map();
 const dataCache = {};
+
+function qs(id) {
+  return document.getElementById(id);
+}
 
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);
@@ -32,7 +42,17 @@ function sanitizeEffectKey(value) {
   return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
 }
 
-function normalizeEntry(id, entry) {
+function normalizeEntry(id, entry = {}) {
+  const rawRemaining = entry.countdownRemaining;
+  let countdownRemaining = null;
+
+  if (typeof rawRemaining === "number" && !Number.isNaN(rawRemaining)) {
+    countdownRemaining = rawRemaining;
+  } else if (rawRemaining !== null && rawRemaining !== undefined && rawRemaining !== "") {
+    const parsed = Number(rawRemaining);
+    countdownRemaining = Number.isNaN(parsed) ? null : parsed;
+  }
+
   return {
     id,
     name: entry.name ?? entry.playerName ?? "Unknown",
@@ -40,18 +60,11 @@ function normalizeEntry(id, entry) {
     initiative: entry.initiative ?? entry.number ?? 0,
     health: entry.health ?? null,
     ac: entry.ac ?? null,
-    url: entry.url ?? null,
+    url: entry.url ?? "",
     effects: normalizeEffects(entry.effects),
     countdownActive: !!entry.countdownActive,
-    countdownRemaining:
-      typeof entry.countdownRemaining === "number"
-        ? entry.countdownRemaining
-        : entry.countdownRemaining === null
-          ? null
-          : entry.countdownRemaining !== undefined && entry.countdownRemaining !== ""
-            ? Number(entry.countdownRemaining)
-            : null,
-    countdownEnded: !!entry.countdownEnded,
+    countdownRemaining,
+    countdownEnded: !!entry.countdownEnded
   };
 }
 
@@ -67,7 +80,7 @@ function getCountdownState(entryId) {
   return countdownById.get(entryId) || {
     active: false,
     remaining: null,
-    ended: false,
+    ended: false
   };
 }
 
@@ -78,12 +91,12 @@ function setCountdownState(entryId, state) {
       typeof state.remaining === "number" && !Number.isNaN(state.remaining)
         ? state.remaining
         : null,
-    ended: !!state.ended,
+    ended: !!state.ended
   });
 }
 
 function setCountdownDisplay({ remaining, active, ended }) {
-  const el = document.getElementById("stat-countdown-remaining");
+  const el = qs("stat-countdown-remaining");
   if (!el) return;
 
   if (ended) {
@@ -97,18 +110,148 @@ function setCountdownDisplay({ remaining, active, ended }) {
   }
 }
 
+function ensureEnhancementStyles() {
+  if (qs("dnd-health-enhancements")) return;
+
+  const style = document.createElement("style");
+  style.id = "dnd-health-enhancements";
+  style.textContent = `
+    .countdown-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      white-space: nowrap;
+    }
+
+    .countdown-badge.ended {
+      background: rgba(140, 24, 24, 0.18);
+      border-color: rgba(220, 90, 90, 0.35);
+    }
+
+    #rankingList li.countdown-active {
+      box-shadow: inset 0 0 0 1px rgba(130, 200, 130, 0.3);
+    }
+
+    #rankingList li.countdown-expired {
+      box-shadow: inset 0 0 0 2px rgba(220, 90, 90, 0.28);
+    }
+
+    .effect-picker-row,
+    .effects-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .effect-picker-left,
+    .effects-row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .effect-icon {
+      width: 28px;
+      height: 28px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex: 0 0 auto;
+    }
+
+    .effect-icon-button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    .row-effects {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 8px 0 4px;
+    }
+
+    .name-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function badgeTextFor(state) {
+  if (state.ended) return "CD: ENDED";
+  if (state.active && typeof state.remaining === "number" && state.remaining > 0) {
+    return `CD: ${state.remaining}`;
+  }
+  return "";
+}
+
+function applyCountdownClassesAndBadge(entryId) {
+  const row = rowFor(entryId);
+  if (!row) return;
+
+  const state = getCountdownState(entryId);
+  const nameButton = row.querySelector(".name-button");
+  if (!nameButton) return;
+
+  let badge = nameButton.querySelector(".countdown-badge");
+  const text = badgeTextFor(state);
+
+  row.classList.toggle(
+    "countdown-active",
+    !!state.active && typeof state.remaining === "number" && state.remaining > 0
+  );
+  row.classList.toggle("countdown-expired", !!state.ended);
+
+  if (!text) {
+    if (badge) badge.remove();
+    return;
+  }
+
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "countdown-badge";
+    nameButton.appendChild(badge);
+  }
+
+  badge.textContent = text;
+  badge.classList.toggle("ended", !!state.ended);
+}
+
+function syncPopupCountdownIfOpen(entryId) {
+  if (!entryId || currentStatEntryId !== entryId) return;
+  const state = getCountdownState(entryId);
+  setCountdownDisplay(state);
+}
+
 function openStatModal(entry) {
-  const modal = document.getElementById("stat-modal");
-  if (!modal) return;
+  const modal = qs("stat-modal");
+  if (!modal || !entry) return;
 
   currentStatEntryId = entry.id;
 
-  document.getElementById("stat-modal-title").textContent = entry.name ?? "";
-  document.getElementById("stat-init").textContent = entry.initiative ?? "N/A";
-  document.getElementById("stat-ac").textContent = entry.ac ?? "N/A";
-  document.getElementById("stat-hp").textContent = entry.health ?? "N/A";
+  qs("stat-modal-title").textContent = entry.name ?? "";
+  qs("stat-init").textContent = entry.initiative ?? "N/A";
+  qs("stat-ac").textContent = entry.ac ?? "N/A";
+  qs("stat-hp").textContent = entry.health ?? "N/A";
 
-  const linkEl = document.getElementById("stat-url");
+  const linkEl = qs("stat-url");
   if (linkEl) {
     if (entry.url) {
       linkEl.style.display = "";
@@ -122,50 +265,58 @@ function openStatModal(entry) {
   setCountdownDisplay({
     remaining: entry.countdownRemaining,
     active: entry.countdownActive,
-    ended: entry.countdownEnded,
+    ended: entry.countdownEnded
   });
 
-  const countdownInput = document.getElementById("stat-countdown-amount");
-  const healInput = document.getElementById("stat-heal-amount");
-  if (countdownInput) countdownInput.value = "";
+  const healInput = qs("stat-heal-amount");
   if (healInput) healInput.value = "";
+
+  const countdownInput = qs("stat-countdown-amount");
+  if (countdownInput) countdownInput.value = "";
 
   modal.setAttribute("aria-hidden", "false");
 }
 
 function closeStatModal() {
-  document.getElementById("stat-modal")?.setAttribute("aria-hidden", "true");
+  qs("stat-modal")?.setAttribute("aria-hidden", "true");
+  currentStatEntryId = null;
 }
 
 function openHpModal(entry) {
-  const modal = document.getElementById("hp-modal");
-  if (!modal) return;
-
+  const modal = qs("hp-modal");
+  if (!modal || !entry) return;
   currentStatEntryId = entry.id;
-  document.getElementById("hp-modal-title").textContent = `${entry.name ?? "Entry"} HP`;
-
-  const input = document.getElementById("hp-set-amount");
-  if (input) {
-    input.value = entry.health ?? entry.health === 0 ? entry.health : "";
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 0);
-  }
-
+  qs("hp-modal-title").textContent = `Set HP: ${entry.name ?? ""}`;
+  const hpInput = qs("hp-set-amount");
+  if (hpInput) hpInput.value = "";
   modal.setAttribute("aria-hidden", "false");
 }
 
 function closeHpModal() {
-  document.getElementById("hp-modal")?.setAttribute("aria-hidden", "true");
+  qs("hp-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function openEffectDescription(effect) {
+  const modal = qs("effect-description-modal");
+  if (!modal) return;
+
+  qs("effect-description-title").textContent = effect?.name || "Effect";
+  qs("effect-description-body").textContent =
+    effect?.type || effect?.url || "No description available.";
+
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeEffectDescription() {
+  qs("effect-description-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function closeEffectPickerModal() {
-  document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
+  qs("effect-picker-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function closeEffectsModal() {
-  document.getElementById("effects-modal")?.setAttribute("aria-hidden", "true");
+  qs("effects-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function closeAllModals() {
@@ -173,12 +324,13 @@ function closeAllModals() {
   closeHpModal();
   closeEffectPickerModal();
   closeEffectsModal();
+  closeEffectDescription();
 }
 
 function openEffectsModal(entryId, effects, titleText = "Effects") {
-  const modal = document.getElementById("effects-modal");
-  const list = document.getElementById("effects-modal-list");
-  const title = document.getElementById("effects-modal-title");
+  const modal = qs("effects-modal");
+  const list = qs("effects-modal-list");
+  const title = qs("effects-modal-title");
 
   if (!modal || !list) return;
 
@@ -190,20 +342,21 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
 
   if (!safeEffects.length) {
     const empty = document.createElement("p");
-    empty.className = "muted";
-    empty.textContent = "No effects added.";
+    empty.textContent = "No effects.";
     list.appendChild(empty);
   } else {
     safeEffects.forEach((effect) => {
       const row = document.createElement("div");
-      row.className = "effect-picker-row";
+      row.className = "effects-row";
 
       const leftButton = document.createElement("button");
       leftButton.type = "button";
-      leftButton.className = "effect-picker-open";
-
-      const left = document.createElement("div");
-      left.className = "effect-picker-left";
+      leftButton.className = "effects-row-left";
+      leftButton.style.border = "0";
+      leftButton.style.background = "transparent";
+      leftButton.style.padding = "0";
+      leftButton.style.cursor = "pointer";
+      leftButton.addEventListener("click", () => openEffectDescription(effect));
 
       const icon = document.createElement("img");
       icon.className = "effect-icon";
@@ -213,20 +366,14 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
       const name = document.createElement("span");
       name.textContent = effect.name || "Unknown";
 
-      left.appendChild(icon);
-      left.appendChild(name);
-      leftButton.appendChild(left);
-
-      leftButton.addEventListener("click", () => {
-        if (effect.url) window.open(effect.url, "_blank", "noopener");
-      });
+      leftButton.appendChild(icon);
+      leftButton.appendChild(name);
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.textContent = "Remove";
       removeBtn.className = "remove-button";
       removeBtn.style.marginTop = "0";
-
       removeBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         try {
@@ -249,8 +396,8 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
 function openEffectPickerModal(entryId, existingEffects = []) {
   currentEffectEntryId = entryId;
 
-  const modal = document.getElementById("effect-picker-modal");
-  const list = document.getElementById("effect-picker-list");
+  const modal = qs("effect-picker-modal");
+  const list = qs("effect-picker-list");
   if (!modal || !list || !currentEffectEntryId) return;
 
   const selectedNames = new Set(
@@ -286,7 +433,6 @@ function openEffectPickerModal(entryId, existingEffects = []) {
 
     addBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
-
       try {
         const entryRef = ref(db, `${getEntriesPath()}/${currentEffectEntryId}/effects`);
         const key = sanitizeEffectKey(effect.name);
@@ -296,12 +442,9 @@ function openEffectPickerModal(entryId, existingEffects = []) {
             name: effect.name,
             url: effect.url || "",
             icon: effect.icon || "icons/effects/test.png",
-            type: effect.type || "",
-          },
+            type: effect.type || ""
+          }
         });
-
-        addBtn.textContent = "Added";
-        addBtn.disabled = true;
       } catch (err) {
         console.error("Error adding effect:", err);
       }
@@ -315,19 +458,152 @@ function openEffectPickerModal(entryId, existingEffects = []) {
   modal.setAttribute("aria-hidden", "false");
 }
 
-function clearList() {
-  const reference = ref(db, getEntriesPath());
+function renderEffectsRow(entryId, effectArray, name) {
+  if (!effectArray.length) return null;
 
-  set(reference, null)
-    .then(() => {
-      currentStatEntryId = null;
-      currentEffectEntryId = null;
-      countdownById.clear();
-      closeAllModals();
-    })
-    .catch((error) => {
-      console.error("Error clearing list:", error);
+  const effectWrap = document.createElement("div");
+  effectWrap.className = "row-effects";
+
+  effectArray.forEach((effect) => {
+    const iconButton = document.createElement("button");
+    iconButton.type = "button";
+    iconButton.className = "effect-icon-button";
+    iconButton.title = effect.name || "Effect";
+    iconButton.setAttribute("aria-label", effect.name || "Effect");
+    iconButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEffectDescription(effect);
     });
+
+    const icon = document.createElement("img");
+    icon.className = "effect-icon";
+    icon.src = effect.icon || "icons/effects/test.png";
+    icon.alt = effect.name || "Effect";
+
+    iconButton.appendChild(icon);
+    effectWrap.appendChild(iconButton);
+  });
+
+  const effectsButton = document.createElement("button");
+  effectsButton.type = "button";
+  effectsButton.textContent = "Effects";
+  effectsButton.className = "remove-button";
+  effectsButton.style.marginTop = "0";
+  effectsButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openEffectsModal(entryId, effectArray, `${name} effects`);
+  });
+
+  effectWrap.appendChild(effectsButton);
+  return effectWrap;
+}
+
+function buildEntryRow(entry) {
+  const {
+    id,
+    name,
+    ac,
+    health,
+    initiative,
+    effects
+  } = entry;
+
+  const listItem = document.createElement("li");
+  listItem.className = "list-item";
+  listItem.dataset.entryId = id;
+
+  const nameAcContainer = document.createElement("div");
+  nameAcContainer.className = "name-ac-container";
+
+  const nameButton = document.createElement("button");
+  nameButton.type = "button";
+  nameButton.className = "name-button";
+  nameButton.textContent = name;
+  nameButton.title = "Show details";
+  nameButton.setAttribute("aria-label", `Open details for ${name}`);
+  nameButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openStatModal(dataCache[id]);
+  });
+
+  nameAcContainer.appendChild(nameButton);
+
+  const acDiv = document.createElement("div");
+  acDiv.className = "ac";
+  acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
+  nameAcContainer.appendChild(acDiv);
+
+  listItem.appendChild(nameAcContainer);
+
+  const healthButton = document.createElement("button");
+  healthButton.type = "button";
+  healthButton.className = "health-button";
+  healthButton.title = "Set HP";
+  healthButton.setAttribute("aria-label", `Set HP for ${name}`);
+
+  const healthDiv = document.createElement("div");
+  healthDiv.className = "health";
+  healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
+  healthButton.appendChild(healthDiv);
+
+  healthButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openHpModal(dataCache[id]);
+  });
+
+  listItem.appendChild(healthButton);
+
+  const effectArray = normalizeEffects(effects);
+  const effectWrap = renderEffectsRow(id, effectArray, name);
+  if (effectWrap) listItem.appendChild(effectWrap);
+
+  const addEffectButton = document.createElement("button");
+  addEffectButton.type = "button";
+  addEffectButton.textContent = "Effect";
+  addEffectButton.className = "remove-button";
+  addEffectButton.style.marginTop = "0";
+  addEffectButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openEffectPickerModal(id, effectArray);
+  });
+  listItem.appendChild(addEffectButton);
+
+  const healthInput = document.createElement("input");
+  healthInput.type = "number";
+  healthInput.placeholder = "Damage";
+  healthInput.className = "damage-input";
+  healthInput.style.width = "64px";
+  healthInput.dataset.entryId = id;
+  healthInput.dataset.currentHealth =
+    health !== null && health !== undefined ? String(health) : "0";
+
+  healthInput.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+
+    e.preventDefault();
+
+    const damage = parseInt(healthInput.value, 10);
+    if (Number.isNaN(damage) || damage < 0) return;
+
+    const currentHealth = parseInt(healthInput.dataset.currentHealth, 10) || 0;
+    const updatedHealth = Math.max(currentHealth - damage, 0);
+
+    updateHealth(id, updatedHealth, healthInput);
+    healthInput.value = "";
+  });
+
+  listItem.appendChild(healthInput);
+
+  const initDiv = document.createElement("div");
+  initDiv.className = "initiative-display";
+  initDiv.textContent = `Init: ${initiative ?? "N/A"}`;
+  listItem.appendChild(initDiv);
+
+  applyCountdownClassesAndBadge(id);
+
+  return listItem;
 }
 
 function fetchRankings() {
@@ -335,7 +611,7 @@ function fetchRankings() {
 
   onValue(reference, (snapshot) => {
     const data = snapshot.val();
-    const rankingList = document.getElementById("rankingList");
+    const rankingList = qs("rankingList");
     if (!rankingList) return;
 
     rankingList.innerHTML = "";
@@ -344,7 +620,6 @@ function fetchRankings() {
     Object.keys(dataCache).forEach((key) => delete dataCache[key]);
 
     if (!data) {
-      console.log("No data available");
       return;
     }
 
@@ -353,165 +628,21 @@ function fetchRankings() {
       .sort((a, b) => (b.number || 0) - (a.number || 0));
 
     rankings.forEach((entry) => {
-      const {
-        id,
-        name,
-        ac,
-        health,
-        initiative,
-        effects,
-      } = entry;
+      dataCache[entry.id] = entry;
 
-      dataCache[id] = entry;
-
-      setCountdownState(id, {
-        remaining: typeof entry.countdownRemaining === "number" ? entry.countdownRemaining : null,
+      setCountdownState(entry.id, {
+        remaining:
+          typeof entry.countdownRemaining === "number" ? entry.countdownRemaining : null,
         active: !!entry.countdownActive,
-        ended: !!entry.countdownEnded,
+        ended: !!entry.countdownEnded
       });
 
-      const listItem = document.createElement("li");
-      listItem.className = "list-item";
-      listItem.dataset.entryId = id;
-
-      const nameAcContainer = document.createElement("div");
-      nameAcContainer.className = "name-ac-container";
-
-      const nameButton = document.createElement("button");
-      nameButton.type = "button";
-      nameButton.className = "name-button";
-      nameButton.textContent = name;
-      nameButton.title = "Show details";
-      nameButton.setAttribute("aria-label", `Open details for ${name}`);
-      nameButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openStatModal(dataCache[id]);
-      });
-
-      nameAcContainer.appendChild(nameButton);
-
-      const acDiv = document.createElement("div");
-      acDiv.className = "ac";
-      acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
-      nameAcContainer.appendChild(acDiv);
-
-      listItem.appendChild(nameAcContainer);
-
-      const healthButton = document.createElement("button");
-      healthButton.type = "button";
-      healthButton.className = "health-button";
-      healthButton.title = "Set HP";
-      healthButton.setAttribute("aria-label", `Set HP for ${name}`);
-
-      const healthDiv = document.createElement("div");
-      healthDiv.className = "health";
-      healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-      healthButton.appendChild(healthDiv);
-
-      healthButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openHpModal(dataCache[id]);
-      });
-
-      listItem.appendChild(healthButton);
-
-      const effectArray = normalizeEffects(effects);
-
-      if (effectArray.length > 0) {
-        const effectWrap = document.createElement("div");
-        effectWrap.className = "row-effects";
-
-        effectArray.forEach((effect) => {
-          const iconButton = document.createElement("button");
-          iconButton.type = "button";
-          iconButton.className = "effect-icon-button";
-          iconButton.title = effect.name || "Effect";
-          iconButton.setAttribute("aria-label", effect.name || "Effect");
-
-          const icon = document.createElement("img");
-          icon.className = "effect-row-icon";
-          icon.src = effect.icon || "icons/effects/test.png";
-          icon.alt = effect.name || "Effect";
-
-          iconButton.appendChild(icon);
-
-          iconButton.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (effect.url) window.open(effect.url, "_blank", "noopener");
-          });
-
-          effectWrap.appendChild(iconButton);
-        });
-
-        const effectsButton = document.createElement("button");
-        effectsButton.type = "button";
-        effectsButton.textContent = "Effects";
-        effectsButton.className = "remove-button";
-        effectsButton.style.marginTop = "0";
-
-        effectsButton.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openEffectsModal(id, effectArray, `${name} effects`);
-        });
-
-        effectWrap.appendChild(effectsButton);
-        listItem.appendChild(effectWrap);
-      }
-
-      const addEffectButton = document.createElement("button");
-      addEffectButton.type = "button";
-      addEffectButton.textContent = "Effect";
-      addEffectButton.className = "remove-button";
-      addEffectButton.style.marginTop = "0";
-      addEffectButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openEffectPickerModal(id, effectArray);
-      });
-
-      listItem.appendChild(addEffectButton);
-
-      const healthInput = document.createElement("input");
-      healthInput.type = "number";
-      healthInput.placeholder = "Damage";
-      healthInput.className = "damage-input";
-      healthInput.style.width = "64px";
-      healthInput.dataset.entryId = id;
-      healthInput.dataset.currentHealth = health ?? 0;
-      healthInput.dataset.initiative = initiative ?? 0;
-      listItem.appendChild(healthInput);
-
-      if (health === 0) {
-        listItem.classList.add("defeated");
-
-        const removeButton = document.createElement("button");
-        removeButton.type = "button";
-        removeButton.textContent = "Remove";
-        removeButton.className = "remove-button row-remove-button";
-        removeButton.addEventListener("click", () => removeEntry(id, listItem));
-        listItem.appendChild(removeButton);
-      }
-
-      rankingList.appendChild(listItem);
+      const row = buildEntryRow(entry);
+      rankingList.appendChild(row);
+      applyCountdownClassesAndBadge(entry.id);
     });
-  });
-}
 
-function applyDamageToAll() {
-  const damageInputs = document.querySelectorAll(".damage-input");
-
-  damageInputs.forEach((input) => {
-    const entryId = input.dataset.entryId;
-    const currentHealth = parseInt(input.dataset.currentHealth, 10);
-    const damage = parseInt(input.value, 10);
-
-    if (!Number.isNaN(damage) && !Number.isNaN(currentHealth)) {
-      const updatedHealth = currentHealth - damage;
-      updateHealth(entryId, updatedHealth > 0 ? updatedHealth : 0, input);
-    }
-
-    input.value = "";
+    syncPopupCountdownIfOpen(currentStatEntryId);
   });
 }
 
@@ -527,33 +658,13 @@ function updateHealth(id, newHealth, healthInput) {
         healthDiv.textContent = `HP: ${newHealth}`;
       }
 
-      healthInput.dataset.currentHealth = newHealth;
+      healthInput.dataset.currentHealth = String(newHealth);
 
       if (dataCache[id]) {
         dataCache[id].health = newHealth;
-      }
-
-      if (currentStatEntryId === id) {
-        const statHp = document.getElementById("stat-hp");
-        if (statHp) statHp.textContent = newHealth;
-      }
-
-      if (newHealth <= 0) {
-        listItem?.classList.add("defeated");
-
-        let removeButton = listItem?.querySelector(".row-remove-button");
-        if (!removeButton && listItem) {
-          removeButton = document.createElement("button");
-          removeButton.type = "button";
-          removeButton.textContent = "Remove";
-          removeButton.className = "remove-button row-remove-button";
-          removeButton.addEventListener("click", () => removeEntry(id, listItem));
-          listItem.appendChild(removeButton);
+        if (currentStatEntryId === id) {
+          qs("stat-hp").textContent = newHealth;
         }
-      } else {
-        listItem?.classList.remove("defeated");
-        const removeButton = listItem?.querySelector(".row-remove-button");
-        if (removeButton) removeButton.remove();
       }
     })
     .catch((error) => {
@@ -561,7 +672,38 @@ function updateHealth(id, newHealth, healthInput) {
     });
 }
 
-function removeEntry(id, listItem) {
+function applyDamageToAll() {
+  document.querySelectorAll(".damage-input").forEach((input) => {
+    const damage = parseInt(input.value, 10);
+    if (Number.isNaN(damage) || damage < 0) return;
+
+    const entryId = input.dataset.entryId;
+    const currentHealth = parseInt(input.dataset.currentHealth, 10) || 0;
+    const updatedHealth = Math.max(currentHealth - damage, 0);
+
+    updateHealth(entryId, updatedHealth, input);
+    input.value = "";
+  });
+}
+
+function clearList() {
+  remove(ref(db, getEntriesPath()))
+    .then(() => {
+      const rankingList = qs("rankingList");
+      if (rankingList) rankingList.innerHTML = "";
+      countdownById.clear();
+      Object.keys(dataCache).forEach((key) => delete dataCache[key]);
+      closeAllModals();
+    })
+    .catch((error) => {
+      console.error("Error clearing list:", error);
+    });
+}
+
+function removeEntry(id) {
+  if (!id) return;
+
+  const listItem = rowFor(id);
   const reference = ref(db, `${getEntriesPath()}/${id}`);
 
   remove(reference)
@@ -570,12 +712,8 @@ function removeEntry(id, listItem) {
       delete dataCache[id];
       countdownById.delete(id);
 
-      if (currentStatEntryId === id) {
-        currentStatEntryId = null;
-      }
-      if (currentEffectEntryId === id) {
-        currentEffectEntryId = null;
-      }
+      if (currentStatEntryId === id) currentStatEntryId = null;
+      if (currentEffectEntryId === id) currentEffectEntryId = null;
 
       closeAllModals();
     })
@@ -584,63 +722,49 @@ function removeEntry(id, listItem) {
     });
 }
 
+function setLocalCountdown(entryId, state) {
+  setCountdownState(entryId, state);
+
+  if (dataCache[entryId]) {
+    dataCache[entryId].countdownActive = !!state.active;
+    dataCache[entryId].countdownRemaining =
+      typeof state.remaining === "number" ? state.remaining : null;
+    dataCache[entryId].countdownEnded = !!state.ended;
+  }
+
+  applyCountdownClassesAndBadge(entryId);
+  syncPopupCountdownIfOpen(entryId);
+}
+
 async function setCountdown(entryId, turns) {
   if (!entryId) return;
 
-  setCountdownState(entryId, {
+  setLocalCountdown(entryId, {
     active: true,
     remaining: turns,
-    ended: false,
+    ended: false
   });
-
-  if (dataCache[entryId]) {
-    dataCache[entryId].countdownActive = true;
-    dataCache[entryId].countdownRemaining = turns;
-    dataCache[entryId].countdownEnded = false;
-  }
-
-  if (currentStatEntryId === entryId) {
-    setCountdownDisplay({
-      remaining: turns,
-      active: true,
-      ended: false,
-    });
-  }
 
   await update(ref(db, `${getEntriesPath()}/${entryId}`), {
     countdownActive: true,
     countdownRemaining: turns,
-    countdownEnded: false,
+    countdownEnded: false
   });
 }
 
 async function clearCountdown(entryId) {
   if (!entryId) return;
 
-  setCountdownState(entryId, {
+  setLocalCountdown(entryId, {
     active: false,
     remaining: null,
-    ended: false,
+    ended: false
   });
-
-  if (dataCache[entryId]) {
-    dataCache[entryId].countdownActive = false;
-    dataCache[entryId].countdownRemaining = null;
-    dataCache[entryId].countdownEnded = false;
-  }
-
-  if (currentStatEntryId === entryId) {
-    setCountdownDisplay({
-      remaining: null,
-      active: false,
-      ended: false,
-    });
-  }
 
   await update(ref(db, `${getEntriesPath()}/${entryId}`), {
     countdownActive: false,
     countdownRemaining: null,
-    countdownEnded: false,
+    countdownEnded: false
   });
 }
 
@@ -653,100 +777,94 @@ async function decrementCountdownIfNeeded(entryId) {
   const nextRemaining = state.remaining - 1;
   const nextEnded = nextRemaining === 0;
 
-  setCountdownState(entryId, {
+  setLocalCountdown(entryId, {
     remaining: nextRemaining,
     active: !nextEnded,
-    ended: nextEnded,
+    ended: nextEnded
   });
-
-  if (dataCache[entryId]) {
-    dataCache[entryId].countdownRemaining = nextRemaining;
-    dataCache[entryId].countdownActive = !nextEnded;
-    dataCache[entryId].countdownEnded = nextEnded;
-  }
-
-  if (currentStatEntryId === entryId) {
-    setCountdownDisplay({
-      remaining: nextRemaining,
-      active: !nextEnded,
-      ended: nextEnded,
-    });
-  }
 
   await update(ref(db, `${getEntriesPath()}/${entryId}`), {
-    countdownRemaining: nextRemaining,
     countdownActive: !nextEnded,
-    countdownEnded: nextEnded,
+    countdownRemaining: nextRemaining,
+    countdownEnded: nextEnded
   });
 }
 
-function getHighlightedEntryId() {
-  return document.querySelector("#rankingList li.highlighted")?.dataset.entryId || null;
+async function cleanupEndedCountdownIfNeeded(entryId) {
+  if (!entryId) return;
+
+  const state = getCountdownState(entryId);
+  if (!state.ended) return;
+
+  await clearCountdown(entryId);
+
+  const row = rowFor(entryId);
+  if (row) {
+    row.classList.remove("countdown-expired");
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  try {
-    getEntriesPath();
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-
-  const statModal = document.getElementById("stat-modal");
+function bindModalEvents() {
+  const statModal = qs("stat-modal");
   if (statModal) {
-    document.getElementById("stat-modal-close")?.addEventListener("click", closeStatModal);
+    qs("stat-modal-close")?.addEventListener("click", closeStatModal);
     statModal.addEventListener("click", (e) => {
       if (e.target === statModal) closeStatModal();
     });
   }
 
-  const hpModal = document.getElementById("hp-modal");
+  const hpModal = qs("hp-modal");
   if (hpModal) {
-    document.getElementById("hp-modal-close")?.addEventListener("click", closeHpModal);
+    qs("hp-modal-close")?.addEventListener("click", closeHpModal);
     hpModal.addEventListener("click", (e) => {
       if (e.target === hpModal) closeHpModal();
     });
   }
 
-  const effectPickerModal = document.getElementById("effect-picker-modal");
+  const effectPickerModal = qs("effect-picker-modal");
   if (effectPickerModal) {
-    document.getElementById("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
+    qs("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
     effectPickerModal.addEventListener("click", (e) => {
       if (e.target === effectPickerModal) closeEffectPickerModal();
     });
   }
 
-  const effectsModal = document.getElementById("effects-modal");
+  const effectsModal = qs("effects-modal");
   if (effectsModal) {
-    document.getElementById("effects-modal-close")?.addEventListener("click", closeEffectsModal);
+    qs("effects-modal-close")?.addEventListener("click", closeEffectsModal);
     effectsModal.addEventListener("click", (e) => {
       if (e.target === effectsModal) closeEffectsModal();
+    });
+  }
+
+  const effectDescModal = qs("effect-description-modal");
+  if (effectDescModal) {
+    qs("effect-description-close")?.addEventListener("click", closeEffectDescription);
+    effectDescModal.addEventListener("click", (e) => {
+      if (e.target === effectDescModal) closeEffectDescription();
     });
   }
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllModals();
   });
+}
 
-  fetchRankings();
+function bindActionEvents() {
+  qs("apply-damage-button")?.addEventListener("click", applyDamageToAll);
+  qs("clear-list-button")?.addEventListener("click", clearList);
 
-  document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
-  document.getElementById("clear-list-button")?.addEventListener("click", clearList);
-
-  document.getElementById("stat-delete")?.addEventListener("click", () => {
+  qs("stat-delete")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
-    if (!confirm("Delete this entry from the list?")) return;
-
-    const row = rowFor(currentStatEntryId);
-    removeEntry(currentStatEntryId, row);
+    removeEntry(currentStatEntryId);
   });
 
-  document.getElementById("stat-heal")?.addEventListener("click", () => {
+  qs("stat-heal")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
 
-    const healInput = document.getElementById("stat-heal-amount");
+    const healInput = qs("stat-heal-amount");
     const amount = parseInt(healInput?.value, 10);
-    if (Number.isNaN(amount) || amount <= 0) return;
+    if (Number.isNaN(amount) || amount < 0) return;
 
     const rowHealthInput = getHealthInput(currentStatEntryId);
     if (!rowHealthInput) return;
@@ -758,10 +876,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (healInput) healInput.value = "";
   });
 
-  document.getElementById("hp-set-button")?.addEventListener("click", () => {
+  qs("hp-set-button")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
 
-    const hpInput = document.getElementById("hp-set-amount");
+    const hpInput = qs("hp-set-amount");
     const amount = parseInt(hpInput?.value, 10);
     if (Number.isNaN(amount) || amount < 0) return;
 
@@ -773,17 +891,17 @@ document.addEventListener("DOMContentLoaded", () => {
     closeHpModal();
   });
 
-  document.getElementById("hp-set-amount")?.addEventListener("keydown", (e) => {
+  qs("hp-set-amount")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      document.getElementById("hp-set-button")?.click();
+      qs("hp-set-button")?.click();
     }
   });
 
-  document.getElementById("stat-countdown-set")?.addEventListener("click", async () => {
+  qs("stat-countdown-set")?.addEventListener("click", async () => {
     if (!currentStatEntryId) return;
 
-    const countdownInput = document.getElementById("stat-countdown-amount");
+    const countdownInput = qs("stat-countdown-amount");
     const turns = parseInt(countdownInput?.value, 10);
     if (Number.isNaN(turns) || turns < 1) return;
 
@@ -795,7 +913,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.getElementById("stat-countdown-clear")?.addEventListener("click", async () => {
+  qs("stat-countdown-clear")?.addEventListener("click", async () => {
     if (!currentStatEntryId) return;
 
     try {
@@ -805,22 +923,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.getElementById("stat-add-effect")?.addEventListener("click", () => {
+  qs("stat-add-effect")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
     const entry = dataCache[currentStatEntryId];
     openEffectPickerModal(currentStatEntryId, entry?.effects || []);
   });
+}
 
-  document.getElementById("next-button")?.addEventListener("click", () => {
-    setTimeout(async () => {
-      const currentId = getHighlightedEntryId();
-      if (!currentId) return;
+function bindTurnCountdownSync() {
+  window.addEventListener("tracker:highlightChange", async (event) => {
+    const detail = event?.detail || {};
+    const { previousId, currentId, reason } = detail;
 
-      try {
-        await decrementCountdownIfNeeded(currentId);
-      } catch (err) {
-        console.error("Error decrementing countdown:", err);
-      }
-    }, 0);
+    if (reason !== "next" && reason !== "prev") return;
+
+    try {
+      await cleanupEndedCountdownIfNeeded(previousId);
+      await decrementCountdownIfNeeded(currentId);
+    } catch (err) {
+      console.error("Error processing countdown turn sync:", err);
+    }
   });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  ensureEnhancementStyles();
+  bindModalEvents();
+  bindActionEvents();
+  bindTurnCountdownSync();
+  fetchRankings();
 });

@@ -1,118 +1,125 @@
 let currentHighlightIndex = 0;
+let previousHighlightedEntryId = null;
 
-function highlightCurrentEntry() {
-    const listItems = document.querySelectorAll('#rankingList li');
+function getListItems() {
+  return Array.from(document.querySelectorAll("#rankingList li"));
+}
 
-    // If there are no items, exit the function
-    if (listItems.length === 0) {
-        return;
+function getHighlightedEntryId() {
+  const items = getListItems();
+  if (!items.length) return null;
+  const current = items[currentHighlightIndex];
+  return current?.dataset?.entryId ?? null;
+}
+
+function syncIndexWithinBounds(items) {
+  if (!items.length) {
+    currentHighlightIndex = 0;
+    return;
+  }
+
+  if (currentHighlightIndex < 0) {
+    currentHighlightIndex = 0;
+  }
+
+  if (currentHighlightIndex >= items.length) {
+    currentHighlightIndex = Math.max(0, items.length - 1);
+  }
+}
+
+function highlightCurrentEntry(emitEvent = false, reason = "sync") {
+  const listItems = getListItems();
+  if (!listItems.length) {
+    previousHighlightedEntryId = null;
+    return;
+  }
+
+  syncIndexWithinBounds(listItems);
+
+  listItems.forEach((item) => item.classList.remove("highlighted"));
+
+  const currentItem = listItems[currentHighlightIndex];
+  currentItem.classList.add("highlighted");
+
+  const currentId = currentItem?.dataset?.entryId ?? null;
+
+  if (emitEvent) {
+    const previousId = previousHighlightedEntryId;
+    if (currentId && currentId !== previousId) {
+      window.dispatchEvent(
+        new CustomEvent("tracker:highlightChange", {
+          detail: {
+            previousId,
+            currentId,
+            index: currentHighlightIndex,
+            reason
+          }
+        })
+      );
     }
+  }
 
-    // Ensure currentHighlightIndex is within bounds
-    if (currentHighlightIndex >= listItems.length) {
-        currentHighlightIndex = Math.min(currentHighlightIndex, listItems.length - 1); // Stay within bounds
-    }
-
-    // Remove highlight from all items
-    listItems.forEach(item => item.classList.remove('highlighted'));
-
-    // Highlight the current item
-    listItems[currentHighlightIndex].classList.add('highlighted');
+  previousHighlightedEntryId = currentId;
 }
 
 function moveToNextEntry() {
-    const listItems = document.querySelectorAll('#rankingList li');
+  const listItems = getListItems();
+  if (!listItems.length) return;
 
-    // If there are no items, exit the function
-    if (listItems.length === 0) {
-        return;
-    }
-
-    // Move to the next item, or loop back to the first if at the end
-    currentHighlightIndex = (currentHighlightIndex + 1) % listItems.length;
-
-    // Apply the new highlight
-    highlightCurrentEntry();
+  currentHighlightIndex = (currentHighlightIndex + 1) % listItems.length;
+  highlightCurrentEntry(true, "next");
 }
 
 function moveToPreviousEntry() {
-    const listItems = document.querySelectorAll('#rankingList li');
+  const listItems = getListItems();
+  if (!listItems.length) return;
 
-    // If there are no items, exit the function
-    if (listItems.length === 0) {
-        return;
-    }
+  currentHighlightIndex =
+    (currentHighlightIndex - 1 + listItems.length) % listItems.length;
 
-    // Move to the previous item, or loop to the last if at the beginning
-    currentHighlightIndex = (currentHighlightIndex - 1 + listItems.length) % listItems.length;
-
-    // Apply the new highlight
-    highlightCurrentEntry();
+  highlightCurrentEntry(true, "prev");
 }
 
-function refreshHighlightAfterRemoval() {
-    const listItems = document.querySelectorAll('#rankingList li');
-
-    // If there are no items left, reset
-    if (listItems.length === 0) {
-        currentHighlightIndex = 0;
-        return;
-    }
-
-    // If the current highlighted item was removed, adjust the index
-    if (currentHighlightIndex >= listItems.length) {
-        currentHighlightIndex = Math.min(currentHighlightIndex, listItems.length - 1); // Stay within bounds
-    }
-
-    // Apply highlight to the new current item
-    highlightCurrentEntry();
-}
-
-function removeEntry(listItem) {
-    const listItems = document.querySelectorAll('#rankingList li');
-    const indexToRemove = Array.from(listItems).indexOf(listItem);
-
-    // Remove the DOM element
-    listItem.remove();
-
-    // Adjust the highlight index if the highlighted item was removed
-    if (currentHighlightIndex >= indexToRemove) {
-        currentHighlightIndex = Math.max(0, currentHighlightIndex - 1); // Move the highlight up if needed
-    }
-
-    // Refresh the highlight after removal
-    refreshHighlightAfterRemoval();
-}
-
-// Ensure that highlighting is always applied after DOM changes or button clicks
 function ensureHighlightAlwaysVisible() {
-    const observer = new MutationObserver(() => {
-        highlightCurrentEntry(); // Reapply highlight after any DOM changes
-    });
+  const listElement = document.getElementById("rankingList");
+  if (!listElement) return;
 
-    // Observe the list for any changes (additions, deletions, etc.)
-    const listElement = document.getElementById('rankingList');
-    if (listElement) {
-        observer.observe(listElement, { childList: true, subtree: false });
+  const observer = new MutationObserver(() => {
+    const items = getListItems();
+
+    if (!items.length) {
+      currentHighlightIndex = 0;
+      previousHighlightedEntryId = null;
+      return;
     }
+
+    const highlightedIndex = items.findIndex((item) =>
+      item.classList.contains("highlighted")
+    );
+
+    if (highlightedIndex >= 0) {
+      currentHighlightIndex = highlightedIndex;
+    } else if (previousHighlightedEntryId) {
+      const previousIndex = items.findIndex(
+        (item) => item.dataset.entryId === previousHighlightedEntryId
+      );
+      if (previousIndex >= 0) {
+        currentHighlightIndex = previousIndex;
+      }
+    }
+
+    highlightCurrentEntry(false, "sync");
+  });
+
+  observer.observe(listElement, { childList: true, subtree: false });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Attach event listener to "Next" button
-    const nextButton = document.getElementById('next-button');
-    if (nextButton) {
-        nextButton.addEventListener('click', moveToNextEntry);
-    }
+window.getHighlightedEntryId = getHighlightedEntryId;
 
-    // Attach event listener to "Previous" button (if applicable)
-    const prevButton = document.getElementById('prev-button');
-    if (prevButton) {
-        prevButton.addEventListener('click', moveToPreviousEntry);
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("next-button")?.addEventListener("click", moveToNextEntry);
+  document.getElementById("prev-button")?.addEventListener("click", moveToPreviousEntry);
 
-    // Ensure the first item is highlighted when the page loads
-    highlightCurrentEntry();
-
-    // Ensure the highlight stays visible even when the DOM changes
-    ensureHighlightAlwaysVisible();
+  highlightCurrentEntry(false, "sync");
+  ensureHighlightAlwaysVisible();
 });
