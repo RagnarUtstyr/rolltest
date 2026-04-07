@@ -258,6 +258,29 @@ a.button-link {
   align-self: center;
 }
 
+#list-name {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+#list-name:focus {
+  background: var(--input-bg-focus);
+  border-color: var(--accent-2);
+  box-shadow: var(--focus-ring);
+}
+
+#save-button,
+#load-button,
+#delete-button,
+#go-back-button {
+  border: 1px solid var(--accent-deep);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #a8834f 0%, #815f37 100%);
+  color: #17120d;
+  font-weight: 700;
+}
+
 #rankingList {
   width: 100%;
   max-width: 820px;
@@ -398,18 +421,28 @@ a.button-link {
   align-self: center;
 }
 
-.defeated {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.1)),
-    linear-gradient(180deg, rgba(111, 69, 69, 0.92), rgba(82, 44, 44, 0.96));
-  border-color: #6a4343;
-  color: #f3eaea;
+#rankingList li.defeated,
+.list-item.defeated {
+  background: #530d0d !important;
+  border-color: #7a1f1f !important;
+  color: #ffffff !important;
 }
 
-.defeated .name,
-.defeated .ac,
-.defeated .health {
-  color: #f3eaea;
+#rankingList li.defeated .name,
+#rankingList li.defeated .ac,
+#rankingList li.defeated .health,
+#rankingList li.defeated .damage-input,
+.list-item.defeated .name,
+.list-item.defeated .ac,
+.list-item.defeated .health,
+.list-item.defeated .damage-input {
+  color: #ffffff !important;
+}
+
+#rankingList li.defeated .damage-input,
+.list-item.defeated .damage-input {
+  background: rgba(30, 10, 10, 0.95) !important;
+  border-color: #a33a3a !important;
 }
 
 .ol-modal[aria-hidden="true"] {
@@ -616,27 +649,4 @@ a.button-link {
   .ol-modal__dialog {
     padding: 18px;
   }
-}
-
-#list-name {
-  background: var(--input-bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-#list-name:focus {
-  background: var(--input-bg-focus);
-  border-color: var(--accent-2);
-  box-shadow: var(--focus-ring);
-}
-
-#save-button,
-#load-button,
-#delete-button,
-#go-back-button {
-  border: 1px solid var(--accent-deep);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, #a8834f 0%, #815f37 100%);
-  color: #17120d;
-  font-weight: 700;
 }
