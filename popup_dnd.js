@@ -57,37 +57,43 @@ function renderEffectsSummary(row) {
   const effects = getEffectsFromRow(row);
   container.innerHTML = "";
 
-  effects.forEach((effect) => {
-    const icon = document.createElement("img");
-    icon.className = "effect-row-icon";
-    icon.src = effect.icon || "icons/effects/test.png";
-    icon.alt = effect.name || "Effect";
-    icon.title = effect.name || "Effect";
-    icon.width = 22;
-    icon.height = 22;
-    icon.style.marginLeft = "6px";
-    icon.style.verticalAlign = "middle";
-    icon.style.borderRadius = "4px";
+  if (!effects.length) return;
 
-    if (effect.url) {
-      icon.style.cursor = "pointer";
-      icon.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.open(effect.url, "_blank", "noopener");
-      });
-    }
+  const names = document.createElement("div");
+  names.className = "effects-summary";
+  names.innerHTML = effects
+    .map((effect) => `<div class="effects-summary-item">${effect.name || "Effect"}</div>`)
+    .join("");
 
-    container.appendChild(icon);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "effects-button";
+  button.textContent = "Effects";
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    currentEntryId = row.dataset.entryId || null;
+    renderEffectsModal(row);
+    openModal(qs("effects-modal"));
   });
+
+  container.appendChild(names);
+  container.appendChild(button);
 }
 
 function fillStatModalFromRow(row) {
   currentEntryId = row.dataset.entryId || null;
 
-  const name = row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
+  const name =
+    row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
   const initiative = row.dataset.initiative || "N/A";
-  const ac = row.dataset.ac || row.querySelector(".ac")?.textContent?.replace(/^AC:\s*/, "") || "N/A";
-  const hp = row.dataset.health || row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") || "N/A";
+  const ac =
+    row.dataset.ac ||
+    row.querySelector(".ac")?.textContent?.replace(/^AC:\s*/, "") ||
+    "N/A";
+  const hp =
+    row.dataset.health ||
+    row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") ||
+    "N/A";
   const url = row.dataset.url || "";
 
   if (qs("stat-modal-title")) qs("stat-modal-title").textContent = name;
@@ -113,8 +119,12 @@ function fillStatModalFromRow(row) {
 function fillHpModalFromRow(row) {
   currentEntryId = row.dataset.entryId || null;
 
-  const name = row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
-  const hp = row.dataset.health || row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") || "";
+  const name =
+    row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
+  const hp =
+    row.dataset.health ||
+    row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") ||
+    "";
 
   if (qs("hp-modal-title")) qs("hp-modal-title").textContent = `${name} HP`;
   if (qs("hp-set-amount")) qs("hp-set-amount").value = hp === "N/A" ? "" : hp;
@@ -221,18 +231,23 @@ function renderEffectsModal(row) {
     removeBtn.type = "button";
     removeBtn.className = "remove-button";
     removeBtn.textContent = "Remove";
-
     removeBtn.addEventListener("click", async () => {
       const entryRow = findRow(currentEntryId);
       if (!entryRow) return;
 
       const currentEffects = getEffectsFromRow(entryRow);
       const nextEffects = currentEffects.filter((e) => e.name !== effect.name);
+
       setEffectsOnRow(entryRow, nextEffects);
       renderEffectsSummary(entryRow);
       renderEffectsModal(entryRow);
 
-      await remove(ref(db, `${getEntriesPath()}/${currentEntryId}/effects/${sanitizeEffectKey(effect.name)}`));
+      await remove(
+        ref(
+          db,
+          `${getEntriesPath()}/${currentEntryId}/effects/${sanitizeEffectKey(effect.name)}`
+        )
+      );
     });
 
     rowEl.appendChild(left);
@@ -250,6 +265,7 @@ function renderEffectPicker() {
 
   const currentEffects = getEffectsFromRow(row);
   const currentNames = new Set(currentEffects.map((e) => e.name));
+
   list.innerHTML = "";
 
   EFFECTS.forEach((effect) => {
@@ -291,6 +307,7 @@ function renderEffectPicker() {
       };
 
       const key = sanitizeEffectKey(effect.name);
+
       await update(ref(db, `${getEntriesPath()}/${currentEntryId}/effects`), {
         [key]: nextEffect,
       });
@@ -339,13 +356,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const effectsEl = e.target.closest(".row-effects");
+    const effectsEl = e.target.closest(".effects-button");
     if (effectsEl) {
       const row = effectsEl.closest("li");
       if (!row) return;
+
       currentEntryId = row.dataset.entryId || null;
       renderEffectsModal(row);
       openModal(qs("effects-modal"));
+      return;
     }
   });
 

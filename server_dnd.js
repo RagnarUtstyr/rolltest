@@ -40,7 +40,9 @@ function normalizeEntry(id, entry) {
 
 async function submitData() {
   const name = document.getElementById("name")?.value?.trim();
-  const initiativeEl = document.getElementById("initiative") || document.getElementById("number");
+  const initiativeEl =
+    document.getElementById("initiative") ||
+    document.getElementById("number");
   const number = initiativeEl ? parseInt(initiativeEl.value, 10) : NaN;
 
   const healthRaw = document.getElementById("health")?.value ?? "";
@@ -56,7 +58,6 @@ async function submitData() {
 
   try {
     const reference = ref(db, getEntriesPath());
-
     await push(reference, {
       name,
       number,
@@ -70,37 +71,18 @@ async function submitData() {
 
     document.getElementById("name").value = "";
     if (initiativeEl) initiativeEl.value = "";
-    if (document.getElementById("health")) document.getElementById("health").value = "";
-    if (document.getElementById("ac")) document.getElementById("ac").value = "";
+    if (document.getElementById("health")) {
+      document.getElementById("health").value = "";
+    }
+    if (document.getElementById("ac")) {
+      document.getElementById("ac").value = "";
+    }
 
     const swordSound = document.getElementById("sword-sound");
     if (swordSound) swordSound.play();
   } catch (error) {
     console.error("Error submitting data:", error);
   }
-}
-
-function createEffectIcon(effect) {
-  const icon = document.createElement("img");
-  icon.className = "effect-row-icon";
-  icon.src = effect.icon || "icons/effects/test.png";
-  icon.alt = effect.name || "Effect";
-  icon.title = effect.name || "Effect";
-  icon.width = 22;
-  icon.height = 22;
-  icon.style.marginLeft = "6px";
-  icon.style.verticalAlign = "middle";
-  icon.style.borderRadius = "4px";
-
-  if (effect.url) {
-    icon.style.cursor = "pointer";
-    icon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.open(effect.url, "_blank", "noopener");
-    });
-  }
-
-  return icon;
 }
 
 function fetchRankings() {
@@ -130,8 +112,10 @@ function fetchRankings() {
         listItem.dataset.entryId = id;
         listItem.dataset.name = name;
         listItem.dataset.initiative = String(initiative ?? "");
-        listItem.dataset.ac = ac !== null && ac !== undefined ? String(ac) : "N/A";
-        listItem.dataset.health = health !== null && health !== undefined ? String(health) : "N/A";
+        listItem.dataset.ac =
+          ac !== null && ac !== undefined ? String(ac) : "N/A";
+        listItem.dataset.health =
+          health !== null && health !== undefined ? String(health) : "N/A";
         listItem.dataset.url = url ?? "";
         listItem.dataset.effects = JSON.stringify(effects || []);
 
@@ -159,9 +143,27 @@ function fetchRankings() {
 
         const effectsRow = document.createElement("div");
         effectsRow.className = "row-effects";
-        effects.forEach((effect) => {
-          effectsRow.appendChild(createEffectIcon(effect));
-        });
+
+        if (effects.length) {
+          const names = document.createElement("div");
+          names.className = "effects-summary";
+
+          effects.forEach((effect) => {
+            const effectName = document.createElement("div");
+            effectName.className = "effects-summary-item";
+            effectName.textContent = effect.name || "Effect";
+            names.appendChild(effectName);
+          });
+
+          const effectsButton = document.createElement("button");
+          effectsButton.type = "button";
+          effectsButton.className = "effects-button";
+          effectsButton.textContent = "Effects";
+
+          effectsRow.appendChild(names);
+          effectsRow.appendChild(effectsButton);
+        }
+
         listItem.appendChild(effectsRow);
 
         const healthInput = document.createElement("input");
@@ -217,6 +219,7 @@ function updateHealth(id, newHealth, healthInput) {
     .then(() => {
       const listItem = healthInput.parentElement;
       const healthDiv = listItem.querySelector(".health");
+
       if (healthDiv) {
         healthDiv.textContent = `HP: ${newHealth}`;
       }
@@ -286,10 +289,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("submit-button")?.addEventListener("click", submitData);
+
   if (document.getElementById("rankingList")) {
     fetchRankings();
   }
 
-  document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
-  document.getElementById("clear-list-button")?.addEventListener("click", clearAllEntries);
+  document
+    .getElementById("apply-damage-button")
+    ?.addEventListener("click", applyDamageToAll);
+
+  document
+    .getElementById("clear-list-button")
+    ?.addEventListener("click", clearAllEntries);
 });
