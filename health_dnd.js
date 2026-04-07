@@ -11,14 +11,6 @@ let currentEffectEntryId = null;
 const countdownById = new Map();
 const dataCache = {};
 
-function onReady(fn) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fn, { once: true });
-  } else {
-    fn();
-  }
-}
-
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);
   return (params.get("code") || "").trim().toUpperCase();
@@ -692,7 +684,7 @@ function getHighlightedEntryId() {
   return document.querySelector("#rankingList li.highlighted")?.dataset.entryId || null;
 }
 
-onReady(() => {
+document.addEventListener("DOMContentLoaded", () => {
   try {
     getEntriesPath();
   } catch (error) {
