@@ -48,6 +48,7 @@ function getHealthInputForEntry(id) {
 
 let currentStatEntryId = null;
 let currentHpEntryId = null;
+let currentEffectsEntryId = null;
 
 const countdownById = new Map();
 const latestEntries = {};
@@ -66,56 +67,46 @@ function setCountdownState(id, state) {
 
 function setStatCountdownDisplay({ remaining, active, ended }) {
   const remainingEl = document.getElementById("stat-countdown-remaining");
-  const inputEl = document.getElementById("stat-countdown-amount");
+  if (!remainingEl) return;
 
-  if (remainingEl) {
-    if (ended) remainingEl.textContent = "ENDED (0)";
-    else if (active) remainingEl.textContent = `${remaining ?? "—"}`;
-    else if (remaining === 0) remainingEl.textContent = "0";
-    else remainingEl.textContent = "—";
-  }
-
-  if (inputEl) inputEl.value = "";
+  if (ended) remainingEl.textContent = "ENDED (0)";
+  else if (active) remainingEl.textContent = `${remaining ?? "—"}`;
+  else if (remaining === 0) remainingEl.textContent = "0";
+  else remainingEl.textContent = "—";
 }
 
-function openStatModal({
-  id,
-  name,
-  ac,
-  health,
-  url,
-  initiative,
-  countdownRemaining,
-  countdownActive,
-  countdownEnded
-}) {
+function openStatModal(entryId) {
   const modal = document.getElementById("stat-modal");
-  if (!modal) return;
+  const entry = latestEntries[entryId];
+  if (!modal || !entry) return;
 
-  currentStatEntryId = id;
+  currentStatEntryId = entryId;
 
-  document.getElementById("stat-modal-title").textContent = name ?? "";
-  document.getElementById("stat-init").textContent = initiative ?? "N/A";
-  document.getElementById("stat-ac").textContent = ac ?? "N/A";
-  document.getElementById("stat-hp").textContent = health ?? "N/A";
+  const state = getCountdownState(entryId);
+
+  document.getElementById("stat-modal-title").textContent = entry.name ?? "";
+  document.getElementById("stat-init").textContent = entry.initiative ?? entry.number ?? "N/A";
+  document.getElementById("stat-ac").textContent = entry.ac ?? "N/A";
+  document.getElementById("stat-hp").textContent = entry.health ?? "N/A";
 
   const link = document.getElementById("stat-url");
-  if (url) {
-    link.style.display = "";
-    link.href = url;
-  } else {
-    link.style.display = "none";
-    link.removeAttribute("href");
+  if (link) {
+    if (entry.url) {
+      link.style.display = "";
+      link.href = entry.url;
+    } else {
+      link.style.display = "none";
+      link.removeAttribute("href");
+    }
   }
 
-  setStatCountdownDisplay({
-    remaining: countdownRemaining,
-    active: countdownActive,
-    ended: countdownEnded
-  });
+  setStatCountdownDisplay(state);
 
   const healInput = document.getElementById("stat-heal-amount");
   if (healInput) healInput.value = "";
+
+  const countdownInput = document.getElementById("stat-countdown-amount");
+  if (countdownInput) countdownInput.value = "";
 
   modal.setAttribute("aria-hidden", "false");
 }
@@ -124,15 +115,17 @@ function closeStatModal() {
   document.getElementById("stat-modal")?.setAttribute("aria-hidden", "true");
 }
 
-function openHpModal(entryId, currentHp, name) {
-  currentHpEntryId = entryId;
-
+function openHpModal(entryId) {
   const modal = document.getElementById("hp-modal");
-  if (!modal) return;
+  const entry = latestEntries[entryId];
+  if (!modal || !entry) return;
+
+  currentHpEntryId = entryId;
+  currentStatEntryId = entryId;
 
   const input = document.getElementById("hp-set-amount");
   if (input) {
-    input.value = currentHp ?? "";
+    input.value = entry.health ?? "";
     setTimeout(() => {
       input.focus();
       input.select();
@@ -140,7 +133,7 @@ function openHpModal(entryId, currentHp, name) {
   }
 
   const title = document.getElementById("hp-modal-title");
-  if (title) title.textContent = `Set HP: ${name ?? "Entry"}`;
+  if (title) title.textContent = `Set HP: ${entry.name ?? "Entry"}`;
 
   modal.setAttribute("aria-hidden", "false");
 }
@@ -161,6 +154,14 @@ function closeEffectDescriptionModal() {
   document.getElementById("effect-description-modal")?.setAttribute("aria-hidden", "true");
 }
 
+function closeAllModals() {
+  closeStatModal();
+  closeHpModal();
+  closeEffectPickerModal();
+  closeEffectsModal();
+  closeEffectDescriptionModal();
+}
+
 function openEffectDescriptionModal(effect) {
   const modal = document.getElementById("effect-description-modal");
   if (!modal) return;
@@ -172,16 +173,18 @@ function openEffectDescriptionModal(effect) {
   modal.setAttribute("aria-hidden", "false");
 }
 
-function openEffectsModal(entryId, effects, titleText = "Effects") {
+function openEffectsModal(entryId) {
   const modal = document.getElementById("effects-modal");
   const list = document.getElementById("effects-modal-list");
   const title = document.getElementById("effects-modal-title");
-  if (!modal || !list) return;
+  const entry = latestEntries[entryId];
+  if (!modal || !list || !entry) return;
 
+  currentEffectsEntryId = entryId;
   list.innerHTML = "";
-  if (title) title.textContent = titleText;
+  if (title) title.textContent = `${entry.name || "Entry"} Effects`;
 
-  const normalized = normalizeEffects(effects);
+  const normalized = normalizeEffects(entry.effects);
 
   if (!normalized.length) {
     const p = document.createElement("p");
@@ -195,6 +198,8 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
       const leftButton = document.createElement("button");
       leftButton.type = "button";
       leftButton.className = "bane-picker-open";
+      leftButton.dataset.role = "modal-open-effect-description";
+      leftButton.dataset.effectName = effect.name || "";
 
       const left = document.createElement("div");
       left.className = "bane-picker-left";
@@ -210,22 +215,14 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
       left.appendChild(icon);
       left.appendChild(name);
       leftButton.appendChild(left);
-      leftButton.addEventListener("click", () => openEffectDescriptionModal(effect));
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.textContent = "Remove";
       removeBtn.className = "remove-button";
       removeBtn.style.marginTop = "0";
-      removeBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const key = sanitizeEffectKey(effect.name);
-        try {
-          await remove(ref(db, `${getEntriesPath()}/${entryId}/effects/${key}`));
-        } catch (error) {
-          console.error("Error removing effect:", error);
-        }
-      });
+      removeBtn.dataset.role = "modal-remove-effect";
+      removeBtn.dataset.effectName = effect.name || "";
 
       row.appendChild(leftButton);
       row.appendChild(removeBtn);
@@ -236,17 +233,17 @@ function openEffectsModal(entryId, effects, titleText = "Effects") {
   modal.setAttribute("aria-hidden", "false");
 }
 
-function openEffectPickerModal() {
-  if (!currentStatEntryId) return;
-
+function openEffectPickerModal(entryId) {
   const modal = document.getElementById("effect-picker-modal");
   const list = document.getElementById("effect-picker-list");
-  if (!modal || !list) return;
+  const entry = latestEntries[entryId];
+  if (!modal || !list || !entry) return;
 
+  currentEffectsEntryId = entryId;
+  currentStatEntryId = entryId;
   list.innerHTML = "";
 
-  const entry = latestEntries[currentStatEntryId];
-  const existing = new Set(normalizeEffects(entry?.effects).map((effect) => effect.name));
+  const existing = new Set(normalizeEffects(entry.effects).map((effect) => effect.name));
 
   EFFECTS.forEach((effect) => {
     const row = document.createElement("div");
@@ -272,23 +269,8 @@ function openEffectPickerModal() {
     addBtn.className = "remove-button";
     addBtn.style.marginTop = "0";
     addBtn.disabled = existing.has(effect.name);
-
-    addBtn.addEventListener("click", async () => {
-      try {
-        const key = sanitizeEffectKey(effect.name);
-        await update(ref(db, `${getEntriesPath()}/${currentStatEntryId}/effects`), {
-          [key]: {
-            name: effect.name,
-            url: effect.url || "",
-            icon: effect.icon || "icons/effects/test.png",
-            type: effect.type || "",
-            description: effect.description || ""
-          }
-        });
-      } catch (error) {
-        console.error("Error adding effect:", error);
-      }
-    });
+    addBtn.dataset.role = "picker-add-effect";
+    addBtn.dataset.effectName = effect.name || "";
 
     row.appendChild(left);
     row.appendChild(addBtn);
@@ -299,7 +281,7 @@ function openEffectPickerModal() {
 }
 
 function updateCountdownBadge(row, state) {
-  const nameCol = row.querySelector(".name");
+  const nameCol = row.querySelector('[data-role="open-stat"]');
   if (!nameCol) return;
 
   let badge = nameCol.querySelector(".countdown-badge");
@@ -366,7 +348,9 @@ function renderEffectsPreview(entryId, entry, listItem) {
     iconButton.style.cursor = "pointer";
     iconButton.title = effect.name || "Effect";
     iconButton.setAttribute("aria-label", effect.name || "Effect");
-    iconButton.addEventListener("click", () => openEffectDescriptionModal(effect));
+    iconButton.dataset.role = "open-effect-description";
+    iconButton.dataset.entryId = entryId;
+    iconButton.dataset.effectName = effect.name || "";
 
     const icon = document.createElement("img");
     icon.src = effect.icon || "icons/effects/test.png";
@@ -381,11 +365,11 @@ function renderEffectsPreview(entryId, entry, listItem) {
   });
 
   const effectsButton = document.createElement("button");
+  effectsButton.type = "button";
   effectsButton.textContent = "Effects";
   effectsButton.className = "effects-button";
-  effectsButton.addEventListener("click", () =>
-    openEffectsModal(entryId, effectArray, `${entry.name || "Entry"} Effects`)
-  );
+  effectsButton.dataset.role = "open-effects";
+  effectsButton.dataset.entryId = entryId;
   preview.appendChild(effectsButton);
 
   listItem.appendChild(preview);
@@ -428,39 +412,28 @@ function fetchRankings() {
       const nameAcContainer = document.createElement("div");
       nameAcContainer.className = "name-ac-container";
 
-      const nameDiv = document.createElement("div");
-      nameDiv.className = "name";
-      nameDiv.textContent = entry.name ?? entry.playerName ?? "Unknown";
-      nameDiv.addEventListener("click", () => {
-        const state = getCountdownState(id);
-        openStatModal({
-          id,
-          name: entry.name ?? entry.playerName ?? "Unknown",
-          ac: entry.ac,
-          health: entry.health,
-          url: entry.url,
-          initiative: entry.initiative ?? entry.number,
-          countdownRemaining: state.remaining,
-          countdownActive: state.active,
-          countdownEnded: state.ended
-        });
-      });
+      const nameButton = document.createElement("button");
+      nameButton.type = "button";
+      nameButton.className = "name";
+      nameButton.dataset.role = "open-stat";
+      nameButton.dataset.entryId = id;
+      nameButton.textContent = entry.name ?? entry.playerName ?? "Unknown";
 
       const acDiv = document.createElement("div");
       acDiv.className = "ac";
       acDiv.textContent = `AC: ${entry.ac ?? "N/A"}`;
 
-      nameAcContainer.appendChild(nameDiv);
+      nameAcContainer.appendChild(nameButton);
       nameAcContainer.appendChild(acDiv);
       listItem.appendChild(nameAcContainer);
 
-      const healthDiv = document.createElement("div");
-      healthDiv.className = "health";
-      healthDiv.textContent = `HP: ${entry.health ?? "N/A"}`;
-      healthDiv.addEventListener("click", () =>
-        openHpModal(id, entry.health ?? "", entry.name ?? "Entry")
-      );
-      listItem.appendChild(healthDiv);
+      const healthButton = document.createElement("button");
+      healthButton.type = "button";
+      healthButton.className = "health";
+      healthButton.dataset.role = "open-hp";
+      healthButton.dataset.entryId = id;
+      healthButton.textContent = `HP: ${entry.health ?? "N/A"}`;
+      listItem.appendChild(healthButton);
 
       renderEffectsPreview(id, entry, listItem);
 
@@ -469,10 +442,8 @@ function fetchRankings() {
       addEffectBtn.textContent = "Effect";
       addEffectBtn.className = "remove-button";
       addEffectBtn.style.marginTop = "0";
-      addEffectBtn.addEventListener("click", () => {
-        currentStatEntryId = id;
-        openEffectPickerModal();
-      });
+      addEffectBtn.dataset.role = "add-effect";
+      addEffectBtn.dataset.entryId = id;
       listItem.appendChild(addEffectBtn);
 
       const healthInput = document.createElement("input");
@@ -505,9 +476,11 @@ function fetchRankings() {
       if ((entry.health ?? 0) <= 0) {
         listItem.classList.add("defeated");
         const removeButton = document.createElement("button");
+        removeButton.type = "button";
         removeButton.textContent = "Remove";
         removeButton.className = "remove-button";
-        removeButton.addEventListener("click", () => removeEntry(id));
+        removeButton.dataset.role = "remove-entry";
+        removeButton.dataset.entryId = id;
         listItem.appendChild(removeButton);
       }
 
@@ -525,7 +498,7 @@ function updateHealth(id, newHealth, healthInput) {
   update(reference, { health: newHealth })
     .then(() => {
       const listItem = healthInput.closest(".list-item");
-      const healthDiv = listItem?.querySelector(".health");
+      const healthDiv = listItem?.querySelector('[data-role="open-hp"]');
 
       if (healthDiv) {
         healthDiv.textContent = `HP: ${newHealth}`;
@@ -571,10 +544,9 @@ function clearList() {
 }
 
 function removeEntry(id) {
-  remove(ref(db, `${getEntriesPath()}/${id}`))
-    .catch((error) => {
-      console.error("Error removing entry:", error);
-    });
+  remove(ref(db, `${getEntriesPath()}/${id}`)).catch((error) => {
+    console.error("Error removing entry:", error);
+  });
 }
 
 async function setCountdown(id, turns) {
@@ -681,7 +653,52 @@ window.addEventListener("tracker:highlightChange", async (event) => {
   }
 });
 
-onReady(() => {
+function bindRankingListDelegation() {
+  const rankingList = document.getElementById("rankingList");
+  if (!rankingList) return;
+
+  rankingList.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-role]");
+    if (!target) return;
+
+    const role = target.dataset.role;
+    const entryId = target.dataset.entryId;
+
+    if (role === "open-stat" && entryId) {
+      openStatModal(entryId);
+      return;
+    }
+
+    if (role === "open-hp" && entryId) {
+      openHpModal(entryId);
+      return;
+    }
+
+    if (role === "open-effects" && entryId) {
+      openEffectsModal(entryId);
+      return;
+    }
+
+    if (role === "add-effect" && entryId) {
+      openEffectPickerModal(entryId);
+      return;
+    }
+
+    if (role === "remove-entry" && entryId) {
+      removeEntry(entryId);
+      return;
+    }
+
+    if (role === "open-effect-description" && entryId) {
+      const entry = latestEntries[entryId];
+      const effectName = target.dataset.effectName;
+      const effect = normalizeEffects(entry?.effects).find((item) => item.name === effectName);
+      if (effect) openEffectDescriptionModal(effect);
+    }
+  });
+}
+
+function bindModalActions() {
   document.getElementById("stat-modal-close")?.addEventListener("click", closeStatModal);
   document.getElementById("stat-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "stat-modal") closeStatModal();
@@ -710,12 +727,7 @@ onReady(() => {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
-    closeStatModal();
-    closeHpModal();
-    closeEffectPickerModal();
-    closeEffectsModal();
-    closeEffectDescriptionModal();
+    if (e.key === "Escape") closeAllModals();
   });
 
   document.getElementById("stat-delete")?.addEventListener("click", () => {
@@ -740,7 +752,7 @@ onReady(() => {
     if (!currentStatEntryId) return;
 
     const healAmount = parseInt(document.getElementById("stat-heal-amount")?.value, 10);
-    if (isNaN(healAmount)) return;
+    if (isNaN(healAmount) || healAmount <= 0) return;
 
     const input = getHealthInputForEntry(currentStatEntryId);
     if (!input) return;
@@ -758,6 +770,7 @@ onReady(() => {
 
     try {
       await setCountdown(currentStatEntryId, turns);
+      document.getElementById("stat-countdown-amount").value = "";
     } catch (error) {
       console.error("Error setting countdown:", error);
     }
@@ -772,12 +785,71 @@ onReady(() => {
     }
   });
 
-  document.getElementById("stat-add-effect")?.addEventListener("click", openEffectPickerModal);
+  document.getElementById("stat-add-effect")?.addEventListener("click", () => {
+    if (!currentStatEntryId) return;
+    openEffectPickerModal(currentStatEntryId);
+  });
+
+  const effectsModalList = document.getElementById("effects-modal-list");
+  effectsModalList?.addEventListener("click", async (event) => {
+    const target = event.target.closest("[data-role]");
+    if (!target || !currentEffectsEntryId) return;
+
+    const effectName = target.dataset.effectName;
+    const entry = latestEntries[currentEffectsEntryId];
+    const effect = normalizeEffects(entry?.effects).find((item) => item.name === effectName);
+
+    if (target.dataset.role === "modal-open-effect-description" && effect) {
+      openEffectDescriptionModal(effect);
+      return;
+    }
+
+    if (target.dataset.role === "modal-remove-effect" && effectName) {
+      const key = sanitizeEffectKey(effectName);
+      try {
+        await remove(ref(db, `${getEntriesPath()}/${currentEffectsEntryId}/effects/${key}`));
+      } catch (error) {
+        console.error("Error removing effect:", error);
+      }
+    }
+  });
+
+  const effectPickerList = document.getElementById("effect-picker-list");
+  effectPickerList?.addEventListener("click", async (event) => {
+    const target = event.target.closest('[data-role="picker-add-effect"]');
+    if (!target || !currentEffectsEntryId) return;
+
+    const effectName = target.dataset.effectName;
+    const effect = EFFECTS.find((item) => item.name === effectName);
+    if (!effect) return;
+
+    try {
+      const key = sanitizeEffectKey(effect.name);
+      await update(ref(db, `${getEntriesPath()}/${currentEffectsEntryId}/effects`), {
+        [key]: {
+          name: effect.name,
+          url: effect.url || "",
+          icon: effect.icon || "icons/effects/test.png",
+          type: effect.type || "",
+          description: effect.description || ""
+        }
+      });
+    } catch (error) {
+      console.error("Error adding effect:", error);
+    }
+  });
+}
+
+onReady(() => {
+  bindRankingListDelegation();
+  bindModalActions();
 
   requireAuth().then(() => {
     fetchRankings();
 
     document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
     document.getElementById("clear-list-button")?.addEventListener("click", clearList);
+  }).catch((error) => {
+    console.error("Auth failed on DND page:", error);
   });
 });
