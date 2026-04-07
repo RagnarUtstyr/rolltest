@@ -138,7 +138,7 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: center;
-    gap: 10px 16px;
+    gap: 6px 16px;
   }
 
   .name-ac-container {
@@ -149,21 +149,32 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    justify-content: center;
     min-width: 0;
+    line-height: 1.2;
   }
 
   .name {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
+    padding: 0;
   }
 
   .ac,
   .health {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
     white-space: nowrap;
     text-align: center;
-    justify-self: center;
-    margin-top: 0;
+    margin: 0;
+    padding: 0;
   }
 
   .damage-input {
@@ -171,7 +182,7 @@
     max-width: 110px;
     justify-self: center;
     align-self: center;
-    margin-top: 0;
+    margin: 0;
   }
 
   .remove-button {
@@ -183,16 +194,20 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
-    min-height: 24px;
+    margin-top: 2px;
+    min-height: 0;
     flex-wrap: wrap;
+  }
+
+  .row-effects:empty {
+    display: none;
   }
 
   .effects-summary-icons {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
   }
 
   .effect-row-icon {
@@ -205,7 +220,7 @@
   }
 
   .effects-button {
-    padding: 3px 8px;
+    padding: 2px 8px;
     border-radius: 6px;
     border: 1px solid #8b6b2f;
     background: rgba(40, 24, 8, 0.9);
@@ -213,6 +228,7 @@
     cursor: pointer;
     font-family: inherit;
     font-size: 0.85rem;
+    line-height: 1.1;
     white-space: nowrap;
   }
 
