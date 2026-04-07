@@ -1,12 +1,9 @@
+// countdown_dnd.js
 import { db } from "./firebase-config.js";
-import { ref, update, remove } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-import { EFFECTS } from "./effects.js";
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
-let currentEntryId = null;
-
-function qs(id) {
-  return document.getElementById(id);
-}
+const countdownStateById = new Map();
+let rankingListObserver = null;
 
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);
@@ -15,409 +12,184 @@ function getGameCode() {
 
 function getEntriesPath() {
   const code = getGameCode();
-  if (!code) throw new Error("Missing game code in URL.");
-  return `games/${code}/entries`;
+  return code ? `games/${code}/entries` : null;
 }
 
-function sanitizeEffectKey(value) {
-  return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
-}
+function normalizeCountdown(entry) {
+  const rawRemaining = entry?.countdownRemaining;
+  let remaining = null;
 
-function openModal(modal) {
-  if (modal) modal.setAttribute("aria-hidden", "false");
-}
-
-function closeModal(modal) {
-  if (modal) modal.setAttribute("aria-hidden", "true");
-}
-
-function closeAllModals() {
-  closeModal(qs("stat-modal"));
-  closeModal(qs("hp-modal"));
-  closeModal(qs("effect-picker-modal"));
-  closeModal(qs("effects-modal"));
-  closeModal(qs("effect-description-modal"));
-}
-
-function getEffectsFromRow(row) {
-  try {
-    return JSON.parse(row.dataset.effects || "[]");
-  } catch {
-    return [];
+  if (typeof rawRemaining === "number" && !Number.isNaN(rawRemaining)) {
+    remaining = rawRemaining;
+  } else if (rawRemaining !== null && rawRemaining !== undefined && rawRemaining !== "") {
+    const parsed = Number(rawRemaining);
+    remaining = Number.isNaN(parsed) ? null : parsed;
   }
+
+  return {
+    active: !!entry?.countdownActive,
+    remaining,
+    ended: !!entry?.countdownEnded
+  };
 }
 
-function setEffectsOnRow(row, effects) {
-  row.dataset.effects = JSON.stringify(effects || []);
-}
+function injectCountdownStyles() {
+  if (document.getElementById("countdown-dnd-inline-styles")) return;
 
-function openEffectDescription(effect) {
-  const modal = qs("effect-description-modal");
-  const title = qs("effect-description-title");
-  const body = qs("effect-description-body");
-
-  if (!modal || !title || !body) return;
-
-  title.textContent = effect.name || "Effect";
-  body.textContent = effect.description || "No description available.";
-
-  openModal(modal);
-}
-
-function createEffectIcon(effect) {
-  const icon = document.createElement("img");
-  icon.className = "effect-row-icon";
-  icon.src = effect.icon || "icons/effects/test.png";
-  icon.alt = effect.name || "Effect";
-  icon.title = effect.name || "Effect";
-  icon.width = 22;
-  icon.height = 22;
-
-  icon.style.cursor = "pointer";
-  icon.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openEffectDescription(effect);
-  });
-
-  return icon;
-}
-
-function renderEffectsSummary(row) {
-  const container = row.querySelector(".row-effects");
-  if (!container) return;
-
-  const effects = getEffectsFromRow(row);
-  container.innerHTML = "";
-
-  if (!effects.length) return;
-
-  const iconsWrap = document.createElement("div");
-  iconsWrap.className = "effects-summary-icons";
-
-  effects.forEach((effect) => {
-    iconsWrap.appendChild(createEffectIcon(effect));
-  });
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "effects-button";
-  button.textContent = "Effects";
-  button.addEventListener("click", (e) => {
-    e.stopPropagation();
-    currentEntryId = row.dataset.entryId || null;
-    renderEffectsModal(row);
-    openModal(qs("effects-modal"));
-  });
-
-  container.appendChild(iconsWrap);
-  container.appendChild(button);
-}
-
-function fillStatModalFromRow(row) {
-  currentEntryId = row.dataset.entryId || null;
-
-  const name =
-    row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
-  const initiative = row.dataset.initiative || "N/A";
-  const ac =
-    row.dataset.ac ||
-    row.querySelector(".ac")?.textContent?.replace(/^AC:\s*/, "") ||
-    "N/A";
-  const hp =
-    row.dataset.health ||
-    row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") ||
-    "N/A";
-  const url = row.dataset.url || "";
-
-  if (qs("stat-modal-title")) qs("stat-modal-title").textContent = name;
-  if (qs("stat-init")) qs("stat-init").textContent = initiative;
-  if (qs("stat-ac")) qs("stat-ac").textContent = ac;
-  if (qs("stat-hp")) qs("stat-hp").textContent = hp;
-
-  const link = qs("stat-url");
-  if (link) {
-    if (url) {
-      link.href = url;
-      link.style.display = "";
-    } else {
-      link.removeAttribute("href");
-      link.style.display = "none";
+  const style = document.createElement("style");
+  style.id = "countdown-dnd-inline-styles";
+  style.textContent = `
+    .dnd-countdown-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      white-space: nowrap;
     }
+
+    .dnd-countdown-badge.ended {
+      border-color: rgba(180, 40, 40, 0.45);
+      background: rgba(180, 40, 40, 0.12);
+    }
+
+    #rankingList li.countdown-active {
+      outline-offset: 0;
+    }
+
+    #rankingList li.countdown-expired {
+      box-shadow: inset 0 0 0 2px rgba(180, 40, 40, 0.22);
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function getRow(entryId) {
+  return document.querySelector(`#rankingList li[data-entry-id="${entryId}"]`);
+}
+
+function getNameButton(row) {
+  return row?.querySelector(".name-button");
+}
+
+function getBadgeText(state) {
+  if (state.ended) return "CD: ENDED";
+  if (state.active && typeof state.remaining === "number" && state.remaining > 0) {
+    return `CD: ${state.remaining}`;
   }
-
-  if (qs("stat-heal-amount")) qs("stat-heal-amount").value = "";
-  renderEffectsModal(row);
+  return "";
 }
 
-function fillHpModalFromRow(row) {
-  currentEntryId = row.dataset.entryId || null;
+function updateRowCountdown(entryId) {
+  const row = getRow(entryId);
+  if (!row) return;
 
-  const name =
-    row.dataset.name || row.querySelector(".name")?.textContent?.trim() || "Unknown";
-  const hp =
-    row.dataset.health ||
-    row.querySelector(".health")?.textContent?.replace(/^HP:\s*/, "") ||
-    "";
+  const nameButton = getNameButton(row);
+  if (!nameButton) return;
 
-  if (qs("hp-modal-title")) qs("hp-modal-title").textContent = `${name} HP`;
-  if (qs("hp-set-amount")) qs("hp-set-amount").value = hp === "N/A" ? "" : hp;
-}
+  const state = countdownStateById.get(entryId) || {
+    active: false,
+    remaining: null,
+    ended: false
+  };
 
-function bindCloseBehavior(modalId, closeId) {
-  const modal = qs(modalId);
-  if (!modal) return;
+  let badge = nameButton.querySelector(".dnd-countdown-badge");
+  const text = getBadgeText(state);
 
-  qs(closeId)?.addEventListener("click", () => closeModal(modal));
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal(modal);
-  });
-}
-
-function findRow(entryId) {
-  return document.querySelector(`li[data-entry-id="${entryId}"]`);
-}
-
-async function healCurrentEntry() {
-  if (!currentEntryId) return;
-
-  const row = findRow(currentEntryId);
-  const input = qs("stat-heal-amount");
-  if (!row || !input) return;
-
-  const amount = parseInt(input.value, 10);
-  if (Number.isNaN(amount) || amount <= 0) return;
-
-  const currentHealth = row.dataset.health === "N/A" ? 0 : parseInt(row.dataset.health, 10);
-  const nextHealth = (Number.isNaN(currentHealth) ? 0 : currentHealth) + amount;
-
-  await update(ref(db, `${getEntriesPath()}/${currentEntryId}`), { health: nextHealth });
-
-  row.dataset.health = String(nextHealth);
-  row.querySelector(".health").textContent = `HP: ${nextHealth}`;
-  if (qs("stat-hp")) qs("stat-hp").textContent = String(nextHealth);
-  input.value = "";
-}
-
-async function setCurrentEntryHp() {
-  if (!currentEntryId) return;
-
-  const row = findRow(currentEntryId);
-  const input = qs("hp-set-amount");
-  if (!row || !input) return;
-
-  const amount = parseInt(input.value, 10);
-  if (Number.isNaN(amount) || amount < 0) return;
-
-  await update(ref(db, `${getEntriesPath()}/${currentEntryId}`), { health: amount });
-
-  row.dataset.health = String(amount);
-  row.querySelector(".health").textContent = `HP: ${amount}`;
-  if (qs("stat-hp")) qs("stat-hp").textContent = String(amount);
-
-  closeModal(qs("hp-modal"));
-}
-
-async function deleteCurrentEntry() {
-  if (!currentEntryId) return;
-  if (!confirm("Delete this entry from the list?")) return;
-
-  await remove(ref(db, `${getEntriesPath()}/${currentEntryId}`));
-  closeAllModals();
-  currentEntryId = null;
-}
-
-function renderEffectsModal(row) {
-  const list = qs("effects-modal-list");
-  if (!list) return;
-
-  const effects = getEffectsFromRow(row);
-  list.innerHTML = "";
-
-  if (!effects.length) {
-    const p = document.createElement("p");
-    p.textContent = "No effects added.";
-    list.appendChild(p);
+  if (!text) {
+    if (badge) badge.remove();
+    row.classList.remove("countdown-active", "countdown-expired");
     return;
   }
 
-  effects.forEach((effect) => {
-    const rowEl = document.createElement("div");
-    rowEl.className = "effect-picker-row";
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "dnd-countdown-badge";
+    nameButton.appendChild(badge);
+  }
 
-    const left = document.createElement("div");
-    left.className = "effect-picker-left";
+  badge.textContent = text;
+  badge.classList.toggle("ended", !!state.ended);
 
-    const icon = document.createElement("img");
-    icon.className = "effect-icon";
-    icon.src = effect.icon || "icons/effects/test.png";
-    icon.alt = effect.name || "Effect";
-    icon.width = 24;
-    icon.height = 24;
-    icon.style.cursor = "pointer";
-    icon.addEventListener("click", () => openEffectDescription(effect));
+  if (state.active && typeof state.remaining === "number" && state.remaining > 0) {
+    row.classList.add("countdown-active");
+  } else {
+    row.classList.remove("countdown-active");
+  }
 
-    const name = document.createElement("span");
-    name.textContent = effect.name || "Unknown";
+  if (state.ended) {
+    row.classList.add("countdown-expired");
+  } else {
+    row.classList.remove("countdown-expired");
+  }
+}
 
-    left.appendChild(icon);
-    left.appendChild(name);
-
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "remove-button";
-    removeBtn.textContent = "Remove";
-    removeBtn.addEventListener("click", async () => {
-      const entryRow = findRow(currentEntryId);
-      if (!entryRow) return;
-
-      const currentEffects = getEffectsFromRow(entryRow);
-      const nextEffects = currentEffects.filter((e) => e.name !== effect.name);
-
-      setEffectsOnRow(entryRow, nextEffects);
-      renderEffectsSummary(entryRow);
-      renderEffectsModal(entryRow);
-
-      await remove(
-        ref(
-          db,
-          `${getEntriesPath()}/${currentEntryId}/effects/${sanitizeEffectKey(effect.name)}`
-        )
-      );
-    });
-
-    rowEl.appendChild(left);
-    rowEl.appendChild(removeBtn);
-    list.appendChild(rowEl);
+function refreshAllVisibleRows() {
+  document.querySelectorAll("#rankingList li[data-entry-id]").forEach((row) => {
+    const entryId = row.dataset.entryId;
+    if (entryId) updateRowCountdown(entryId);
   });
 }
 
-function renderEffectPicker() {
-  const list = qs("effect-picker-list");
-  if (!list) return;
+function watchRankingList() {
+  const rankingList = document.getElementById("rankingList");
+  if (!rankingList) return;
 
-  const row = findRow(currentEntryId);
-  if (!row) return;
+  if (rankingListObserver) rankingListObserver.disconnect();
 
-  const currentEffects = getEffectsFromRow(row);
-  const currentNames = new Set(currentEffects.map((e) => e.name));
+  rankingListObserver = new MutationObserver(() => {
+    refreshAllVisibleRows();
+  });
 
-  list.innerHTML = "";
+  rankingListObserver.observe(rankingList, {
+    childList: true,
+    subtree: true
+  });
+}
 
-  EFFECTS.forEach((effect) => {
-    const rowEl = document.createElement("div");
-    rowEl.className = "effect-picker-row";
+function subscribeToCountdowns() {
+  const path = getEntriesPath();
+  if (!path) return;
 
-    const left = document.createElement("div");
-    left.className = "effect-picker-left";
+  const entriesRef = ref(db, path);
 
-    const icon = document.createElement("img");
-    icon.className = "effect-icon";
-    icon.src = effect.icon || "icons/effects/test.png";
-    icon.alt = effect.name || "Effect";
-    icon.width = 24;
-    icon.height = 24;
+  onValue(
+    entriesRef,
+    (snapshot) => {
+      const data = snapshot.val() || {};
+      countdownStateById.clear();
 
-    const name = document.createElement("span");
-    name.textContent = effect.name;
-
-    left.appendChild(icon);
-    left.appendChild(name);
-
-    const addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "remove-button";
-    addBtn.textContent = currentNames.has(effect.name) ? "Added" : "Add";
-    addBtn.disabled = currentNames.has(effect.name);
-
-    addBtn.addEventListener("click", async () => {
-      const entryRow = findRow(currentEntryId);
-      if (!entryRow) return;
-
-      const nextEffect = {
-        name: effect.name,
-        type: effect.type || "",
-        url: effect.url || "",
-        icon: effect.icon || "icons/effects/test.png",
-        description: effect.description || "",
-      };
-
-      const key = sanitizeEffectKey(effect.name);
-
-      await update(ref(db, `${getEntriesPath()}/${currentEntryId}/effects`), {
-        [key]: nextEffect,
+      Object.entries(data).forEach(([entryId, entry]) => {
+        countdownStateById.set(entryId, normalizeCountdown(entry));
       });
 
-      const updatedEffects = [...getEffectsFromRow(entryRow), nextEffect];
-      setEffectsOnRow(entryRow, updatedEffects);
-      renderEffectsSummary(entryRow);
-      renderEffectsModal(entryRow);
-      renderEffectPicker();
-    });
-
-    rowEl.appendChild(left);
-    rowEl.appendChild(addBtn);
-    list.appendChild(rowEl);
-  });
+      refreshAllVisibleRows();
+    },
+    (error) => {
+      console.error("countdown_dnd.js Firebase listener failed:", error);
+    }
+  );
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const rankingList = qs("rankingList");
+function boot() {
+  try {
+    injectCountdownStyles();
+    watchRankingList();
+    subscribeToCountdowns();
+    refreshAllVisibleRows();
+  } catch (error) {
+    console.error("countdown_dnd.js failed to initialize:", error);
+  }
+}
 
-  bindCloseBehavior("stat-modal", "stat-modal-close");
-  bindCloseBehavior("hp-modal", "hp-modal-close");
-  bindCloseBehavior("effect-picker-modal", "effect-picker-close");
-  bindCloseBehavior("effects-modal", "effects-modal-close");
-  bindCloseBehavior("effect-description-modal", "effect-description-close");
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeAllModals();
-  });
-
-  rankingList?.addEventListener("click", (e) => {
-    const nameEl = e.target.closest(".name");
-    if (nameEl) {
-      const row = nameEl.closest("li");
-      if (!row) return;
-      fillStatModalFromRow(row);
-      openModal(qs("stat-modal"));
-      return;
-    }
-
-    const healthEl = e.target.closest(".health");
-    if (healthEl) {
-      const row = healthEl.closest("li");
-      if (!row) return;
-      fillHpModalFromRow(row);
-      openModal(qs("hp-modal"));
-      return;
-    }
-
-    const effectsEl = e.target.closest(".effects-button");
-    if (effectsEl) {
-      const row = effectsEl.closest("li");
-      if (!row) return;
-
-      currentEntryId = row.dataset.entryId || null;
-      renderEffectsModal(row);
-      openModal(qs("effects-modal"));
-      return;
-    }
-  });
-
-  qs("stat-heal")?.addEventListener("click", healCurrentEntry);
-  qs("hp-set-button")?.addEventListener("click", setCurrentEntryHp);
-  qs("stat-delete")?.addEventListener("click", deleteCurrentEntry);
-
-  qs("stat-add-effect")?.addEventListener("click", () => {
-    if (!currentEntryId) return;
-    renderEffectPicker();
-    openModal(qs("effect-picker-modal"));
-  });
-
-  qs("hp-set-amount")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      setCurrentEntryHp();
-    }
-  });
-});
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot, { once: true });
+} else {
+  boot();
+}
