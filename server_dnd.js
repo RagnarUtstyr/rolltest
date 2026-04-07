@@ -171,15 +171,15 @@ function fetchRankings() {
           effectsRow.appendChild(effectsButton);
         }
 
-        nameBlock.appendChild(effectsRow);
-        nameAcContainer.appendChild(nameBlock);
+nameAcContainer.appendChild(nameBlock);
 
-        const acDiv = document.createElement("div");
-        acDiv.className = "ac";
-        acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
-        nameAcContainer.appendChild(acDiv);
+const acDiv = document.createElement("div");
+acDiv.className = "ac";
+acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
+nameAcContainer.appendChild(acDiv);
 
-        listItem.appendChild(nameAcContainer);
+listItem.appendChild(nameAcContainer);
+listItem.appendChild(effectsRow);
 
         const healthDiv = document.createElement("div");
         healthDiv.className = "health";
