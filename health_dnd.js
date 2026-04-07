@@ -11,14 +11,6 @@ let currentEffectEntryId = null;
 const countdownById = new Map();
 const dataCache = {};
 
-function onReady(fn) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fn, { once: true });
-  } else {
-    fn();
-  }
-}
-
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);
   return (params.get("code") || "").trim().toUpperCase();
@@ -102,42 +94,6 @@ function setCountdownDisplay({ remaining, active, ended }) {
     el.textContent = "0";
   } else {
     el.textContent = "—";
-  }
-}
-
-function renderCountdownInRow(entryId) {
-  const listItem = rowFor(entryId);
-  if (!listItem) return;
-
-  const state = getCountdownState(entryId);
-  let countdownDiv = listItem.querySelector(`[data-countdown-for="${entryId}"]`);
-
-  const shouldShow =
-    state.active ||
-    state.ended ||
-    state.remaining === 0 ||
-    (typeof state.remaining === "number" && state.remaining > 0);
-
-  if (!shouldShow) {
-    if (countdownDiv) countdownDiv.remove();
-    return;
-  }
-
-  if (!countdownDiv) {
-    countdownDiv = document.createElement("div");
-    countdownDiv.className = "ac";
-    countdownDiv.dataset.countdownFor = entryId;
-    listItem.appendChild(countdownDiv);
-  }
-
-  if (state.ended) {
-    countdownDiv.textContent = "Countdown: ENDED";
-  } else if (state.active) {
-    countdownDiv.textContent = `Countdown: ${state.remaining ?? "—"}`;
-  } else if (state.remaining === 0) {
-    countdownDiv.textContent = "Countdown: 0";
-  } else {
-    countdownDiv.textContent = "Countdown: —";
   }
 }
 
@@ -526,8 +482,6 @@ function fetchRankings() {
       healthInput.dataset.initiative = initiative ?? 0;
       listItem.appendChild(healthInput);
 
-      renderCountdownInRow(id);
-
       if (health === 0) {
         listItem.classList.add("defeated");
 
@@ -653,8 +607,6 @@ async function setCountdown(entryId, turns) {
     });
   }
 
-  renderCountdownInRow(entryId);
-
   await update(ref(db, `${getEntriesPath()}/${entryId}`), {
     countdownActive: true,
     countdownRemaining: turns,
@@ -684,8 +636,6 @@ async function clearCountdown(entryId) {
       ended: false,
     });
   }
-
-  renderCountdownInRow(entryId);
 
   await update(ref(db, `${getEntriesPath()}/${entryId}`), {
     countdownActive: false,
@@ -723,8 +673,6 @@ async function decrementCountdownIfNeeded(entryId) {
     });
   }
 
-  renderCountdownInRow(entryId);
-
   await update(ref(db, `${getEntriesPath()}/${entryId}`), {
     countdownRemaining: nextRemaining,
     countdownActive: !nextEnded,
@@ -736,7 +684,7 @@ function getHighlightedEntryId() {
   return document.querySelector("#rankingList li.highlighted")?.dataset.entryId || null;
 }
 
-onReady(() => {
+document.addEventListener("DOMContentLoaded", () => {
   try {
     getEntriesPath();
   } catch (error) {
