@@ -855,3 +855,26 @@ input.damage-input {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+#list-name {
+  background-color: #0b2621;
+  border: 2px solid #2d3d73;
+  color: #827b5a;
+}
+
+#save-button,
+#load-button,
+#delete-button,
+#go-back-button {
+  background-color: #0b2621;
+  color: #827b5a;
+  border: 2px solid #2d3d73;
+}
+
+#save-button:hover,
+#load-button:hover,
+#delete-button:hover,
+#go-back-button:hover {
+  background-color: #1a3b4a;
+  color: #237768;
+}

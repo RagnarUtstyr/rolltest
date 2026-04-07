@@ -617,3 +617,26 @@ a.button-link {
     padding: 18px;
   }
 }
+
+#list-name {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+#list-name:focus {
+  background: var(--input-bg-focus);
+  border-color: var(--accent-2);
+  box-shadow: var(--focus-ring);
+}
+
+#save-button,
+#load-button,
+#delete-button,
+#go-back-button {
+  border: 1px solid var(--accent-deep);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #a8834f 0%, #815f37 100%);
+  color: #17120d;
+  font-weight: 700;
+}
