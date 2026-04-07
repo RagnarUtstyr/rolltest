@@ -136,9 +136,9 @@
 
   .list-item {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) auto auto auto auto;
-    align-items: start;
-    gap: 10px 14px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    gap: 10px 16px;
   }
 
   .name-ac-container {
@@ -154,21 +154,28 @@
 
   .name {
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .ac,
   .health {
     white-space: nowrap;
-    align-self: center;
+    text-align: center;
+    justify-self: center;
     margin-top: 0;
   }
 
   .damage-input {
+    width: 100%;
+    max-width: 110px;
+    justify-self: center;
     align-self: center;
     margin-top: 0;
   }
 
   .remove-button {
+    justify-self: center;
     align-self: center;
   }
 
