@@ -398,7 +398,8 @@ function fetchRankings() {
       healthInput.placeholder = "Damage";
       healthInput.className = "damage-input";
       healthInput.dataset.entryId = id;
-      healthInput.dataset.currentHealth = entry.health ?? 0;
+      healthInput.dataset.currentHealth =
+        typeof entry.health === "number" ? String(entry.health) : "";
 
       healthInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
@@ -406,7 +407,9 @@ function fetchRankings() {
         const damage = parseInt(healthInput.value, 10);
         if (isNaN(damage)) return;
 
-        const currentHealth = parseInt(healthInput.dataset.currentHealth, 10) || 0;
+        const currentHealth = parseInt(healthInput.dataset.currentHealth, 10);
+        if (Number.isNaN(currentHealth)) return;
+
         const updatedHealth = Math.max(currentHealth - damage, 0);
         updateHealth(id, updatedHealth, healthInput);
         healthInput.value = "";
@@ -417,7 +420,7 @@ function fetchRankings() {
       const effectRow = buildEffectsRow(id, entry);
       listItem.appendChild(effectRow);
 
-      if ((entry.health ?? 0) <= 0) {
+      if (typeof entry.health === "number" && entry.health <= 0) {
         listItem.classList.add("defeated");
         const removeButton = document.createElement("button");
         removeButton.type = "button";
@@ -448,7 +451,7 @@ function updateHealth(id, newHealth, healthInput) {
         healthDiv.textContent = `HP: ${newHealth}`;
       }
 
-      healthInput.dataset.currentHealth = newHealth;
+      healthInput.dataset.currentHealth = String(newHealth);
 
       if (latestEntries[id]) latestEntries[id].health = newHealth;
       if (currentStatEntryId === id) {
@@ -467,7 +470,9 @@ function applyDamageToAll() {
     const damage = parseInt(input.value, 10);
     if (isNaN(damage)) return;
 
-    const currentHealth = parseInt(input.dataset.currentHealth, 10) || 0;
+    const currentHealth = parseInt(input.dataset.currentHealth, 10);
+    if (Number.isNaN(currentHealth)) return;
+
     const updatedHealth = Math.max(currentHealth - damage, 0);
     const id = input.dataset.entryId;
 
