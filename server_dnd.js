@@ -38,6 +38,27 @@ function normalizeEntry(id, entry) {
   };
 }
 
+function qs(id) {
+  return document.getElementById(id);
+}
+
+function openModal(modal) {
+  if (modal) modal.setAttribute("aria-hidden", "false");
+}
+
+function openEffectDescription(effect) {
+  const modal = qs("effect-description-modal");
+  const title = qs("effect-description-title");
+  const body = qs("effect-description-body");
+
+  if (!modal || !title || !body) return;
+
+  title.textContent = effect.name || "Effect";
+  body.textContent = effect.description || "No description available.";
+
+  openModal(modal);
+}
+
 async function submitData() {
   const name = document.getElementById("name")?.value?.trim();
   const initiativeEl =
@@ -94,13 +115,11 @@ function createEffectIcon(effect) {
   icon.width = 22;
   icon.height = 22;
 
-  if (effect.url) {
-    icon.style.cursor = "pointer";
-    icon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.open(effect.url, "_blank", "noopener");
-    });
-  }
+  icon.style.cursor = "pointer";
+  icon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openEffectDescription(effect);
+  });
 
   return icon;
 }
@@ -186,7 +205,7 @@ function fetchRankings() {
 
         listItem.appendChild(effectsRow);
 
-        if (health === 0) {
+        if (Number(health) <= 0) {
           const removeButton = document.createElement("button");
           removeButton.textContent = "Remove";
           removeButton.className = "remove-button";
