@@ -298,25 +298,21 @@ function syncModalCountdown(id) {
   setStatCountdownDisplay(getCountdownState(id));
 }
 
-function renderEffectsPreview(entryId, entry, listItem) {
+function buildEffectsRow(entryId, entry) {
   const effectArray = normalizeEffects(entry.effects);
-  if (!effectArray.length) return;
 
-  const preview = document.createElement("div");
-  preview.className = "effects-preview";
-  preview.style.display = "flex";
-  preview.style.alignItems = "center";
-  preview.style.gap = "8px";
-  preview.style.flexWrap = "wrap";
-  preview.style.margin = "8px 0 4px";
+  const effectWrap = document.createElement("div");
+  effectWrap.className = "row-effects";
+
+  if (!effectArray.length) return effectWrap;
+
+  const iconsWrap = document.createElement("div");
+  iconsWrap.className = "effects-summary-icons";
 
   effectArray.forEach((effect) => {
     const iconButton = document.createElement("button");
     iconButton.type = "button";
-    iconButton.style.border = "0";
-    iconButton.style.background = "transparent";
-    iconButton.style.padding = "0";
-    iconButton.style.cursor = "pointer";
+    iconButton.className = "effect-icon-button";
     iconButton.title = effect.name || "Effect";
     iconButton.setAttribute("aria-label", effect.name || "Effect");
     iconButton.dataset.role = "open-effect-description";
@@ -324,16 +320,15 @@ function renderEffectsPreview(entryId, entry, listItem) {
     iconButton.dataset.effectName = effect.name || "";
 
     const icon = document.createElement("img");
+    icon.className = "effect-row-icon";
     icon.src = effect.icon || "icons/effects/test.png";
     icon.alt = effect.name || "Effect";
-    icon.style.width = "28px";
-    icon.style.height = "28px";
-    icon.style.objectFit = "cover";
-    icon.style.borderRadius = "6px";
 
     iconButton.appendChild(icon);
-    preview.appendChild(iconButton);
+    iconsWrap.appendChild(iconButton);
   });
+
+  effectWrap.appendChild(iconsWrap);
 
   const effectsButton = document.createElement("button");
   effectsButton.type = "button";
@@ -341,9 +336,9 @@ function renderEffectsPreview(entryId, entry, listItem) {
   effectsButton.className = "effects-button";
   effectsButton.dataset.role = "open-effects";
   effectsButton.dataset.entryId = entryId;
-  preview.appendChild(effectsButton);
+  effectWrap.appendChild(effectsButton);
 
-  listItem.appendChild(preview);
+  return effectWrap;
 }
 
 function fetchRankings() {
@@ -380,46 +375,23 @@ function fetchRankings() {
       listItem.className = "list-item";
       listItem.dataset.entryId = id;
 
-      const nameAcContainer = document.createElement("div");
-      nameAcContainer.className = "name-ac-container";
-
       const nameButton = document.createElement("button");
       nameButton.type = "button";
       nameButton.className = "name";
       nameButton.dataset.role = "open-stat";
       nameButton.dataset.entryId = id;
       nameButton.textContent = entry.name ?? entry.playerName ?? "Unknown";
+      listItem.appendChild(nameButton);
 
       const acDiv = document.createElement("div");
       acDiv.className = "ac";
       acDiv.textContent = `AC: ${entry.ac ?? "N/A"}`;
-
-      nameAcContainer.appendChild(nameButton);
-      nameAcContainer.appendChild(acDiv);
-      listItem.appendChild(nameAcContainer);
+      listItem.appendChild(acDiv);
 
       const healthDiv = document.createElement("div");
       healthDiv.className = "health";
       healthDiv.textContent = `HP: ${entry.health ?? "N/A"}`;
       listItem.appendChild(healthDiv);
-
-      renderEffectsPreview(id, entry, listItem);
-
-      const controlsRow = document.createElement("div");
-      controlsRow.className = "dnd-row-controls";
-      controlsRow.style.display = "flex";
-      controlsRow.style.alignItems = "center";
-      controlsRow.style.gap = "8px";
-      controlsRow.style.flexWrap = "wrap";
-
-      const addEffectBtn = document.createElement("button");
-      addEffectBtn.type = "button";
-      addEffectBtn.textContent = "Effect";
-      addEffectBtn.className = "remove-button";
-      addEffectBtn.style.marginTop = "0";
-      addEffectBtn.dataset.role = "add-effect";
-      addEffectBtn.dataset.entryId = id;
-      controlsRow.appendChild(addEffectBtn);
 
       const healthInput = document.createElement("input");
       healthInput.type = "number";
@@ -427,7 +399,6 @@ function fetchRankings() {
       healthInput.className = "damage-input";
       healthInput.dataset.entryId = id;
       healthInput.dataset.currentHealth = entry.health ?? 0;
-      healthInput.style.width = "72px";
 
       healthInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
@@ -441,7 +412,10 @@ function fetchRankings() {
         healthInput.value = "";
       });
 
-      controlsRow.appendChild(healthInput);
+      listItem.appendChild(healthInput);
+
+      const effectRow = buildEffectsRow(id, entry);
+      listItem.appendChild(effectRow);
 
       if ((entry.health ?? 0) <= 0) {
         listItem.classList.add("defeated");
@@ -451,10 +425,8 @@ function fetchRankings() {
         removeButton.className = "remove-button";
         removeButton.dataset.role = "remove-entry";
         removeButton.dataset.entryId = id;
-        controlsRow.appendChild(removeButton);
+        listItem.appendChild(removeButton);
       }
-
-      listItem.appendChild(controlsRow);
 
       rankingList.appendChild(listItem);
       applyRowCountdownClasses(id, getCountdownState(id));
@@ -643,11 +615,6 @@ function bindRankingListDelegation() {
 
     if (role === "open-effects" && entryId) {
       openEffectsModal(entryId);
-      return;
-    }
-
-    if (role === "add-effect" && entryId) {
-      openEffectPickerModal(entryId);
       return;
     }
 
