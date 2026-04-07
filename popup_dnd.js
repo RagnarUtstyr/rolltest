@@ -36,6 +36,7 @@ function closeAllModals() {
   closeModal(qs("hp-modal"));
   closeModal(qs("effect-picker-modal"));
   closeModal(qs("effects-modal"));
+  closeModal(qs("effect-description-modal"));
 }
 
 function getEffectsFromRow(row) {
@@ -50,6 +51,19 @@ function setEffectsOnRow(row, effects) {
   row.dataset.effects = JSON.stringify(effects || []);
 }
 
+function openEffectDescription(effect) {
+  const modal = qs("effect-description-modal");
+  const title = qs("effect-description-title");
+  const body = qs("effect-description-body");
+
+  if (!modal || !title || !body) return;
+
+  title.textContent = effect.name || "Effect";
+  body.textContent = effect.description || "No description available.";
+
+  openModal(modal);
+}
+
 function createEffectIcon(effect) {
   const icon = document.createElement("img");
   icon.className = "effect-row-icon";
@@ -59,13 +73,11 @@ function createEffectIcon(effect) {
   icon.width = 22;
   icon.height = 22;
 
-  if (effect.url) {
-    icon.style.cursor = "pointer";
-    icon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.open(effect.url, "_blank", "noopener");
-    });
-  }
+  icon.style.cursor = "pointer";
+  icon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openEffectDescription(effect);
+  });
 
   return icon;
 }
@@ -241,6 +253,8 @@ function renderEffectsModal(row) {
     icon.alt = effect.name || "Effect";
     icon.width = 24;
     icon.height = 24;
+    icon.style.cursor = "pointer";
+    icon.addEventListener("click", () => openEffectDescription(effect));
 
     const name = document.createElement("span");
     name.textContent = effect.name || "Unknown";
@@ -353,6 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindCloseBehavior("hp-modal", "hp-modal-close");
   bindCloseBehavior("effect-picker-modal", "effect-picker-close");
   bindCloseBehavior("effects-modal", "effects-modal-close");
+  bindCloseBehavior("effect-description-modal", "effect-description-close");
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllModals();
