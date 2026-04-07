@@ -50,6 +50,26 @@ function setEffectsOnRow(row, effects) {
   row.dataset.effects = JSON.stringify(effects || []);
 }
 
+function createEffectIcon(effect) {
+  const icon = document.createElement("img");
+  icon.className = "effect-row-icon";
+  icon.src = effect.icon || "icons/effects/test.png";
+  icon.alt = effect.name || "Effect";
+  icon.title = effect.name || "Effect";
+  icon.width = 22;
+  icon.height = 22;
+
+  if (effect.url) {
+    icon.style.cursor = "pointer";
+    icon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.open(effect.url, "_blank", "noopener");
+    });
+  }
+
+  return icon;
+}
+
 function renderEffectsSummary(row) {
   const container = row.querySelector(".row-effects");
   if (!container) return;
@@ -59,11 +79,12 @@ function renderEffectsSummary(row) {
 
   if (!effects.length) return;
 
-  const names = document.createElement("div");
-  names.className = "effects-summary";
-  names.innerHTML = effects
-    .map((effect) => `<div class="effects-summary-item">${effect.name || "Effect"}</div>`)
-    .join("");
+  const iconsWrap = document.createElement("div");
+  iconsWrap.className = "effects-summary-icons";
+
+  effects.forEach((effect) => {
+    iconsWrap.appendChild(createEffectIcon(effect));
+  });
 
   const button = document.createElement("button");
   button.type = "button";
@@ -76,7 +97,7 @@ function renderEffectsSummary(row) {
     openModal(qs("effects-modal"));
   });
 
-  container.appendChild(names);
+  container.appendChild(iconsWrap);
   container.appendChild(button);
 }
 

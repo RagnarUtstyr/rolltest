@@ -85,6 +85,26 @@ async function submitData() {
   }
 }
 
+function createEffectIcon(effect) {
+  const icon = document.createElement("img");
+  icon.className = "effect-row-icon";
+  icon.src = effect.icon || "icons/effects/test.png";
+  icon.alt = effect.name || "Effect";
+  icon.title = effect.name || "Effect";
+  icon.width = 22;
+  icon.height = 22;
+
+  if (effect.url) {
+    icon.style.cursor = "pointer";
+    icon.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.open(effect.url, "_blank", "noopener");
+    });
+  }
+
+  return icon;
+}
+
 function fetchRankings() {
   const reference = ref(db, getEntriesPath());
 
@@ -122,11 +142,37 @@ function fetchRankings() {
         const nameAcContainer = document.createElement("div");
         nameAcContainer.className = "name-ac-container";
 
+        const nameBlock = document.createElement("div");
+        nameBlock.className = "name-block";
+
         const nameDiv = document.createElement("div");
         nameDiv.className = "name";
         nameDiv.textContent = name;
         nameDiv.style.cursor = "pointer";
-        nameAcContainer.appendChild(nameDiv);
+        nameBlock.appendChild(nameDiv);
+
+        const effectsRow = document.createElement("div");
+        effectsRow.className = "row-effects";
+
+        if (effects.length) {
+          const iconsWrap = document.createElement("div");
+          iconsWrap.className = "effects-summary-icons";
+
+          effects.forEach((effect) => {
+            iconsWrap.appendChild(createEffectIcon(effect));
+          });
+
+          const effectsButton = document.createElement("button");
+          effectsButton.type = "button";
+          effectsButton.className = "effects-button";
+          effectsButton.textContent = "Effects";
+
+          effectsRow.appendChild(iconsWrap);
+          effectsRow.appendChild(effectsButton);
+        }
+
+        nameBlock.appendChild(effectsRow);
+        nameAcContainer.appendChild(nameBlock);
 
         const acDiv = document.createElement("div");
         acDiv.className = "ac";
@@ -140,31 +186,6 @@ function fetchRankings() {
         healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
         healthDiv.style.cursor = "pointer";
         listItem.appendChild(healthDiv);
-
-        const effectsRow = document.createElement("div");
-        effectsRow.className = "row-effects";
-
-        if (effects.length) {
-          const names = document.createElement("div");
-          names.className = "effects-summary";
-
-          effects.forEach((effect) => {
-            const effectName = document.createElement("div");
-            effectName.className = "effects-summary-item";
-            effectName.textContent = effect.name || "Effect";
-            names.appendChild(effectName);
-          });
-
-          const effectsButton = document.createElement("button");
-          effectsButton.type = "button";
-          effectsButton.className = "effects-button";
-          effectsButton.textContent = "Effects";
-
-          effectsRow.appendChild(names);
-          effectsRow.appendChild(effectsButton);
-        }
-
-        listItem.appendChild(effectsRow);
 
         const healthInput = document.createElement("input");
         healthInput.type = "number";

@@ -15,159 +15,170 @@
   <link rel="stylesheet" href="save.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <style>
-    #game-code-badge {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      padding: 6px 10px;
-      border-radius: 8px;
-      background: rgba(0, 0, 0, 0.75);
-      color: #e3cf95;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      border: 1px solid #2d3d73;
-    }
+<style>
+  #game-code-badge {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #e3cf95;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    border: 1px solid #2d3d73;
+  }
 
-    .ol-modal[aria-hidden="true"] {
-      display: none;
-    }
+  .ol-modal[aria-hidden="true"] {
+    display: none;
+  }
 
-    .ol-modal[aria-hidden="false"] {
-      display: flex;
-    }
+  .ol-modal[aria-hidden="false"] {
+    display: flex;
+  }
 
-    .ol-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.65);
-      padding: 16px;
-    }
+  .ol-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 16px;
+  }
 
-    .ol-modal__dialog {
-      width: min(92vw, 440px);
-      background: #1c1c1c;
-      color: #f3e7c1;
-      border: 1px solid #8b6f2b;
-      border-radius: 12px;
-      padding: 18px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-      position: relative;
-    }
+  .ol-modal__dialog {
+    width: min(92vw, 440px);
+    background: #1c1c1c;
+    color: #f3e7c1;
+    border: 1px solid #8b6f2b;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    position: relative;
+  }
 
-    .ol-modal__dialog--wide {
-      width: min(92vw, 560px);
-    }
+  .ol-modal__dialog--wide {
+    width: min(92vw, 560px);
+  }
 
-    .ol-modal__close {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      border: 0;
-      background: transparent;
-      color: #f3e7c1;
-      font-size: 24px;
-      cursor: pointer;
-      line-height: 1;
-    }
+  .ol-modal__close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    color: #f3e7c1;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+  }
 
-    .ol-modal__stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
-      margin-bottom: 12px;
-    }
+  .ol-modal__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
 
-    .ol-meta {
-      margin: 8px 0;
-    }
+  .ol-meta {
+    margin: 8px 0;
+  }
 
-    .ol-modal .label {
-      font-weight: 700;
-      margin-right: 6px;
-    }
+  .ol-modal .label {
+    font-weight: 700;
+    margin-right: 6px;
+  }
 
-    .ol-modal .value {
-      font-weight: 400;
-    }
+  .ol-modal .value {
+    font-weight: 400;
+  }
 
-    .ol-modal input[type="number"] {
-      min-width: 0;
-    }
+  .ol-modal input[type="number"] {
+    min-width: 0;
+  }
 
-    .effect-picker-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
+  .effect-picker-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-    .effect-picker-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
+  .effect-picker-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
 
-    .effect-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      object-fit: cover;
-      display: block;
-    }
+  .effect-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: cover;
+    display: block;
+  }
 
-    #effect-picker-list,
-    #effects-modal-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 12px;
-    }
+  #effect-picker-list,
+  #effects-modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+  }
 
-    .row-effects {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  margin-top: 6px;
-}
+  .name-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.effects-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.92rem;
-  color: #f1e7c9;
-}
+  .row-effects {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    min-height: 24px;
+  }
 
-.effects-summary-item {
-  line-height: 1.2;
-}
+  .effects-summary-icons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
 
-.effects-button {
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid #8b6b2f;
-  background: rgba(40, 24, 8, 0.9);
-  color: #f7e7b2;
-  cursor: pointer;
-  font-family: inherit;
-}
+  .effect-row-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    vertical-align: middle;
+    object-fit: cover;
+    display: block;
+  }
 
-.effects-button:hover {
-  filter: brightness(1.08);
-}
-  </style>
+  .effects-button {
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #8b6b2f;
+    background: rgba(40, 24, 8, 0.9);
+    color: #f7e7b2;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+  }
+
+  .effects-button:hover {
+    filter: brightness(1.08);
+  }
+</style>
 </head>
 
 <body>
