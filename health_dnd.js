@@ -47,7 +47,6 @@ function getHealthInputForEntry(id) {
 }
 
 let currentStatEntryId = null;
-let currentHpEntryId = null;
 let currentEffectsEntryId = null;
 
 const countdownById = new Map();
@@ -115,33 +114,6 @@ function closeStatModal() {
   document.getElementById("stat-modal")?.setAttribute("aria-hidden", "true");
 }
 
-function openHpModal(entryId) {
-  const modal = document.getElementById("hp-modal");
-  const entry = latestEntries[entryId];
-  if (!modal || !entry) return;
-
-  currentHpEntryId = entryId;
-  currentStatEntryId = entryId;
-
-  const input = document.getElementById("hp-set-amount");
-  if (input) {
-    input.value = entry.health ?? "";
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 0);
-  }
-
-  const title = document.getElementById("hp-modal-title");
-  if (title) title.textContent = `Set HP: ${entry.name ?? "Entry"}`;
-
-  modal.setAttribute("aria-hidden", "false");
-}
-
-function closeHpModal() {
-  document.getElementById("hp-modal")?.setAttribute("aria-hidden", "true");
-}
-
 function closeEffectPickerModal() {
   document.getElementById("effect-picker-modal")?.setAttribute("aria-hidden", "true");
 }
@@ -156,7 +128,6 @@ function closeEffectDescriptionModal() {
 
 function closeAllModals() {
   closeStatModal();
-  closeHpModal();
   closeEffectPickerModal();
   closeEffectsModal();
   closeEffectDescriptionModal();
@@ -427,15 +398,19 @@ function fetchRankings() {
       nameAcContainer.appendChild(acDiv);
       listItem.appendChild(nameAcContainer);
 
-      const healthButton = document.createElement("button");
-      healthButton.type = "button";
-      healthButton.className = "health";
-      healthButton.dataset.role = "open-hp";
-      healthButton.dataset.entryId = id;
-      healthButton.textContent = `HP: ${entry.health ?? "N/A"}`;
-      listItem.appendChild(healthButton);
+      const healthDiv = document.createElement("div");
+      healthDiv.className = "health";
+      healthDiv.textContent = `HP: ${entry.health ?? "N/A"}`;
+      listItem.appendChild(healthDiv);
 
       renderEffectsPreview(id, entry, listItem);
+
+      const controlsRow = document.createElement("div");
+      controlsRow.className = "dnd-row-controls";
+      controlsRow.style.display = "flex";
+      controlsRow.style.alignItems = "center";
+      controlsRow.style.gap = "8px";
+      controlsRow.style.flexWrap = "wrap";
 
       const addEffectBtn = document.createElement("button");
       addEffectBtn.type = "button";
@@ -444,7 +419,7 @@ function fetchRankings() {
       addEffectBtn.style.marginTop = "0";
       addEffectBtn.dataset.role = "add-effect";
       addEffectBtn.dataset.entryId = id;
-      listItem.appendChild(addEffectBtn);
+      controlsRow.appendChild(addEffectBtn);
 
       const healthInput = document.createElement("input");
       healthInput.type = "number";
@@ -452,7 +427,7 @@ function fetchRankings() {
       healthInput.className = "damage-input";
       healthInput.dataset.entryId = id;
       healthInput.dataset.currentHealth = entry.health ?? 0;
-      healthInput.style.width = "60px";
+      healthInput.style.width = "72px";
 
       healthInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
@@ -466,12 +441,7 @@ function fetchRankings() {
         healthInput.value = "";
       });
 
-      listItem.appendChild(healthInput);
-
-      const initiativeDiv = document.createElement("div");
-      initiativeDiv.className = "initiative";
-      initiativeDiv.textContent = `Init: ${entry.initiative ?? entry.number ?? "N/A"}`;
-      listItem.appendChild(initiativeDiv);
+      controlsRow.appendChild(healthInput);
 
       if ((entry.health ?? 0) <= 0) {
         listItem.classList.add("defeated");
@@ -481,8 +451,10 @@ function fetchRankings() {
         removeButton.className = "remove-button";
         removeButton.dataset.role = "remove-entry";
         removeButton.dataset.entryId = id;
-        listItem.appendChild(removeButton);
+        controlsRow.appendChild(removeButton);
       }
+
+      listItem.appendChild(controlsRow);
 
       rankingList.appendChild(listItem);
       applyRowCountdownClasses(id, getCountdownState(id));
@@ -498,7 +470,7 @@ function updateHealth(id, newHealth, healthInput) {
   update(reference, { health: newHealth })
     .then(() => {
       const listItem = healthInput.closest(".list-item");
-      const healthDiv = listItem?.querySelector('[data-role="open-hp"]');
+      const healthDiv = listItem?.querySelector(".health");
 
       if (healthDiv) {
         healthDiv.textContent = `HP: ${newHealth}`;
@@ -669,11 +641,6 @@ function bindRankingListDelegation() {
       return;
     }
 
-    if (role === "open-hp" && entryId) {
-      openHpModal(entryId);
-      return;
-    }
-
     if (role === "open-effects" && entryId) {
       openEffectsModal(entryId);
       return;
@@ -704,11 +671,6 @@ function bindModalActions() {
     if (e.target.id === "stat-modal") closeStatModal();
   });
 
-  document.getElementById("hp-modal-close")?.addEventListener("click", closeHpModal);
-  document.getElementById("hp-modal")?.addEventListener("click", (e) => {
-    if (e.target.id === "hp-modal") closeHpModal();
-  });
-
   document.getElementById("effect-picker-close")?.addEventListener("click", closeEffectPickerModal);
   document.getElementById("effect-picker-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "effect-picker-modal") closeEffectPickerModal();
@@ -734,18 +696,6 @@ function bindModalActions() {
     if (!currentStatEntryId) return;
     removeEntry(currentStatEntryId);
     closeStatModal();
-  });
-
-  document.getElementById("hp-set-button")?.addEventListener("click", () => {
-    if (!currentHpEntryId) return;
-
-    const value = parseInt(document.getElementById("hp-set-amount")?.value, 10);
-    if (isNaN(value)) return;
-
-    const input = getHealthInputForEntry(currentHpEntryId);
-    if (input) updateHealth(currentHpEntryId, value, input);
-
-    closeHpModal();
   });
 
   document.getElementById("stat-heal")?.addEventListener("click", () => {
