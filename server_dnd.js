@@ -139,17 +139,30 @@ function fetchRankings() {
         listItem.dataset.url = url ?? "";
         listItem.dataset.effects = JSON.stringify(effects || []);
 
-        const nameAcContainer = document.createElement("div");
-        nameAcContainer.className = "name-ac-container";
-
-        const nameBlock = document.createElement("div");
-        nameBlock.className = "name-block";
-
         const nameDiv = document.createElement("div");
         nameDiv.className = "name";
         nameDiv.textContent = name;
         nameDiv.style.cursor = "pointer";
-        nameBlock.appendChild(nameDiv);
+        listItem.appendChild(nameDiv);
+
+        const acDiv = document.createElement("div");
+        acDiv.className = "ac";
+        acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
+        listItem.appendChild(acDiv);
+
+        const healthDiv = document.createElement("div");
+        healthDiv.className = "health";
+        healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
+        healthDiv.style.cursor = "pointer";
+        listItem.appendChild(healthDiv);
+
+        const healthInput = document.createElement("input");
+        healthInput.type = "number";
+        healthInput.placeholder = "Damage";
+        healthInput.className = "damage-input";
+        healthInput.dataset.entryId = id;
+        healthInput.dataset.currentHealth = health ?? 0;
+        listItem.appendChild(healthInput);
 
         const effectsRow = document.createElement("div");
         effectsRow.className = "row-effects";
@@ -171,30 +184,7 @@ function fetchRankings() {
           effectsRow.appendChild(effectsButton);
         }
 
-nameAcContainer.appendChild(nameBlock);
-
-const acDiv = document.createElement("div");
-acDiv.className = "ac";
-acDiv.textContent = `AC: ${ac !== null && ac !== undefined ? ac : "N/A"}`;
-nameAcContainer.appendChild(acDiv);
-
-listItem.appendChild(nameAcContainer);
-listItem.appendChild(effectsRow);
-
-        const healthDiv = document.createElement("div");
-        healthDiv.className = "health";
-        healthDiv.textContent = `HP: ${health !== null && health !== undefined ? health : "N/A"}`;
-        healthDiv.style.cursor = "pointer";
-        listItem.appendChild(healthDiv);
-
-        const healthInput = document.createElement("input");
-        healthInput.type = "number";
-        healthInput.placeholder = "Damage";
-        healthInput.className = "damage-input";
-        healthInput.style.width = "50px";
-        healthInput.dataset.entryId = id;
-        healthInput.dataset.currentHealth = health ?? 0;
-        listItem.appendChild(healthInput);
+        listItem.appendChild(effectsRow);
 
         if (health === 0) {
           const removeButton = document.createElement("button");
