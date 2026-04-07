@@ -1,9 +1,10 @@
+// health_dnd.js
 import {
   ref,
   update,
   onValue,
   remove,
-  set
+  push
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth.js";
@@ -189,6 +190,21 @@ function ensureEnhancementStyles() {
       display: inline-flex;
       align-items: center;
       gap: 0;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      font: inherit;
+      padding: 0;
+    }
+
+    .health-button {
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      font: inherit;
+      padding: 0;
     }
   `;
   document.head.appendChild(style);
@@ -302,7 +318,7 @@ function openEffectDescription(effect) {
 
   qs("effect-description-title").textContent = effect?.name || "Effect";
   qs("effect-description-body").textContent =
-    effect?.type || effect?.url || "No description available.";
+    effect?.type || effect?.description || effect?.url || "No description available.";
 
   modal.setAttribute("aria-hidden", "false");
 }
@@ -442,7 +458,8 @@ function openEffectPickerModal(entryId, existingEffects = []) {
             name: effect.name,
             url: effect.url || "",
             icon: effect.icon || "icons/effects/test.png",
-            type: effect.type || ""
+            type: effect.type || "",
+            description: effect.description || ""
           }
         });
       } catch (err) {
@@ -487,7 +504,7 @@ function renderEffectsRow(entryId, effectArray, name) {
   const effectsButton = document.createElement("button");
   effectsButton.type = "button";
   effectsButton.textContent = "Effects";
-  effectsButton.className = "remove-button";
+  effectsButton.className = "remove-button effects-button";
   effectsButton.style.marginTop = "0";
   effectsButton.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -517,7 +534,7 @@ function buildEntryRow(entry) {
 
   const nameButton = document.createElement("button");
   nameButton.type = "button";
-  nameButton.className = "name-button";
+  nameButton.className = "name-button name";
   nameButton.textContent = name;
   nameButton.title = "Show details";
   nameButton.setAttribute("aria-label", `Open details for ${name}`);
@@ -601,9 +618,55 @@ function buildEntryRow(entry) {
   initDiv.textContent = `Init: ${initiative ?? "N/A"}`;
   listItem.appendChild(initDiv);
 
+  if (Number(health) <= 0) {
+    listItem.classList.add("defeated");
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "remove-button row-remove-button";
+    removeButton.addEventListener("click", () => removeEntry(id));
+    listItem.appendChild(removeButton);
+  }
+
   applyCountdownClassesAndBadge(id);
 
   return listItem;
+}
+
+async function submitData() {
+  const name = qs("name")?.value?.trim();
+  const initiativeEl = qs("initiative");
+  const number = initiativeEl ? parseInt(initiativeEl.value, 10) : NaN;
+  const healthRaw = qs("health")?.value ?? "";
+  const acRaw = qs("ac")?.value ?? "";
+
+  const health = healthRaw !== "" ? parseInt(healthRaw, 10) : null;
+  const ac = acRaw !== "" ? parseInt(acRaw, 10) : null;
+
+  if (!name || Number.isNaN(number)) {
+    console.log("Please enter valid name and initiative values.");
+    return;
+  }
+
+  try {
+    await push(ref(db, getEntriesPath()), {
+      name,
+      number,
+      initiative: number,
+      health,
+      ac,
+      effects: {},
+      createdByAdmin: true,
+      updatedAt: Date.now()
+    });
+
+    if (qs("name")) qs("name").value = "";
+    if (initiativeEl) initiativeEl.value = "";
+    if (qs("health")) qs("health").value = "";
+    if (qs("ac")) qs("ac").value = "";
+  } catch (error) {
+    console.error("Error submitting data:", error);
+  }
 }
 
 function fetchRankings() {
@@ -660,6 +723,21 @@ function updateHealth(id, newHealth, healthInput) {
 
       healthInput.dataset.currentHealth = String(newHealth);
 
+      if (newHealth <= 0 && listItem && !listItem.querySelector(".row-remove-button")) {
+        listItem.classList.add("defeated");
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.textContent = "Remove";
+        removeButton.className = "remove-button row-remove-button";
+        removeButton.addEventListener("click", () => removeEntry(id));
+        listItem.appendChild(removeButton);
+      }
+
+      if (newHealth > 0) {
+        listItem?.classList.remove("defeated");
+        listItem?.querySelector(".row-remove-button")?.remove();
+      }
+
       if (dataCache[id]) {
         dataCache[id].health = newHealth;
         if (currentStatEntryId === id) {
@@ -703,12 +781,10 @@ function clearList() {
 function removeEntry(id) {
   if (!id) return;
 
-  const listItem = rowFor(id);
   const reference = ref(db, `${getEntriesPath()}/${id}`);
 
   remove(reference)
     .then(() => {
-      listItem?.remove();
       delete dataCache[id];
       countdownById.delete(id);
 
@@ -851,6 +927,14 @@ function bindModalEvents() {
 }
 
 function bindActionEvents() {
+  qs("submit-button")?.addEventListener("click", submitData);
+  qs("initiative")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitData();
+    }
+  });
+
   qs("apply-damage-button")?.addEventListener("click", applyDamageToAll);
   qs("clear-list-button")?.addEventListener("click", clearList);
 
