@@ -147,3 +147,35 @@ body {
     background-color: #1a3b4a; /* Rich reddish-brown background on hover */
     color: #0b2621; /* Dark text on hover */
 }
+
+.button-link {
+  display: inline-block;
+  margin: 0 auto 20px;
+  padding: 10px 15px;
+  color: #17120d;
+  text-decoration: none;
+  border: 1px solid var(--accent-deep);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #a8834f 0%, #815f37 100%);
+  font-family: "MedievalSharp", Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition:
+    transform 0.14s ease,
+    filter 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.button-link:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.button-link:active {
+  transform: translateY(0);
+}
