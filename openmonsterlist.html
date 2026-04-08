@@ -1,21 +1,20 @@
 the null-reference problem in the current page structure. openmonsterlist.html is a standalone monster page with its own inline monster array and renderer, so this change is about when the DOM is queried, not about changing the monster schema.
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monster List</title>
+  <title>Open Legend Monster List</title>
   <link rel="stylesheet" href="list.css" />
 </head>
 <body>
-  <a href="group.html" class="button-link">Back to Initiative</a>
+  <a id="back-link" href="group.html" class="button-link">Back to Initiative</a>
 
   <h1>Search & Add Monsters</h1>
 
   <input
     type="text"
-    id="searchBar"
+    id="search"
     placeholder="Search monsters..."
     autocomplete="off"
   />
@@ -1329,7 +1328,7 @@ the null-reference problem in the current page structure. openmonsterlist.html i
       ;
 
 
-    function createMonsterCard(monster) {
+   function createMonsterCard(monster) {
       const entry = document.createElement("div");
       entry.className = "table-entry";
 
@@ -1367,8 +1366,11 @@ the null-reference problem in the current page structure. openmonsterlist.html i
             res: monster.res,
             tgh: monster.tgh,
             number: 0,
+            initiative: 0,
             url: monster.url || ""
           });
+
+          alert(`${monster.name} added to initiative.`);
         } catch (error) {
           console.error("Failed to add monster:", error);
           alert("Could not add monster.");
@@ -1383,7 +1385,12 @@ the null-reference problem in the current page structure. openmonsterlist.html i
 
     document.addEventListener("DOMContentLoaded", () => {
       const container = document.getElementById("monster-list");
-      const searchInput = document.getElementById("searchBar");
+      const searchInput = document.getElementById("search");
+      const backLink = document.getElementById("back-link");
+
+      if (backLink && code) {
+        backLink.href = `group.html?code=${encodeURIComponent(code)}`;
+      }
 
       function renderMonsters(filterText = "") {
         const q = filterText.trim().toLowerCase();
@@ -1393,13 +1400,22 @@ the null-reference problem in the current page structure. openmonsterlist.html i
           monster.name.toLowerCase().includes(q)
         );
 
+        if (!filtered.length) {
+          const empty = document.createElement("div");
+          empty.className = "table-entry";
+          empty.innerHTML = `
+            <div>
+              <span class="label">Result</span>
+              <span class="content">No monsters found.</span>
+            </div>
+          `;
+          container.appendChild(empty);
+          return;
+        }
+
         filtered.forEach((monster) => {
           container.appendChild(createMonsterCard(monster));
         });
-
-        if (!filtered.length) {
-          container.innerHTML = `<div class="no-results">No monsters found.</div>`;
-        }
       }
 
       searchInput.addEventListener("input", (event) => {
