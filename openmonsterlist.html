@@ -1352,30 +1352,46 @@ the null-reference problem in the current page structure. openmonsterlist.html i
       addButton.className = "add-to-list-button";
       addButton.textContent = "Add to Initiative";
 
-      addButton.addEventListener("click", async () => {
-        if (!code) {
-          alert("Missing game code in URL.");
-          return;
-        }
+addButton.addEventListener("click", async () => {
+  if (!code) {
+    alert("Missing game code in URL.");
+    return;
+  }
 
-        try {
-          await push(ref(db, `games/${code}/entries`), {
-            name: monster.name,
-            health: monster.health,
-            grd: monster.grd,
-            res: monster.res,
-            tgh: monster.tgh,
-            number: 0,
-            initiative: 0,
-            url: monster.url || ""
-          });
+  const initiativeInput = window.prompt(
+    `Enter initiative for ${monster.name}:`,
+    "0"
+  );
 
-          alert(`${monster.name} added to initiative.`);
-        } catch (error) {
-          console.error("Failed to add monster:", error);
-          alert("Could not add monster.");
-        }
-      });
+  if (initiativeInput === null) {
+    return; // user pressed cancel
+  }
+
+  const initiative = parseInt(initiativeInput, 10);
+
+  if (Number.isNaN(initiative)) {
+    alert("Initiative must be a number.");
+    return;
+  }
+
+  try {
+    await push(ref(db, `games/${code}/entries`), {
+      name: monster.name,
+      health: monster.health,
+      grd: monster.grd,
+      res: monster.res,
+      tgh: monster.tgh,
+      number: initiative,
+      initiative,
+      url: monster.url || ""
+    });
+
+    alert(`${monster.name} added to initiative.`);
+  } catch (error) {
+    console.error("Failed to add monster:", error);
+    alert("Could not add monster.");
+  }
+});
 
       buttonWrap.appendChild(addButton);
       entry.appendChild(buttonWrap);
