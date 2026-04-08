@@ -5,16 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login</title>
   <link rel="stylesheet" href="lobby.css" />
-
   <script type="module" src="login-page.js" defer></script>
 </head>
 <body>
   <div class="container auth-shell">
     <h1>Welcome to my Dungeon</h1>
+
     <br><br>
-    <p class="muted">Sign in with Google to create or join a game.</p>
-    <br><br>
+
+    <p class="muted">Sign in with Google or email to create or join a game.</p>
+
+    <br>
+
+    <form id="email-login-form" style="display: grid; gap: 12px; max-width: 360px; margin: 0 auto;">
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+        required
+      />
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      />
+
+      <button type="submit">Sign in with Email</button>
+      <button type="button" id="email-register-button">Create Email Account</button>
+    </form>
+
+    <br>
+
+    <p class="muted">or</p>
+
+    <br>
+
     <button id="google-login-button">Continue with Google</button>
+
     <p id="login-status" class="muted"></p>
   </div>
 </body>

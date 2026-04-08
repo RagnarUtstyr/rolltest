@@ -3,13 +3,13 @@ import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/
 import { getDatabase } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC1VdAKmOg27Bo-evlzff4UjvJadD1g7KQ",
-  authDomain: "rpgtracker-7387b.firebaseapp.com",
-  databaseURL: "https://rpgtracker-7387b-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "rpgtracker-7387b",
-  storageBucket: "rpgtracker-7387b.firebasestorage.app",
-  messagingSenderId: "3530907990",
-  appId: "1:3530907990:web:3f15bbd25e785d806bb6f7"
+  apiKey: "AIzaSyDjpo2rp_J91Vn8YjL0iJPTEait_Nu3TYY",
+  authDomain: "rolltest-37fe9.firebaseapp.com",
+  databaseURL: "https://rolltest-37fe9-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "rolltest-37fe9",
+  storageBucket: "rolltest-37fe9.firebasestorage.app",
+  messagingSenderId: "854772037721",
+  appId: "1:854772037721:web:ef1ea8eab08a2b23bd5948"
 };
 
 export const app = initializeApp(firebaseConfig);
