@@ -1,3 +1,4 @@
+/* turn_dnd.css */
 :root {
   --bg-0: #090807;
   --bg-1: #0e0c0b;
@@ -120,21 +121,38 @@ button,
   box-shadow: var(--focus-ring), 0 8px 18px rgba(0, 0, 0, 0.3);
 }
 
-/* Strong active-turn styling */
-.highlighted {
-  background:
-    linear-gradient(180deg, rgba(188, 148, 95, 0.24), rgba(110, 82, 47, 0.22)),
-    rgba(42, 31, 22, 0.92);
-  color: #f6eddc;
-  border: 2px solid #d9b36a;
-  box-shadow:
-    0 0 0 1px rgba(255, 227, 163, 0.14),
-    0 0 18px rgba(217, 179, 106, 0.28),
-    0 14px 30px rgba(0, 0, 0, 0.34);
+/* Stronger turn highlight */
+#rankingList li {
   transition:
-    background-color 0.3s ease,
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.highlighted {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(214, 175, 96, 0.32), rgba(145, 102, 42, 0.24)),
+    rgba(54, 38, 20, 0.96) !important;
+  color: #fff4dc !important;
+  border: 2px solid #f0c56a !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 225, 150, 0.18),
+    0 0 26px rgba(240, 197, 106, 0.35),
+    0 16px 34px rgba(0, 0, 0, 0.38) !important;
+  transform: scale(1.015);
+  z-index: 2;
+}
+
+.highlighted::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 230, 170, 0.45);
+  pointer-events: none;
+  box-shadow: 0 0 18px rgba(255, 208, 102, 0.22);
 }
 
 .highlighted .name,
@@ -143,29 +161,42 @@ button,
 .highlighted .number,
 .highlighted span,
 .highlighted div {
-  color: #f6eddc;
+  color: #fff4dc !important;
+}
+
+.highlighted .name {
+  text-shadow: 0 0 10px rgba(255, 221, 140, 0.28);
 }
 
 .highlighted input,
 .highlighted .damage-input {
-  background: rgba(17, 13, 10, 0.96);
-  color: #fff1cf;
-  border: 1px solid #d9b36a;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(19, 13, 9, 0.96) !important;
+  color: #fff3d3 !important;
+  border: 1px solid #f0c56a !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 10px rgba(240, 197, 106, 0.14);
 }
 
 .highlighted input::placeholder,
 .highlighted .damage-input::placeholder {
-  color: #d8c296;
+  color: #e4c98e;
 }
 
 .highlighted button,
-.highlighted .remove-button {
-  border-color: #d1a95f;
+.highlighted .remove-button,
+.highlighted .effects-button {
+  border-color: #d8ac59;
   box-shadow:
     0 8px 18px rgba(0, 0, 0, 0.32),
-    0 0 10px rgba(217, 179, 106, 0.16),
+    0 0 12px rgba(240, 197, 106, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.highlighted .name {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
 }
 
 @media (max-width: 640px) {
@@ -179,5 +210,9 @@ button,
     width: 100%;
     margin-left: 0;
     margin-right: 0;
+  }
+
+  .highlighted {
+    transform: none;
   }
 }
