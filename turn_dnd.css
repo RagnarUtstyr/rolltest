@@ -121,7 +121,6 @@ button,
   box-shadow: var(--focus-ring), 0 8px 18px rgba(0, 0, 0, 0.3);
 }
 
-/* Stronger turn highlight */
 #rankingList li {
   transition:
     background 0.18s ease,
@@ -130,6 +129,7 @@ button,
     transform 0.18s ease;
 }
 
+/* Normal active turn */
 .highlighted {
   position: relative;
   background:
@@ -155,6 +155,41 @@ button,
   box-shadow: 0 0 18px rgba(255, 208, 102, 0.22);
 }
 
+/* Countdown ended + highlighted = much more visible warning state */
+.highlighted.countdown-expired {
+  background:
+    linear-gradient(180deg, rgba(205, 78, 78, 0.38), rgba(125, 28, 28, 0.34)),
+    rgba(58, 18, 18, 0.97) !important;
+  border: 2px solid #ff7b7b !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 170, 170, 0.18),
+    0 0 28px rgba(255, 90, 90, 0.38),
+    0 16px 34px rgba(0, 0, 0, 0.42) !important;
+}
+
+.highlighted.countdown-expired::before {
+  border: 1px solid rgba(255, 180, 180, 0.6);
+  box-shadow: 0 0 18px rgba(255, 92, 92, 0.3);
+}
+
+.highlighted.countdown-expired::after {
+  content: "COUNTDOWN ENDED";
+  position: absolute;
+  top: -11px;
+  right: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #b02b2b;
+  color: #fff3f3;
+  border: 1px solid rgba(255, 205, 205, 0.28);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+}
+
 .highlighted .name,
 .highlighted .ac,
 .highlighted .health,
@@ -166,6 +201,15 @@ button,
 
 .highlighted .name {
   text-shadow: 0 0 10px rgba(255, 221, 140, 0.28);
+}
+
+.highlighted.countdown-expired .name,
+.highlighted.countdown-expired .ac,
+.highlighted.countdown-expired .health,
+.highlighted.countdown-expired .number,
+.highlighted.countdown-expired span,
+.highlighted.countdown-expired div {
+  color: #fff1f1 !important;
 }
 
 .highlighted input,
@@ -183,6 +227,21 @@ button,
   color: #e4c98e;
 }
 
+.highlighted.countdown-expired input,
+.highlighted.countdown-expired .damage-input {
+  background: rgba(24, 10, 10, 0.97) !important;
+  color: #fff1f1 !important;
+  border: 1px solid #ff8b8b !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 10px rgba(255, 90, 90, 0.18);
+}
+
+.highlighted.countdown-expired input::placeholder,
+.highlighted.countdown-expired .damage-input::placeholder {
+  color: #f0b7b7;
+}
+
 .highlighted button,
 .highlighted .remove-button,
 .highlighted .effects-button {
@@ -190,6 +249,16 @@ button,
   box-shadow:
     0 8px 18px rgba(0, 0, 0, 0.32),
     0 0 12px rgba(240, 197, 106, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.highlighted.countdown-expired button,
+.highlighted.countdown-expired .remove-button,
+.highlighted.countdown-expired .effects-button {
+  border-color: #d66a6a;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.34),
+    0 0 12px rgba(255, 90, 90, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
@@ -214,5 +283,12 @@ button,
 
   .highlighted {
     transform: none;
+  }
+
+  .highlighted.countdown-expired::after {
+    top: -9px;
+    right: 8px;
+    font-size: 0.6rem;
+    padding: 3px 6px;
   }
 }
