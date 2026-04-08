@@ -666,6 +666,15 @@ function bindModalActions() {
 
   document.getElementById("stat-delete")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
+
+    const entry = latestEntries[currentStatEntryId];
+    const entryName = entry?.name ?? "this entry";
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${entryName}" from the list?`
+    );
+
+    if (!confirmed) return;
+
     removeEntry(currentStatEntryId);
     closeStatModal();
   });
