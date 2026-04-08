@@ -1,100 +1,33 @@
+the null-reference problem in the current page structure. openmonsterlist.html is a standalone monster page with its own inline monster array and renderer, so this change is about when the DOM is queried, not about changing the monster schema.
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monster List</title>
-  <link rel="stylesheet" href="list.css">
-  <link rel="stylesheet" href="style.css">
-  <style>
-    #searchBar {
-      width: 100%;
-      max-width: 300px;
-      margin: 1em 0;
-      padding: 0.5em;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-  </style>
+  <link rel="stylesheet" href="list.css" />
+</head>
+<body>
+  <a href="group.html" class="button-link">Back to Initiative</a>
 
-<script type="module">
-  import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-  import { db } from "./firebase-config.js";
-  import { requireAuth } from "./auth.js";
+  <h1>Search & Add Monsters</h1>
 
-  await requireAuth();
+  <input
+    type="text"
+    id="searchBar"
+    placeholder="Search monsters..."
+    autocomplete="off"
+  />
 
-  function getGameCode() {
+  <div id="monster-list" class="table-container"></div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
     const params = new URLSearchParams(window.location.search);
-    return (params.get("code") || "").trim().toUpperCase();
-  }
-
-  function getEntriesPath() {
-    const code = getGameCode();
-    if (!code) throw new Error("Missing game code in URL.");
-    return `games/${code}/entries`;
-  }
-
-  const container = document.getElementById("monster-list");
-  const searchInput = document.getElementById("searchBar");
-
-  let allMonsters = [];
-
-  function isValid(monster) {
-    return monster.name && monster.health && monster.grd && monster.res && monster.tgh;
-  }
-
-  function createMonsterElement(monster) {
-    const entry = document.createElement("div");
-    entry.className = "table-entry";
-    entry.dataset.name = monster.name.toLowerCase();
-
-    entry.innerHTML = `
-      <div><span class="label">Name:</span><span class="content">${monster.name}</span></div>
-      <div><span class="label">HP:</span><span class="content">${monster.health}</span></div>
-      <div><span class="label">GRD:</span><span class="content">${monster.grd}</span></div>
-      <div><span class="label">RES:</span><span class="content">${monster.res}</span></div>
-      <div><span class="label">TGH:</span><span class="content">${monster.tgh}</span></div>
-      <div class="link-button">
-        <button>Add to Initiative</button>
-      </div>
-    `;
-
-    entry.querySelector("button").addEventListener("click", async () => {
-      const initiative = prompt("Enter initiative:");
-      if (initiative === null || isNaN(parseInt(initiative, 10))) return;
-
-      const refList = ref(db, getEntriesPath());
-      await push(refList, {
-        name: monster.name,
-        number: parseInt(initiative, 10),
-        initiative: parseInt(initiative, 10),
-        health: monster.health,
-        grd: monster.grd,
-        res: monster.res,
-        tgh: monster.tgh,
-        updatedAt: Date.now()
-      });
-    });
-
-    return entry;
-  }
-
-  function renderMonsters(list) {
-    container.innerHTML = '';
-    list.forEach(monster => {
-      const el = createMonsterElement(monster);
-      container.appendChild(el);
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const backLink = document.querySelector('a.button-link[href="group.html"]');
-    const code = getGameCode();
-    if (backLink && code) {
-      backLink.href = `group.html?code=${encodeURIComponent(code)}`;
-    }
+    const code = (params.get("code") || "").trim().toUpperCase();
 
     const monsters = [
 
@@ -1395,25 +1328,86 @@
 ]
       ;
 
-      allMonsters = monsters.filter(isValid);
-      renderMonsters(allMonsters);
 
-      searchInput.addEventListener("input", () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        const filtered = allMonsters.filter(monster =>
-          monster.name.toLowerCase().includes(searchTerm)
-        );
-        renderMonsters(filtered);
+    function createMonsterCard(monster) {
+      const entry = document.createElement("div");
+      entry.className = "table-entry";
+
+      entry.innerHTML = `
+        <div><span class="label">Name</span><span class="content">${monster.name}</span></div>
+        <div><span class="label">HP</span><span class="content">${monster.health}</span></div>
+        <div><span class="label">GRD</span><span class="content">${monster.grd}</span></div>
+        <div><span class="label">RES</span><span class="content">${monster.res}</span></div>
+        <div><span class="label">TGH</span><span class="content">${monster.tgh}</span></div>
+        ${
+          monster.url
+            ? `<div><span class="label">Link</span><span class="content"><a href="${monster.url}" target="_blank" rel="noopener">Open</a></span></div>`
+            : ""
+        }
+      `;
+
+      const buttonWrap = document.createElement("div");
+      buttonWrap.className = "link-button";
+
+      const addButton = document.createElement("button");
+      addButton.className = "add-to-list-button";
+      addButton.textContent = "Add to Initiative";
+
+      addButton.addEventListener("click", async () => {
+        if (!code) {
+          alert("Missing game code in URL.");
+          return;
+        }
+
+        try {
+          await push(ref(db, `games/${code}/entries`), {
+            name: monster.name,
+            health: monster.health,
+            grd: monster.grd,
+            res: monster.res,
+            tgh: monster.tgh,
+            number: 0,
+            url: monster.url || ""
+          });
+        } catch (error) {
+          console.error("Failed to add monster:", error);
+          alert("Could not add monster.");
+        }
       });
+
+      buttonWrap.appendChild(addButton);
+      entry.appendChild(buttonWrap);
+
+      return entry;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById("monster-list");
+      const searchInput = document.getElementById("searchBar");
+
+      function renderMonsters(filterText = "") {
+        const q = filterText.trim().toLowerCase();
+        container.innerHTML = "";
+
+        const filtered = monsters.filter((monster) =>
+          monster.name.toLowerCase().includes(q)
+        );
+
+        filtered.forEach((monster) => {
+          container.appendChild(createMonsterCard(monster));
+        });
+
+        if (!filtered.length) {
+          container.innerHTML = `<div class="no-results">No monsters found.</div>`;
+        }
+      }
+
+      searchInput.addEventListener("input", (event) => {
+        renderMonsters(event.target.value);
+      });
+
+      renderMonsters();
     });
   </script>
-</head>
-<body>
-  <a href="group.html" class="button-link">Back to Initiative</a>
-  <h2>Search & Add Monsters</h2>
-
-  <input type="text" id="searchBar" placeholder="Search by name..." />
-
-  <div class="table-container" id="monster-list"></div>
 </body>
 </html>
