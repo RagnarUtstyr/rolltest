@@ -780,3 +780,21 @@ a.button-link {
     width: min(560px, 100%);
   }
 }
+
+@media (max-width: 640px) {
+  #stat-modal #stat-heal,
+  #stat-modal #stat-countdown-set,
+  #stat-modal #stat-countdown-clear {
+    width: auto !important;
+    min-width: 72px;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 8px 10px;
+  }
+
+  #stat-modal #stat-heal-amount,
+  #stat-modal #stat-countdown-amount {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}
