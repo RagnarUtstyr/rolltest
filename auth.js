@@ -17,12 +17,11 @@ import {
 async function upsertUserProfile(user, extra = {}) {
   await update(ref(db, `users/${user.uid}`), {
     uid: user.uid,
-    name: extra.name ?? user.displayName ?? "",
+    name: extra.name ?? user.displayName ?? "Unknown",
     email: user.email ?? "",
     photoURL: extra.photoURL ?? user.photoURL ?? "",
     provider: extra.provider ?? "unknown",
-    lastLoginAt: Date.now(),
-    ...extra
+    lastLoginAt: Date.now()
   });
 }
 
@@ -37,6 +36,17 @@ export async function loginWithGoogle() {
   return user;
 }
 
+export async function loginWithEmail(email, password) {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  const user = result.user;
+
+  await upsertUserProfile(user, {
+    provider: "password"
+  });
+
+  return user;
+}
+
 export async function registerWithEmail(email, password) {
   const result = await createUserWithEmailAndPassword(auth, email, password);
   const user = result.user;
@@ -45,17 +55,6 @@ export async function registerWithEmail(email, password) {
     provider: "password",
     name: email.split("@")[0],
     photoURL: ""
-  });
-
-  return user;
-}
-
-export async function loginWithEmail(email, password) {
-  const result = await signInWithEmailAndPassword(auth, email, password);
-  const user = result.user;
-
-  await upsertUserProfile(user, {
-    provider: "password"
   });
 
   return user;
