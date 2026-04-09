@@ -4,7 +4,8 @@ import {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 
 import {
@@ -16,12 +17,11 @@ import {
 async function upsertUserProfile(user, extra = {}) {
   await update(ref(db, `users/${user.uid}`), {
     uid: user.uid,
-    name: extra.name ?? user.displayName ?? "",
+    name: extra.name ?? user.displayName ?? "Unknown",
     email: user.email ?? "",
     photoURL: user.photoURL ?? "",
     provider: extra.provider ?? "unknown",
-    lastLoginAt: Date.now(),
-    ...extra
+    lastLoginAt: Date.now()
   });
 }
 
@@ -31,6 +31,17 @@ export async function loginWithGoogle() {
 
   await upsertUserProfile(user, {
     provider: "google"
+  });
+
+  return user;
+}
+
+export async function loginWithEmail(email, password) {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  const user = result.user;
+
+  await upsertUserProfile(user, {
+    provider: "password"
   });
 
   return user;
@@ -49,15 +60,8 @@ export async function registerWithEmail(email, password) {
   return user;
 }
 
-export async function loginWithEmail(email, password) {
-  const result = await signInWithEmailAndPassword(auth, email, password);
-  const user = result.user;
-
-  await upsertUserProfile(user, {
-    provider: "password"
-  });
-
-  return user;
+export async function sendResetPassword(email) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 export function watchAuth(callback) {
