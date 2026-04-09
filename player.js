@@ -16,6 +16,51 @@ const metaEl = document.getElementById("player-game-meta");
 const statusEl = document.getElementById("player-status");
 const saveInitiativeBtn = document.getElementById("save-initiative-button");
 
+const initiativeSoundMap = {
+  low: "./sounds/initiative-0-5.mp3",
+  midLow: "./sounds/initiative-6-10.mp3",
+  mid: "./sounds/initiative-11-15.mp3",
+  high: "./sounds/initiative-16-20.mp3",
+  epic: "./sounds/initiative-21-plus.mp3"
+};
+
+let currentInitiativeAudio = null;
+
+function getInitiativeSoundKey(value) {
+  const num = Number(value);
+
+  if (Number.isNaN(num)) return null;
+  if (num <= 5) return "low";
+  if (num <= 10) return "midLow";
+  if (num <= 15) return "mid";
+  if (num <= 20) return "high";
+  return "epic";
+}
+
+function getInitiativeSoundPath(value) {
+  const key = getInitiativeSoundKey(value);
+  return key ? initiativeSoundMap[key] : null;
+}
+
+function playInitiativeSound(value) {
+  const soundPath = getInitiativeSoundPath(value);
+  if (!soundPath) return;
+
+  try {
+    if (currentInitiativeAudio) {
+      currentInitiativeAudio.pause();
+      currentInitiativeAudio.currentTime = 0;
+    }
+
+    currentInitiativeAudio = new Audio(soundPath);
+    currentInitiativeAudio.play().catch((error) => {
+      console.warn("Could not play initiative sound:", error);
+    });
+  } catch (error) {
+    console.warn("Initiative sound failed:", error);
+  }
+}
+
 const dndSection = document.getElementById("player-dnd-section");
 const olSection = document.getElementById("player-openlegend-section");
 
@@ -1123,6 +1168,7 @@ async function saveInitiativeToGame() {
     await set(ref(db, playerSheetPath()), sheetPayload);
     setCurrentSheetCache(sheetPayload);
     await set(ref(db, playerEntryPath()), entryPayload);
+    playInitiativeSound(shared.initiative);
     statusEl.textContent = "Initiative saved to this game.";
   } catch (error) {
     console.error(error);
