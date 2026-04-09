@@ -15,14 +15,20 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 async function upsertUserProfile(user, extra = {}) {
-  await update(ref(db, `users/${user.uid}`), {
-    uid: user.uid,
-    name: extra.name ?? user.displayName ?? "Unknown",
-    email: user.email ?? "",
-    photoURL: user.photoURL ?? "",
-    provider: extra.provider ?? "unknown",
-    lastLoginAt: Date.now()
-  });
+  try {
+    await update(ref(db, `users/${user.uid}`), {
+      uid: user.uid,
+      name: extra.name ?? user.displayName ?? "Unknown",
+      email: user.email ?? "",
+      photoURL: extra.photoURL ?? user.photoURL ?? "",
+      provider: extra.provider ?? "unknown",
+      lastLoginAt: Date.now(),
+      ...extra
+    });
+  } catch (error) {
+    console.error("Failed to write user profile to database:", error);
+    throw error;
+  }
 }
 
 export async function loginWithGoogle() {
