@@ -4,8 +4,7 @@ import {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 
 import {
@@ -15,20 +14,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 async function upsertUserProfile(user, extra = {}) {
-  try {
-    await update(ref(db, `users/${user.uid}`), {
-      uid: user.uid,
-      name: extra.name ?? user.displayName ?? "Unknown",
-      email: user.email ?? "",
-      photoURL: extra.photoURL ?? user.photoURL ?? "",
-      provider: extra.provider ?? "unknown",
-      lastLoginAt: Date.now(),
-      ...extra
-    });
-  } catch (error) {
-    console.error("Failed to write user profile to database:", error);
-    throw error;
-  }
+  await update(ref(db, `users/${user.uid}`), {
+    uid: user.uid,
+    name: extra.name ?? user.displayName ?? "",
+    email: user.email ?? "",
+    photoURL: extra.photoURL ?? user.photoURL ?? "",
+    provider: extra.provider ?? "unknown",
+    lastLoginAt: Date.now(),
+    ...extra
+  });
 }
 
 export async function loginWithGoogle() {
@@ -37,17 +31,6 @@ export async function loginWithGoogle() {
 
   await upsertUserProfile(user, {
     provider: "google"
-  });
-
-  return user;
-}
-
-export async function loginWithEmail(email, password) {
-  const result = await signInWithEmailAndPassword(auth, email, password);
-  const user = result.user;
-
-  await upsertUserProfile(user, {
-    provider: "password"
   });
 
   return user;
@@ -66,8 +49,15 @@ export async function registerWithEmail(email, password) {
   return user;
 }
 
-export async function sendResetPassword(email) {
-  await sendPasswordResetEmail(auth, email);
+export async function loginWithEmail(email, password) {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  const user = result.user;
+
+  await upsertUserProfile(user, {
+    provider: "password"
+  });
+
+  return user;
 }
 
 export function watchAuth(callback) {
