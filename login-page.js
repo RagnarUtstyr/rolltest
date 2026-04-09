@@ -68,7 +68,7 @@ function friendlyAuthMessage(error) {
     case "auth/weak-password":
       return "Password must be at least 6 characters.";
     case "auth/too-many-requests":
-      return "Too many attempts. Please try again a little later.";
+      return "Too many attempts. Please try again later.";
     default:
       return error?.message || "Something went wrong.";
   }
@@ -205,7 +205,7 @@ resetForm?.addEventListener("submit", async (event) => {
     await sendResetPassword(email);
     setText(resetStatusEl, "Password reset email sent. Check your inbox.");
   } catch (error) {
-    console.error(error);
+    console.error("Reset password error:", error);
     setText(resetStatusEl, friendlyAuthMessage(error));
   }
 });
