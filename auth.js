@@ -4,7 +4,8 @@ import {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 
 import {
@@ -58,6 +59,10 @@ export async function loginWithEmail(email, password) {
   });
 
   return user;
+}
+
+export async function sendResetPassword(email) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 export function watchAuth(callback) {
