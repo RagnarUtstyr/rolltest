@@ -96,61 +96,33 @@ const mode = String(game.mode || "").toLowerCase();
 const genericSystem = getRulesetSystem(mode);
 
 function applyModeStyles(currentMode) {
-  const dndStyle = document.getElementById("player-dnd-style");
-  const olStyle = document.getElementById("player-ol-style");
-  const dynamicStyleIds = [
-    "player-pathfinder2e-style",
-    "player-coc7e-style",
-    "player-savageworlds-style",
-    "player-vampire5e-style",
-    "player-cyberpunkred-style",
-    "player-lancer-style",
-    "player-shadowdark-style",
-    "player-wfrp4e-style",
-    "player-starfinder-style"
-  ];
+  const themeLink = document.getElementById("player-theme-style");
+  if (!themeLink) return;
 
-  [dndStyle, olStyle, ...dynamicStyleIds.map((id) => document.getElementById(id))]
-    .filter(Boolean)
-    .forEach((styleEl) => {
-      styleEl.disabled = true;
-    });
-
-  if (currentMode === "dnd") {
-    if (dndStyle) dndStyle.disabled = false;
-    return;
-  }
-
-  if (
-    currentMode === "openlegend" ||
-    currentMode === "ol" ||
-    currentMode === "open_legend"
-  ) {
-    if (olStyle) olStyle.disabled = false;
-    return;
-  }
-
-  const styleMap = {
-    pathfinder2e: "player-pathfinder2e-style",
-    pf2e: "player-pathfinder2e-style",
-    callofcthulhu7e: "player-coc7e-style",
-    coc7e: "player-coc7e-style",
-    savageworlds: "player-savageworlds-style",
-    swade: "player-savageworlds-style",
-    vampire5e: "player-vampire5e-style",
-    vtm5e: "player-vampire5e-style",
-    worldofdarkness: "player-vampire5e-style",
-    cyberpunkred: "player-cyberpunkred-style",
-    lancer: "player-lancer-style",
-    shadowdark: "player-shadowdark-style",
-    warhammer4e: "player-wfrp4e-style",
-    wfrp4e: "player-wfrp4e-style",
-    starfinder: "player-starfinder-style"
+  const hrefMap = {
+    dnd: "player_dnd.css",
+    openlegend: "player_openlegend.css",
+    ol: "player_openlegend.css",
+    open_legend: "player_openlegend.css",
+    pathfinder2e: "player_pathfinder2e.css",
+    pf2e: "player_pathfinder2e.css",
+    callofcthulhu7e: "player_coc7e.css",
+    coc7e: "player_coc7e.css",
+    savageworlds: "player_savageworlds.css",
+    swade: "player_savageworlds.css",
+    vampire5e: "player_vampire5e.css",
+    vtm5e: "player_vampire5e.css",
+    worldofdarkness: "player_vampire5e.css",
+    cyberpunkred: "player_cyberpunkred.css",
+    lancer: "player_lancer.css",
+    shadowdark: "player_shadowdark.css",
+    warhammer4e: "player_wfrp4e.css",
+    wfrp4e: "player_wfrp4e.css",
+    starfinder: "player_starfinder.css"
   };
 
-  const targetId = styleMap[currentMode];
-  const targetStyle = targetId ? document.getElementById(targetId) : null;
-  if (targetStyle) targetStyle.disabled = false;
+  const href = hrefMap[currentMode] || "player_openlegend.css";
+  themeLink.href = href;
 }
 
 applyModeStyles(mode);
