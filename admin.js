@@ -15,7 +15,6 @@ if (!code) {
 }
 
 const game = await watchOrLoadGame(code);
-
 if (!game) {
   statusEl.textContent = "Game not found.";
   throw new Error("Game not found.");
@@ -35,9 +34,40 @@ statusEl.textContent = "Opening tracker...";
 
 const mode = String(game.mode || "").toLowerCase();
 
-if (mode === "dnd") {
+const DND_MODES = new Set(["dnd"]);
+const GENERIC_MODES = new Set([
+  "openlegend",
+  "ol",
+  "open_legend",
+
+  "pathfinder2e",
+  "pf2e",
+
+  "callofcthulhu7e",
+  "coc7e",
+
+  "savageworlds",
+  "swade",
+
+  "vampire5e",
+  "vtm5e",
+  "worldofdarkness",
+
+  "cyberpunkred",
+
+  "lancer",
+
+  "shadowdark",
+
+  "warhammer4e",
+  "wfrp4e",
+
+  "starfinder"
+]);
+
+if (DND_MODES.has(mode)) {
   window.location.href = `group_dnd.html?code=${encodeURIComponent(code)}`;
-} else if (mode === "openlegend" || mode === "ol" || mode === "open_legend") {
+} else if (GENERIC_MODES.has(mode)) {
   window.location.href = `group.html?code=${encodeURIComponent(code)}`;
 } else {
   statusEl.textContent = `Unknown game mode: ${game.mode}`;
