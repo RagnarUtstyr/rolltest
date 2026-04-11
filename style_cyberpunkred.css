@@ -1,0 +1,45 @@
+:root {
+  --bg-0: #090807;
+  --bg-1: #0e0c0b;
+  --bg-2: #f8f4ee;
+  --panel: rgba(255, 255, 255, 0.94);
+  --panel-soft: color-mix(in srgb, rgba(255, 255, 255, 0.94) 88%, black);
+  --panel-alt: color-mix(in srgb, rgba(255, 255, 255, 0.94) 78%, black);
+  --border: #d12e33;
+  --border-soft: color-mix(in srgb, #d12e33 78%, black);
+  --border-strong: #111111;
+  --text: #111111;
+  --text-soft: #444444;
+  --text-muted: color-mix(in srgb, #444444 76%, #666666);
+  --heading: #111111;
+  --accent: #d12e33;
+  --accent-2: #111111;
+  --accent-deep: color-mix(in srgb, #d12e33 70%, black);
+  --danger: #6f4545;
+  --danger-hover: #865656;
+  --input-bg: #f5f0e8;
+  --input-bg-focus: #ffffff;
+  --shadow-lg: 0 26px 70px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 14px 32px rgba(0, 0, 0, 0.38);
+  --shadow-sm: 0 7px 18px rgba(0, 0, 0, 0.28);
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+  --focus-ring: 0 0 0 4px color-mix(in srgb, #111111 16%, transparent);
+}
+
+body {
+  background: linear-gradient(180deg, #f4efe8 0%, #dfd8cf 100%);
+  color: var(--text);
+  font-family: Inter, Arial, sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(rgba(255,255,255,0.0), rgba(255,255,255,0.0));
+  z-index: -1;
+  pointer-events: none;
+}

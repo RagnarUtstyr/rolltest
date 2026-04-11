@@ -98,24 +98,63 @@ const genericSystem = getRulesetSystem(mode);
 function applyModeStyles(currentMode) {
   const dndStyle = document.getElementById("player-dnd-style");
   const olStyle = document.getElementById("player-ol-style");
+  const dynamicStyleIds = [
+    "player-pathfinder2e-style",
+    "player-coc7e-style",
+    "player-savageworlds-style",
+    "player-vampire5e-style",
+    "player-cyberpunkred-style",
+    "player-lancer-style",
+    "player-shadowdark-style",
+    "player-wfrp4e-style",
+    "player-starfinder-style"
+  ];
 
-  if (!dndStyle || !olStyle) return;
-
-  dndStyle.disabled = true;
-  olStyle.disabled = true;
+  [dndStyle, olStyle, ...dynamicStyleIds.map((id) => document.getElementById(id))]
+    .filter(Boolean)
+    .forEach((styleEl) => {
+      styleEl.disabled = true;
+    });
 
   if (currentMode === "dnd") {
-    dndStyle.disabled = false;
-  } else if (
+    if (dndStyle) dndStyle.disabled = false;
+    return;
+  }
+
+  if (
     currentMode === "openlegend" ||
     currentMode === "ol" ||
     currentMode === "open_legend"
   ) {
-    olStyle.disabled = false;
+    if (olStyle) olStyle.disabled = false;
+    return;
   }
+
+  const styleMap = {
+    pathfinder2e: "player-pathfinder2e-style",
+    pf2e: "player-pathfinder2e-style",
+    callofcthulhu7e: "player-coc7e-style",
+    coc7e: "player-coc7e-style",
+    savageworlds: "player-savageworlds-style",
+    swade: "player-savageworlds-style",
+    vampire5e: "player-vampire5e-style",
+    vtm5e: "player-vampire5e-style",
+    worldofdarkness: "player-vampire5e-style",
+    cyberpunkred: "player-cyberpunkred-style",
+    lancer: "player-lancer-style",
+    shadowdark: "player-shadowdark-style",
+    warhammer4e: "player-wfrp4e-style",
+    wfrp4e: "player-wfrp4e-style",
+    starfinder: "player-starfinder-style"
+  };
+
+  const targetId = styleMap[currentMode];
+  const targetStyle = targetId ? document.getElementById(targetId) : null;
+  if (targetStyle) targetStyle.disabled = false;
 }
 
 applyModeStyles(mode);
+document.body.dataset.gameMode = mode;
 
 metaEl.innerHTML = `
   <div><strong>${game.title}</strong></div>

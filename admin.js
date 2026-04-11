@@ -34,42 +34,33 @@ statusEl.textContent = "Opening tracker...";
 
 const mode = String(game.mode || "").toLowerCase();
 
-const DND_MODES = new Set(["dnd"]);
-const GENERIC_MODES = new Set([
-  "openlegend",
-  "ol",
-  "open_legend",
+const MODE_TO_PAGE = {
+  dnd: "group_dnd.html",
+  openlegend: "group.html",
+  ol: "group.html",
+  open_legend: "group.html",
+  pathfinder2e: "group.html",
+  pf2e: "group.html",
+  callofcthulhu7e: "group.html",
+  coc7e: "group.html",
+  savageworlds: "group.html",
+  swade: "group.html",
+  vampire5e: "group.html",
+  vtm5e: "group.html",
+  worldofdarkness: "group.html",
+  cyberpunkred: "group.html",
+  lancer: "group.html",
+  shadowdark: "group.html",
+  warhammer4e: "group.html",
+  wfrp4e: "group.html",
+  starfinder: "group.html"
+};
 
-  "pathfinder2e",
-  "pf2e",
+const targetPage = MODE_TO_PAGE[mode];
 
-  "callofcthulhu7e",
-  "coc7e",
-
-  "savageworlds",
-  "swade",
-
-  "vampire5e",
-  "vtm5e",
-  "worldofdarkness",
-
-  "cyberpunkred",
-
-  "lancer",
-
-  "shadowdark",
-
-  "warhammer4e",
-  "wfrp4e",
-
-  "starfinder"
-]);
-
-if (DND_MODES.has(mode)) {
-  window.location.href = `group_dnd.html?code=${encodeURIComponent(code)}`;
-} else if (GENERIC_MODES.has(mode)) {
-  window.location.href = `group.html?code=${encodeURIComponent(code)}`;
-} else {
+if (!targetPage) {
   statusEl.textContent = `Unknown game mode: ${game.mode}`;
   throw new Error(`Unknown game mode: ${game.mode}`);
 }
+
+window.location.href = `${targetPage}?code=${encodeURIComponent(code)}`;

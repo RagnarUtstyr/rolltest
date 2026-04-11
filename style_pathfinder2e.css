@@ -1,0 +1,45 @@
+:root {
+  --bg-0: #090807;
+  --bg-1: #0e0c0b;
+  --bg-2: #1d100f;
+  --panel: rgba(60, 25, 22, 0.86);
+  --panel-soft: color-mix(in srgb, rgba(60, 25, 22, 0.86) 88%, black);
+  --panel-alt: color-mix(in srgb, rgba(60, 25, 22, 0.86) 78%, black);
+  --border: #7c342a;
+  --border-soft: color-mix(in srgb, #7c342a 78%, black);
+  --border-strong: #e2b06f;
+  --text: #ead6b8;
+  --text-soft: #cba98a;
+  --text-muted: color-mix(in srgb, #cba98a 76%, #666666);
+  --heading: #f3ddba;
+  --accent: #b94434;
+  --accent-2: #e2b06f;
+  --accent-deep: color-mix(in srgb, #b94434 70%, black);
+  --danger: #6f4545;
+  --danger-hover: #865656;
+  --input-bg: color-mix(in srgb, rgba(60, 25, 22, 0.86) 55%, black);
+  --input-bg-focus: color-mix(in srgb, rgba(60, 25, 22, 0.86) 65%, black);
+  --shadow-lg: 0 26px 70px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 14px 32px rgba(0, 0, 0, 0.38);
+  --shadow-sm: 0 7px 18px rgba(0, 0, 0, 0.28);
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+  --focus-ring: 0 0 0 4px color-mix(in srgb, #e2b06f 16%, transparent);
+}
+
+body {
+  background: radial-gradient(circle at top, rgba(185,68,52,0.08), transparent 24%), linear-gradient(180deg, #1d0e0d 0%, #110807 100%);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(rgba(17,9,8,0.82), rgba(17,9,8,0.9));
+  z-index: -1;
+  pointer-events: none;
+}

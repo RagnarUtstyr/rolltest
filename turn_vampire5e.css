@@ -1,0 +1,48 @@
+:root {
+  --bg-0: #090807;
+  --bg-1: #0e0c0b;
+  --bg-2: #100709;
+  --panel: rgba(33, 10, 15, 0.9);
+  --panel-soft: color-mix(in srgb, rgba(33, 10, 15, 0.9) 90%, black);
+  --border: #5e1825;
+  --border-soft: color-mix(in srgb, #5e1825 78%, black);
+  --border-strong: #d9a6ad;
+  --text: #efe2dc;
+  --text-soft: #c7b6b0;
+  --heading: #fff0ed;
+  --accent: #8f2135;
+  --accent-2: #d9a6ad;
+  --accent-deep: color-mix(in srgb, #8f2135 70%, black);
+  --focus-ring: 0 0 0 4px color-mix(in srgb, #d9a6ad 16%, transparent);
+  --shadow-lg: 0 26px 70px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 14px 32px rgba(0, 0, 0, 0.38);
+  --shadow-sm: 0 7px 18px rgba(0, 0, 0, 0.28);
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+}
+
+body {
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  background: radial-gradient(circle at top, rgba(143,33,53,0.12), transparent 24%), linear-gradient(180deg, #0b0506 0%, #050303 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(rgba(6,3,4,0.84), rgba(6,3,4,0.93));
+  z-index: -1;
+  pointer-events: none;
+}
+
+button,
+#next-button,
+#apply-damage-button,
+.remove-button {
+  border-color: var(--accent-deep);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 80%, white) 0%, var(--accent) 100%);
+  color: #17120d;
+}

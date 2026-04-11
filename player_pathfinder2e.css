@@ -1,0 +1,86 @@
+body {
+  background: linear-gradient(180deg, rgba(42,16,14,0.92), rgba(20,9,8,0.96));
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, #ba8a56 18%, transparent), transparent 28%),
+    linear-gradient(rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.34));
+  z-index: -1;
+  pointer-events: none;
+}
+
+.player-page.container {
+  background-color: color-mix(in srgb, rgba(73, 29, 24, 0.58) 88%, #000000);
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.45);
+}
+
+.player-panel {
+  background: rgba(73, 29, 24, 0.58);
+  border: 1px solid #8e3a2c;
+}
+
+.player-page h1,
+.player-page h2,
+.player-page .tracker-name,
+.player-page .stat-value,
+.player-page #generic-ruleset-title {
+  color: #f1d2a0;
+}
+
+.player-page .muted,
+.player-page .tracker-progress,
+.player-page .stat-label,
+.player-page .field-stack label,
+.player-page #generic-ruleset-description {
+  color: #d8c3a4;
+}
+
+.player-page .field-stack input,
+.player-page input[type="text"],
+.player-page input[type="number"] {
+  background: rgba(255,248,240,0.09);
+  color: #f1d2a0;
+  border: 2px solid #8e3a2c;
+}
+
+.player-page .field-stack input:focus,
+.player-page input[type="text"]:focus,
+.player-page input[type="number"]:focus {
+  background: color-mix(in srgb, rgba(255,248,240,0.09) 88%, transparent);
+  border-color: #ba8a56;
+}
+
+.player-page button,
+.player-page .button-link {
+  background-color: #4a1613;
+  color: #f1d2a0;
+  border: 2px solid #8e3a2c;
+}
+
+.player-page button:hover,
+.player-page .button-link:hover {
+  background-color: #7c2e24;
+  color: #f1d2a0;
+}
+
+.player-page .stat-card,
+.player-page .tracker-card {
+  background: color-mix(in srgb, rgba(73, 29, 24, 0.58) 76%, #000000);
+  border-color: #8e3a2c;
+}
+
+.player-page .tracker-fill {
+  background: linear-gradient(90deg, #8e3a2c 0%, #ba8a56 100%);
+}
+
+.player-page .generic-ruleset-chip,
+.player-page .player-bane-chip {
+  border-color: #8e3a2c;
+  background: color-mix(in srgb, rgba(73, 29, 24, 0.58) 75%, #000000);
+  color: #d8c3a4;
+}

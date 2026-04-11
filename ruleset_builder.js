@@ -175,6 +175,13 @@ async function main() {
     return;
   }
 
+  const themeLinkEl = document.getElementById('ruleset-builder-theme-style');
+  if (themeLinkEl) {
+    themeLinkEl.href = `ruleset_builder_${system.key}.css`;
+    themeLinkEl.disabled = false;
+  }
+
+  document.body.dataset.gameMode = system.key;
   document.documentElement.style.setProperty('--accent', system.accent);
   titleEl.textContent = `${system.name} Builder`;
   descriptionEl.textContent = system.description;
