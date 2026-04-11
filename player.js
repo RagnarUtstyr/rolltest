@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
 import { EFFECTS } from "./effects.js";
+import { getRulesetSystem } from "./ruleset_systems.js";
 import {
   ref,
   get,
@@ -73,6 +74,10 @@ const playerBanesPanel = document.getElementById("player-banes-panel");
 const playerBanesPreviewEl = document.getElementById("player-banes-preview");
 const playerEffectsPanel = document.getElementById("player-effects-panel");
 const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
+const genericSection = document.getElementById("player-generic-section");
+const genericBuilderLink = document.getElementById("generic-builder-link");
+const genericRulesetTitleEl = document.getElementById("generic-ruleset-title");
+const genericRulesetDescriptionEl = document.getElementById("generic-ruleset-description");
 
 const user = await requireAuth();
 
@@ -88,6 +93,7 @@ if (!game) {
 }
 
 const mode = String(game.mode || "").toLowerCase();
+const genericSystem = getRulesetSystem(mode);
 
 function applyModeStyles(currentMode) {
   const dndStyle = document.getElementById("player-dnd-style");
@@ -135,6 +141,15 @@ if (mode === "dnd") {
   }
 
   playerBanesPanel?.classList.remove("hidden");
+} else if (genericSystem) {
+  genericSection?.classList.remove("hidden");
+  if (genericBuilderLink) {
+    genericBuilderLink.href = `${genericSystem.builderPath}?code=${encodeURIComponent(code)}`;
+  }
+  if (genericRulesetTitleEl) genericRulesetTitleEl.textContent = `${genericSystem.name} Sheet`;
+  if (genericRulesetDescriptionEl) genericRulesetDescriptionEl.textContent = genericSystem.description;
+  const modeEl = document.getElementById("generic-summary-mode");
+  if (modeEl) modeEl.textContent = genericSystem.shortName || genericSystem.name;
 } else {
   statusEl.textContent = `Unsupported game mode: ${game.mode}`;
   throw new Error(`Unsupported game mode: ${game.mode}`);
@@ -722,6 +737,18 @@ function setOpenLegendValues(data = {}) {
   setPlayerBanes(data.banes ?? []);
 }
 
+function setGenericSummary(data = {}) {
+  const nameEl = document.getElementById("generic-summary-name");
+  const initEl = document.getElementById("generic-summary-initiative");
+  const hpEl = document.getElementById("generic-summary-hp");
+  const modeEl = document.getElementById("generic-summary-mode");
+
+  if (nameEl) nameEl.textContent = data.name ?? data.playerName ?? user.displayName ?? "—";
+  if (initEl) initEl.textContent = data.initiative ?? data.initiativeBonus ?? data.number ?? "—";
+  if (hpEl) hpEl.textContent = data.currentHp ?? data.health ?? "—";
+  if (modeEl) modeEl.textContent = genericSystem?.shortName || genericSystem?.name || data.mode || "—";
+}
+
 function getSelectedOlDefense() {
   const selected = document.querySelector(".ol-defense-choice:checked");
   return selected ? selected.value : null;
@@ -1034,7 +1061,11 @@ function buildSheetPayload(existing = {}) {
       wisdom: dnd.wis,
       charisma: dnd.cha
     };
-  } else {
+  } else if (
+    mode === "openlegend" ||
+    mode === "ol" ||
+    mode === "open_legend"
+  ) {
     const ol = getOpenLegendValues();
     payload = {
       ...payload,
@@ -1043,6 +1074,11 @@ function buildSheetPayload(existing = {}) {
       res: ol.res,
       tgh: ol.tgh,
       banes: ol.banes
+    };
+  } else {
+    payload = {
+      ...payload,
+      customSheet: existing.customSheet || payload.customSheet || {}
     };
   }
 
@@ -1087,7 +1123,11 @@ async function loadExistingCharacter() {
 
     if (mode === "dnd") {
       setDndValues(data);
-    } else {
+    } else if (
+      mode === "openlegend" ||
+      mode === "ol" ||
+      mode === "open_legend"
+    ) {
       setOpenLegendValues({
         currentHp: data.currentHp ?? "",
         grd: data.grd ?? "—",
@@ -1095,6 +1135,8 @@ async function loadExistingCharacter() {
         tgh: data.tgh ?? "—",
         banes: data.banes ?? []
       });
+    } else {
+      setGenericSummary(data);
     }
 
     renderTrackerList(data.trackers || []);
@@ -1114,7 +1156,11 @@ async function loadExistingCharacter() {
 
     if (mode === "dnd") {
       setDndValues(entry);
-    } else {
+    } else if (
+      mode === "openlegend" ||
+      mode === "ol" ||
+      mode === "open_legend"
+    ) {
       setOpenLegendValues({
         currentHp: "",
         grd: "—",
@@ -1122,6 +1168,8 @@ async function loadExistingCharacter() {
         tgh: "—",
         banes: entry.banes ?? []
       });
+    } else {
+      setGenericSummary(entry);
     }
 
     renderTrackerList([]);
@@ -1132,7 +1180,8 @@ async function loadExistingCharacter() {
   setCurrentSheetCache({ name: user.displayName ?? "", banes: [], effects: [] });
   setSharedValues({ name: user.displayName ?? "" });
   if (mode === "dnd") setPlayerEffects([]);
-  else setPlayerBanes([]);
+  else if (mode === "openlegend" || mode === "ol" || mode === "open_legend") setPlayerBanes([]);
+  else setGenericSummary({ name: user.displayName ?? "", initiative: "", currentHp: "" });
   renderTrackerList([]);
 }
 
@@ -1160,7 +1209,7 @@ async function saveInitiativeToGame() {
     name: shared.name,
     number: shared.initiative,
     updatedAt: Date.now(),
-    banes: mode === "dnd" ? [] : normalizeBanes(sheetPayload.banes),
+    banes: mode === "dnd" ? [] : (mode === "openlegend" || mode === "ol" || mode === "open_legend") ? normalizeBanes(sheetPayload.banes) : [],
     effects: mode === "dnd" ? normalizeEffects(sheetPayload.effects) : []
   };
 

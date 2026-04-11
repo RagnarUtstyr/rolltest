@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruleset Builder</title>
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="ruleset_builder.css" />
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
+  <script type="module" src="ruleset_builder.js" defer></script>
+</head>
+<body>
+  <div class="container auth-shell ruleset-shell">
+    <div class="ruleset-panel">
+      <div class="header-row">
+        <div>
+          <h1 id="builder-title">Ruleset Builder</h1>
+          <p id="builder-description" class="muted"></p>
+        </div>
+        <div class="button-row">
+          <a class="button-link" href="player.html" id="builder-player-link">Back to player page</a>
+          <a class="button-link" href="lobby.html">Lobby</a>
+        </div>
+      </div>
+      <div class="builder-meta muted small">
+        <div id="builder-game-meta" class="code-note">Loading game…</div>
+        <div id="builder-rules-basis"></div>
+      </div>
+    </div>
+
+    <div class="builder-grid">
+      <div>
+        <form id="builder-form"></form>
+      </div>
+      <div>
+        <div class="ruleset-panel">
+          <h2>Summary</h2>
+          <div id="summary-grid" class="summary-grid"></div>
+        </div>
+
+        <div class="ruleset-panel">
+          <h2>Derived values</h2>
+          <div id="derived-grid" class="derived-grid"></div>
+        </div>
+
+        <div class="ruleset-panel">
+          <h2>Save</h2>
+          <p class="muted small">This builder stores the detailed sheet separately and also pushes a compact summary back into the shared player room entry for initiative tracking.</p>
+          <div class="button-row">
+            <button id="save-builder-button" class="primary" type="button">Save builder</button>
+            <button id="save-init-button" type="button">Save to room</button>
+          </div>
+          <p id="builder-status" class="muted"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
