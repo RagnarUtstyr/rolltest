@@ -1,346 +1,368 @@
-export const RULESET_SYSTEMS = {
-  pathfinder2e: {
-    key: 'pathfinder2e',
-    name: 'Pathfinder 2E',
-    shortName: 'PF2E',
-    builderPath: 'pathfinder2e_character_builder.html',
-    accent: '#29539b',
-    description: 'Guided PF2E first-level character worksheet with ancestry, background, class, ability scores, skills, proficiencies, and derived modifiers.',
-    rulesBasis: 'Open reference workflow based on Pathfinder 2e character creation and ability boost rules.',
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'className', label: 'Class', type: 'text', section: 'identity', placeholder: 'Fighter' },
-      { id: 'ancestry', label: 'Ancestry', type: 'text', section: 'identity', placeholder: 'Human' },
-      { id: 'background', label: 'Background', type: 'text', section: 'identity', placeholder: 'Guard' },
-      { id: 'level', label: 'Level', type: 'number', section: 'identity', min: 1, max: 20, defaultValue: 1 },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat', help: 'Usually Perception modifier, but may vary.' },
-      { id: 'maxHp', label: 'Max HP', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Current HP', type: 'number', section: 'combat' },
-      { id: 'ac', label: 'AC', type: 'number', section: 'combat' },
-      { id: 'perception', label: 'Perception', type: 'number', section: 'combat' },
-      { id: 'str', label: 'STR', type: 'number', section: 'abilities' },
-      { id: 'dex', label: 'DEX', type: 'number', section: 'abilities' },
-      { id: 'con', label: 'CON', type: 'number', section: 'abilities' },
-      { id: 'int', label: 'INT', type: 'number', section: 'abilities' },
-      { id: 'wis', label: 'WIS', type: 'number', section: 'abilities' },
-      { id: 'cha', label: 'CHA', type: 'number', section: 'abilities' },
-      { id: 'keyAbility', label: 'Key Ability', type: 'text', section: 'choices', placeholder: 'Strength' },
-      { id: 'trainedSkills', label: 'Trained Skills', type: 'textarea', section: 'choices', placeholder: 'Athletics, Intimidation, Medicine' },
-      { id: 'feats', label: 'Feats / Features', type: 'textarea', section: 'choices' },
-      { id: 'equipment', label: 'Equipment', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Notes', type: 'textarea', section: 'notes' }
+
+export const SYSTEMS = {
+  dnd: {
+    title: "D&D 5e",
+    builderFile: "dnd_character_builder_firebase.html",
+    theme: "dnd",
+    overviewStats: [
+      { key: "hp", label: "HP" },
+      { key: "ac", label: "AC" },
+      { key: "prof", label: "Prof" },
+      { key: "initiative", label: "Init" },
+      { key: "passivePerception", label: "Passive Per." },
+      { key: "speed", label: "Speed" }
     ],
-    summaryFields: ['className', 'ancestry', 'background', 'level'],
-    derived(values) {
-      const map = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-      return map.map((id) => {
-        const score = Number(values[id]);
-        if (Number.isNaN(score)) return null;
-        const mod = Math.floor((score - 10) / 2);
-        return { label: `${id.toUpperCase()} mod`, value: mod >= 0 ? `+${mod}` : `${mod}` };
-      }).filter(Boolean);
-    }
+    resources: [
+      { key: "tempHp", label: "Temp HP", type: "number" },
+      { key: "hitDice", label: "Hit Dice", type: "text" },
+      { key: "deathSuccesses", label: "Death Saves ✓", type: "number" },
+      { key: "deathFailures", label: "Death Saves ✗", type: "number" },
+      { key: "spellSaveDc", label: "Spell Save DC", type: "number" },
+      { key: "spellAttack", label: "Spell Attack", type: "text" }
+    ],
+    combatSummary: ["Top attacks", "Slots / rage / ki / class resources", "Conditions & notes"]
   },
-  coc7e: {
-    key: 'coc7e',
-    name: 'Call of Cthulhu 7E',
-    shortName: 'CoC 7E',
-    builderPath: 'coc7_character_builder.html',
-    accent: '#70543d',
-    description: 'Investigator worksheet for characteristics, occupation, key skills, weapons, and derived CoC 7e secondary attributes.',
-    rulesBasis: 'Based on Chaosium investigator characteristic and secondary attribute guidance.',
-    fields: [
-      { id: 'characterName', label: 'Investigator Name', type: 'text', section: 'identity' },
-      { id: 'occupation', label: 'Occupation', type: 'text', section: 'identity', placeholder: 'Journalist' },
-      { id: 'age', label: 'Age', type: 'number', section: 'identity' },
-      { id: 'residence', label: 'Residence', type: 'text', section: 'identity' },
-      { id: 'era', label: 'Era / Campaign', type: 'text', section: 'identity', placeholder: '1920s' },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat', help: 'A practical tracker field for your site.' },
-      { id: 'currentHp', label: 'Current HP', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max HP', type: 'number', section: 'combat' },
-      { id: 'sanity', label: 'Sanity', type: 'number', section: 'combat' },
-      { id: 'magicPoints', label: 'Magic Points', type: 'number', section: 'combat' },
-      { id: 'luck', label: 'Luck', type: 'number', section: 'combat' },
-      { id: 'str', label: 'STR', type: 'number', section: 'abilities' },
-      { id: 'con', label: 'CON', type: 'number', section: 'abilities' },
-      { id: 'siz', label: 'SIZ', type: 'number', section: 'abilities' },
-      { id: 'dex', label: 'DEX', type: 'number', section: 'abilities' },
-      { id: 'app', label: 'APP', type: 'number', section: 'abilities' },
-      { id: 'int', label: 'INT', type: 'number', section: 'abilities' },
-      { id: 'pow', label: 'POW', type: 'number', section: 'abilities' },
-      { id: 'edu', label: 'EDU', type: 'number', section: 'abilities' },
-      { id: 'occupationSkills', label: 'Occupation Skills', type: 'textarea', section: 'choices' },
-      { id: 'personalInterestSkills', label: 'Personal Interest Skills', type: 'textarea', section: 'choices' },
-      { id: 'weapons', label: 'Weapons / Combat Skills', type: 'textarea', section: 'choices' },
-      { id: 'backstory', label: 'Backstory', type: 'textarea', section: 'notes' }
+  openlegend: {
+    title: "Open Legend",
+    builderFile: "openlegend_character_builder.html",
+    theme: "openlegend",
+    overviewStats: [
+      { key: "currentHp", label: "Current HP" },
+      { key: "grd", label: "Guard" },
+      { key: "res", label: "Resolve" },
+      { key: "tgh", label: "Toughness" },
+      { key: "initiative", label: "Init" },
+      { key: "speed", label: "Speed" }
     ],
-    summaryFields: ['occupation', 'era', 'age'],
-    derived(values) {
-      const stats = ['str', 'con', 'siz', 'dex', 'app', 'int', 'pow', 'edu'];
-      const derivedCards = [];
-      for (const id of stats) {
-        const score = Number(values[id]);
-        if (Number.isNaN(score)) continue;
-        derivedCards.push({ label: `${id.toUpperCase()} half`, value: Math.floor(score / 2) });
-        derivedCards.push({ label: `${id.toUpperCase()} fifth`, value: Math.floor(score / 5) });
+    resources: [
+      { key: "boons", label: "Boons / edges", type: "text" },
+      { key: "banesShort", label: "Active banes", type: "text" },
+      { key: "attacks", label: "Primary attacks", type: "textarea" },
+      { key: "notes", label: "Combat notes", type: "textarea" }
+    ],
+    combatSummary: ["Damage counter", "Banes / effects", "Primary attacks"]
+  },
+  pathfinder2e: {
+    title: "Pathfinder 2e",
+    builderFile: "pathfinder2e_character_builder.html",
+    theme: "pathfinder2e",
+    overviewStats: [
+      { key: "hp", label: "HP" },
+      { key: "ac", label: "AC" },
+      { key: "perception", label: "Perception" },
+      { key: "initiative", label: "Init" },
+      { key: "fortitude", label: "Fort" },
+      { key: "reflex", label: "Ref" },
+      { key: "will", label: "Will" }
+    ],
+    resources: [
+      { key: "speed", label: "Speed", type: "text" },
+      { key: "classDc", label: "Class DC", type: "number" },
+      { key: "spellDc", label: "Spell DC", type: "number" },
+      { key: "heroPoints", label: "Hero Points", type: "number" },
+      { key: "shield", label: "Shield / raised shield", type: "text" },
+      { key: "attacks", label: "Top attacks", type: "textarea" },
+      { key: "conditions", label: "Conditions", type: "textarea" }
+    ],
+    builderSections: [
+      {
+        title: "Identity & progression",
+        fields: [
+          ["name","Character name","text"],["level","Level","number"],["ancestry","Ancestry","text"],["heritage","Heritage","text"],
+          ["background","Background","text"],["class","Class","text"],["keyAbility","Key ability","text"]
+        ]
+      },
+      {
+        title: "Core stats",
+        fields: [
+          ["hp","Max HP","number"],["currentHp","Current HP","number"],["ac","AC","number"],["perception","Perception","number"],
+          ["fortitude","Fortitude","number"],["reflex","Reflex","number"],["will","Will","number"],["initiative","Initiative","number"],
+          ["speed","Speed","text"],["classDc","Class DC","number"],["spellDc","Spell DC","number"],["heroPoints","Hero Points","number"]
+        ]
+      },
+      {
+        title: "Ability scores & proficiencies",
+        fields: [
+          ["str","STR","number"],["dex","DEX","number"],["con","CON","number"],["int","INT","number"],["wis","WIS","number"],["cha","CHA","number"],
+          ["proficiencyNotes","Training / expert / master / legendary notes","textarea"]
+        ]
+      },
+      {
+        title: "Skills, feats, attacks, magic",
+        fields: [
+          ["skills","Skills summary","textarea"],["feats","Ancestry / class / skill feats","textarea"],["attacks","Top attacks","textarea"],
+          ["spells","Spell prep / focus spells","textarea"],["gear","Armor, shield, worn items","textarea"],["notes","Session notes","textarea"]
+        ]
       }
-      const con = Number(values.con);
-      const siz = Number(values.siz);
-      const pow = Number(values.pow);
-      if (!Number.isNaN(con) && !Number.isNaN(siz)) {
-        derivedCards.unshift({ label: 'HP guideline', value: Math.floor((con + siz) / 10) });
+    ]
+  },
+  callofcthulhu7e: {
+    title: "Call of Cthulhu 7e",
+    builderFile: "callofcthulhu7e_character_builder.html",
+    theme: "coc7e",
+    overviewStats: [
+      { key: "currentHp", label: "HP" },
+      { key: "sanity", label: "SAN" },
+      { key: "luck", label: "Luck" },
+      { key: "magicPoints", label: "MP" },
+      { key: "move", label: "Move" },
+      { key: "build", label: "Build" }
+    ],
+    resources: [
+      { key: "damageBonus", label: "Damage Bonus", type: "text" },
+      { key: "dodge", label: "Dodge", type: "number" },
+      { key: "majorWound", label: "Major wound?", type: "text" },
+      { key: "weapons","Weapons","textarea" },
+      { key: "skills","Key skills","textarea" },
+      { key: "notes","Mythos / clues / notes","textarea" }
+    ],
+    builderSections: [
+      {
+        title: "Investigator identity",
+        fields: [
+          ["name","Investigator name","text"],["occupation","Occupation","text"],["age","Age","number"],["residence","Residence","text"],
+          ["birthplace","Birthplace","text"],["era","Era / campaign","text"]
+        ]
+      },
+      {
+        title: "Characteristics & derived values",
+        fields: [
+          ["str","STR","number"],["con","CON","number"],["siz","SIZ","number"],["dex","DEX","number"],["app","APP","number"],["int","INT","number"],["pow","POW","number"],["edu","EDU","number"],
+          ["currentHp","Current HP","number"],["hp","Max HP","number"],["magicPoints","Magic Points","number"],["sanity","Sanity","number"],["luck","Luck","number"],["move","Move","number"],["build","Build","text"],["damageBonus","Damage Bonus","text"]
+        ]
+      },
+      {
+        title: "Skills & equipment",
+        fields: [
+          ["dodge","Dodge","number"],["skills","Occupation / interest skills","textarea"],["weapons","Weapons / combat skills","textarea"],
+          ["gear","Important gear","textarea"],["contacts","Contacts / allies","textarea"]
+        ]
+      },
+      {
+        title: "Investigator background",
+        fields: [
+          ["description","Description","textarea"],["ideology","Ideology / beliefs","textarea"],["people","Significant people","textarea"],
+          ["places","Meaningful locations","textarea"],["possessions","Treasured possessions","textarea"],["traits","Traits / injuries / phobias","textarea"],["notes","Keeper notes","textarea"]
+        ]
       }
-      if (!Number.isNaN(pow)) {
-        derivedCards.unshift({ label: 'MP guideline', value: Math.floor(pow / 5) });
-        derivedCards.unshift({ label: 'Starting SAN', value: pow });
-      }
-      return derivedCards;
-    }
+    ]
   },
   savageworlds: {
-    key: 'savageworlds',
-    name: 'Savage Worlds Adventure Edition',
-    shortName: 'SWADE',
-    builderPath: 'savageworlds_character_builder.html',
-    accent: '#8d4a2d',
-    description: 'Trait and derived-stat worksheet for SWADE-style characters, with clear spots for Hindrances, Edges, skills, pace, toughness, and parry.',
-    rulesBasis: 'Uses public SWADE trait structure; detailed edge/hindrance legality remains GM/manual.' ,
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'archetype', label: 'Archetype / Role', type: 'text', section: 'identity' },
-      { id: 'species', label: 'Ancestry / Species', type: 'text', section: 'identity' },
-      { id: 'rank', label: 'Rank', type: 'text', section: 'identity', defaultValue: 'Novice' },
-      { id: 'initiative', label: 'Initiative / Card Notes', type: 'text', section: 'combat', placeholder: 'Usually tracked by cards' },
-      { id: 'currentHp', label: 'Current Wounds', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max Wounds', type: 'number', section: 'combat', defaultValue: 3 },
-      { id: 'pace', label: 'Pace', type: 'number', section: 'combat' },
-      { id: 'parry', label: 'Parry', type: 'number', section: 'combat' },
-      { id: 'toughness', label: 'Toughness', type: 'number', section: 'combat' },
-      { id: 'agility', label: 'Agility Die', type: 'text', section: 'abilities', placeholder: 'd8' },
-      { id: 'smarts', label: 'Smarts Die', type: 'text', section: 'abilities', placeholder: 'd6' },
-      { id: 'spirit', label: 'Spirit Die', type: 'text', section: 'abilities', placeholder: 'd6' },
-      { id: 'strength', label: 'Strength Die', type: 'text', section: 'abilities', placeholder: 'd6' },
-      { id: 'vigor', label: 'Vigor Die', type: 'text', section: 'abilities', placeholder: 'd8' },
-      { id: 'skills', label: 'Skills', type: 'textarea', section: 'choices' },
-      { id: 'edges', label: 'Edges', type: 'textarea', section: 'choices' },
-      { id: 'hindrances', label: 'Hindrances', type: 'textarea', section: 'choices' },
-      { id: 'gear', label: 'Gear / Powers', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Notes', type: 'textarea', section: 'notes' }
+    title: "Savage Worlds",
+    builderFile: "savageworlds_character_builder.html",
+    theme: "savageworlds",
+    overviewStats: [
+      { key: "wounds", label: "Wounds" },
+      { key: "fatigue", label: "Fatigue" },
+      { key: "parry", label: "Parry" },
+      { key: "toughness", label: "Toughness" },
+      { key: "pace", label: "Pace" },
+      { key: "bennies", label: "Bennies" }
     ],
-    summaryFields: ['archetype', 'species', 'rank']
+    resources: [
+      { key: "conviction", label: "Conviction", type: "number" },
+      { key: "attributes", label: "Attributes", type: "textarea" },
+      { key: "skills", label: "Key skills", type: "textarea" },
+      { key: "edges","Edges & hindrances","textarea" },
+      { key: "attacks","Weapons / powers","textarea" }
+    ]
   },
   vampire5e: {
-    key: 'vampire5e',
-    name: 'Vampire: The Masquerade 5E',
-    shortName: 'V5',
-    builderPath: 'vampire5_character_builder.html',
-    accent: '#7a1020',
-    description: 'Chronicle-friendly V5 worksheet with attributes, hunger, health, willpower, clan, predator type, disciplines, and convictions.',
-    rulesBasis: 'Built as a guided V5 sheet rather than a full legality engine.',
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'clan', label: 'Clan', type: 'text', section: 'identity' },
-      { id: 'predatorType', label: 'Predator Type', type: 'text', section: 'identity' },
-      { id: 'generation', label: 'Generation / Blood Potency Notes', type: 'text', section: 'identity' },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Health', type: 'number', section: 'combat' },
-      { id: 'willpower', label: 'Willpower', type: 'number', section: 'combat' },
-      { id: 'hunger', label: 'Hunger', type: 'number', section: 'combat', min: 0, max: 5 },
-      { id: 'strength', label: 'Strength', type: 'number', section: 'abilities' },
-      { id: 'dexterity', label: 'Dexterity', type: 'number', section: 'abilities' },
-      { id: 'stamina', label: 'Stamina', type: 'number', section: 'abilities' },
-      { id: 'charisma', label: 'Charisma', type: 'number', section: 'abilities' },
-      { id: 'manipulation', label: 'Manipulation', type: 'number', section: 'abilities' },
-      { id: 'composure', label: 'Composure', type: 'number', section: 'abilities' },
-      { id: 'intelligence', label: 'Intelligence', type: 'number', section: 'abilities' },
-      { id: 'wits', label: 'Wits', type: 'number', section: 'abilities' },
-      { id: 'resolve', label: 'Resolve', type: 'number', section: 'abilities' },
-      { id: 'skills', label: 'Skills', type: 'textarea', section: 'choices' },
-      { id: 'disciplines', label: 'Disciplines', type: 'textarea', section: 'choices' },
-      { id: 'convictions', label: 'Convictions / Touchstones', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Chronicle Notes', type: 'textarea', section: 'notes' }
+    title: "Vampire 5e",
+    builderFile: "vampire5e_character_builder.html",
+    theme: "vampire5e",
+    overviewStats: [
+      { key: "health", label: "Health" },
+      { key: "willpower", label: "Willpower" },
+      { key: "hunger", label: "Hunger" },
+      { key: "humanity", label: "Humanity" },
+      { key: "bloodPotency", label: "Blood Potency" },
+      { key: "initiative", label: "Init" }
     ],
-    summaryFields: ['clan', 'predatorType', 'generation']
+    resources: [
+      { key: "clan", label: "Clan", type: "text" },
+      { key: "predatorType", label: "Predator type", type: "text" },
+      { key: "disciplines", label: "Disciplines", type: "textarea" },
+      { key: "dicePools", label: "Main dice pools", type: "textarea" },
+      { key: "notes", label: "Compulsions / notes", type: "textarea" }
+    ]
   },
   cyberpunkred: {
-    key: 'cyberpunkred',
-    name: 'Cyberpunk RED',
-    shortName: 'CP:R',
-    builderPath: 'cyberpunkred_character_builder.html',
-    accent: '#c3212c',
-    description: 'Easy Mode-compatible cyberpunk sheet with role, key stats, skills, armor, HP, humanity, and gear notes.',
-    rulesBasis: 'Built around the public Character Tools / Easy Mode field structure, with manual validation for book-only options.',
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'role', label: 'Role', type: 'text', section: 'identity', placeholder: 'Solo' },
-      { id: 'lifepath', label: 'Lifepath Summary', type: 'textarea', section: 'identity' },
-      { id: 'reputation', label: 'Reputation', type: 'number', section: 'identity' },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Current HP', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max HP', type: 'number', section: 'combat' },
-      { id: 'armorSp', label: 'Armor SP', type: 'number', section: 'combat' },
-      { id: 'humanity', label: 'Humanity', type: 'number', section: 'combat' },
-      { id: 'int', label: 'INT', type: 'number', section: 'abilities' },
-      { id: 'ref', label: 'REF', type: 'number', section: 'abilities' },
-      { id: 'dex', label: 'DEX', type: 'number', section: 'abilities' },
-      { id: 'tech', label: 'TECH', type: 'number', section: 'abilities' },
-      { id: 'cool', label: 'COOL', type: 'number', section: 'abilities' },
-      { id: 'will', label: 'WILL', type: 'number', section: 'abilities' },
-      { id: 'luck', label: 'LUCK', type: 'number', section: 'abilities' },
-      { id: 'move', label: 'MOVE', type: 'number', section: 'abilities' },
-      { id: 'body', label: 'BODY', type: 'number', section: 'abilities' },
-      { id: 'emp', label: 'EMP', type: 'number', section: 'abilities' },
-      { id: 'skills', label: 'Key Skills', type: 'textarea', section: 'choices' },
-      { id: 'cyberware', label: 'Cyberware', type: 'textarea', section: 'choices' },
-      { id: 'gear', label: 'Weapons / Gear', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Notes', type: 'textarea', section: 'notes' }
+    title: "Cyberpunk RED",
+    builderFile: "cyberpunkred_character_builder.html",
+    theme: "cyberpunkred",
+    overviewStats: [
+      { key: "currentHp", label: "HP" },
+      { key: "bodyArmorSp", label: "Body SP" },
+      { key: "headArmorSp", label: "Head SP" },
+      { key: "move", label: "MOVE" },
+      { key: "humanity", label: "Humanity" },
+      { key: "initiative", label: "Init" }
     ],
-    summaryFields: ['role', 'reputation']
+    resources: [
+      { key: "role", label: "Role", type: "text" },
+      { key: "roleAbility", label: "Role ability", type: "text" },
+      { key: "reputation", label: "Rep", type: "number" },
+      { key: "weapons", label: "Weapons / ammo", type: "textarea" },
+      { key: "cyberware", label: "Cyberware", type: "textarea" },
+      { key: "notes", label: "Critical injuries / notes", type: "textarea" }
+    ],
+    builderSections: [
+      {
+        title: "Edgerunner identity",
+        fields: [
+          ["name","Handle / name","text"],["role","Role","text"],["roleAbility","Role ability","text"],["reputation","Reputation","number"],["lifepath","Lifepath summary","textarea"]
+        ]
+      },
+      {
+        title: "Stats & derived combat values",
+        fields: [
+          ["int","INT","number"],["ref","REF","number"],["dex","DEX","number"],["tech","TECH","number"],["cool","COOL","number"],["will","WILL","number"],["luck","LUCK","number"],["move","MOVE","number"],["body","BODY","number"],["emp","EMP","number"],
+          ["hp","Max HP","number"],["currentHp","Current HP","number"],["humanity","Humanity","number"],["initiative","Initiative","number"],["bodyArmorSp","Body armor SP","number"],["headArmorSp","Head armor SP","number"]
+        ]
+      },
+      {
+        title: "Skills, gear, and chrome",
+        fields: [
+          ["skills","Key skills","textarea"],["weapons","Weapons / ammo / attack notes","textarea"],["armor","Armor & penalties","textarea"],
+          ["cyberware","Cyberware","textarea"],["gear","Gear / cash / lifestyle","textarea"]
+        ]
+      },
+      {
+        title: "Campaign notes",
+        fields: [
+          ["allies","Allies / enemies","textarea"],["fashion","Style / outfit","textarea"],["notes","Critical injuries / notes","textarea"]
+        ]
+      }
+    ]
   },
   lancer: {
-    key: 'lancer',
-    name: 'Lancer',
-    shortName: 'Lancer',
-    builderPath: 'lancer_character_builder.html',
-    accent: '#5c77d6',
-    description: 'Pilot + mech worksheet for Lancer with pilot callsign, triggers, mech skills, licenses, frame, HP, heat, and structure notes.',
-    rulesBasis: 'Companion worksheet aligned to the common pilot/mech sheet structure; full license validation is manual.',
-    fields: [
-      { id: 'characterName', label: 'Pilot Name / Callsign', type: 'text', section: 'identity' },
-      { id: 'licenseLevel', label: 'License Level', type: 'number', section: 'identity', min: 0, max: 12, defaultValue: 0 },
-      { id: 'background', label: 'Background', type: 'text', section: 'identity' },
-      { id: 'frame', label: 'Current Frame', type: 'text', section: 'identity', placeholder: 'EVEREST' },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Mech HP', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max HP', type: 'number', section: 'combat' },
-      { id: 'evasion', label: 'Evasion', type: 'number', section: 'combat' },
-      { id: 'edefense', label: 'E-Defense', type: 'number', section: 'combat' },
-      { id: 'heatCap', label: 'Heat Cap', type: 'number', section: 'combat' },
-      { id: 'structure', label: 'Structure', type: 'number', section: 'combat' },
-      { id: 'stress', label: 'Stress', type: 'number', section: 'combat' },
-      { id: 'hull', label: 'Hull', type: 'number', section: 'abilities' },
-      { id: 'agility', label: 'Agility', type: 'number', section: 'abilities' },
-      { id: 'systems', label: 'Systems', type: 'number', section: 'abilities' },
-      { id: 'engineering', label: 'Engineering', type: 'number', section: 'abilities' },
-      { id: 'triggers', label: 'Triggers', type: 'textarea', section: 'choices' },
-      { id: 'talents', label: 'Talents', type: 'textarea', section: 'choices' },
-      { id: 'licenses', label: 'Licenses / Systems', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Mission Notes', type: 'textarea', section: 'notes' }
+    title: "Lancer",
+    builderFile: "lancer_character_builder.html",
+    theme: "lancer",
+    overviewStats: [
+      { key: "mechHp", label: "Mech HP" },
+      { key: "heat", label: "Heat" },
+      { key: "armor", label: "Armor" },
+      { key: "evasion", label: "Evasion" },
+      { key: "eDefense", label: "E-Def" },
+      { key: "repairs", label: "Repairs" },
+      { key: "structure", label: "Structure" },
+      { key: "stress", label: "Stress" }
     ],
-    summaryFields: ['licenseLevel', 'frame', 'background']
+    resources: [
+      { key: "pilotHp", label: "Pilot HP", type: "number" },
+      { key: "speed", label: "Speed", type: "number" },
+      { key: "frame", label: "Frame", type: "text" },
+      { key: "mounts", label: "Mounts / weapons", type: "textarea" },
+      { key: "systems", label: "Systems / limited gear", type: "textarea" },
+      { key: "notes", label: "Statuses / notes", type: "textarea" }
+    ],
+    builderSections: [
+      {
+        title: "Pilot & license",
+        fields: [
+          ["name","Pilot name","text"],["callsign","Callsign","text"],["licenseLevel","License level","number"],["background","Background","text"],["talents","Talents","textarea"],["triggers","Triggers / pilot skills","textarea"]
+        ]
+      },
+      {
+        title: "Pilot stats",
+        fields: [
+          ["pilotHp","Pilot HP","number"],["armorPilot","Pilot armor","number"],["grit","Grit","number"],["hull","HULL","number"],["agility","AGI","number"],["systemsStat","SYS","number"],["engineering","ENG","number"]
+        ]
+      },
+      {
+        title: "Mech stats",
+        fields: [
+          ["frame","Frame","text"],["mechHp","Mech HP","number"],["heat","Heat","number"],["heatCap","Heat Cap","number"],["armor","Armor","number"],["evasion","Evasion","number"],["eDefense","E-Defense","number"],["speed","Speed","number"],["repairs","Repairs","number"],["structure","Structure","number"],["stress","Stress","number"]
+        ]
+      },
+      {
+        title: "Weapons, systems, and combat notes",
+        fields: [
+          ["mounts","Mounts / weapons","textarea"],["systems","Systems / tech / limited gear","textarea"],["coreBonus","Core bonus / frame traits","textarea"],["notes","Combat notes","textarea"]
+        ]
+      }
+    ]
   },
   shadowdark: {
-    key: 'shadowdark',
-    name: 'Shadowdark RPG',
-    shortName: 'Shadowdark',
-    builderPath: 'shadowdark_character_builder.html',
-    accent: '#80693f',
-    description: 'Quickstart-friendly Shadowdark builder for class, ancestry, core six abilities, HP, AC, gear, talents, and torch-tracked notes.',
-    rulesBasis: 'Grounded in the free Shadowdark quickstart character creation flow.',
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'className', label: 'Class', type: 'text', section: 'identity', placeholder: 'Fighter' },
-      { id: 'ancestry', label: 'Ancestry', type: 'text', section: 'identity', placeholder: 'Human' },
-      { id: 'level', label: 'Level', type: 'number', section: 'identity', min: 1, max: 10, defaultValue: 1 },
-      { id: 'alignment', label: 'Alignment', type: 'text', section: 'identity' },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Current HP', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max HP', type: 'number', section: 'combat' },
-      { id: 'ac', label: 'AC', type: 'number', section: 'combat' },
-      { id: 'str', label: 'STR', type: 'number', section: 'abilities' },
-      { id: 'dex', label: 'DEX', type: 'number', section: 'abilities' },
-      { id: 'con', label: 'CON', type: 'number', section: 'abilities' },
-      { id: 'int', label: 'INT', type: 'number', section: 'abilities' },
-      { id: 'wis', label: 'WIS', type: 'number', section: 'abilities' },
-      { id: 'cha', label: 'CHA', type: 'number', section: 'abilities' },
-      { id: 'talents', label: 'Talents / Spells', type: 'textarea', section: 'choices' },
-      { id: 'gear', label: 'Gear', type: 'textarea', section: 'choices' },
-      { id: 'torchTime', label: 'Torch / Light Notes', type: 'text', section: 'choices' },
-      { id: 'notes', label: 'Adventure Notes', type: 'textarea', section: 'notes' }
+    title: "Shadowdark",
+    builderFile: "shadowdark_character_builder.html",
+    theme: "shadowdark",
+    overviewStats: [
+      { key: "hp", label: "HP" },
+      { key: "ac", label: "AC" },
+      { key: "attackBonus", label: "Attack" },
+      { key: "torch", label: "Torch" },
+      { key: "slots", label: "Slots" },
+      { key: "speed", label: "Speed" }
     ],
-    summaryFields: ['className', 'ancestry', 'alignment', 'level'],
-    derived(values) {
-      const map = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-      return map.map((id) => {
-        const score = Number(values[id]);
-        if (Number.isNaN(score)) return null;
-        const mod = Math.floor((score - 10) / 2);
-        return { label: `${id.toUpperCase()} mod`, value: mod >= 0 ? `+${mod}` : `${mod}` };
-      }).filter(Boolean);
-    }
+    resources: [
+      { key: "class", label: "Class", type: "text" },
+      { key: "level", label: "Level", type: "number" },
+      { key: "weapon", label: "Main weapon", type: "text" },
+      { key: "spells", label: "Spells", type: "textarea" },
+      { key: "gear", label: "Gear / slots", type: "textarea" }
+    ]
   },
-  wfrp4e: {
-    key: 'wfrp4e',
-    name: 'Warhammer Fantasy Roleplay 4E',
-    shortName: 'WFRP 4E',
-    builderPath: 'wfrp4_character_builder.html',
-    accent: '#8a7c34',
-    description: 'Old World worksheet for species, career, characteristics, wounds, advantage notes, skills, talents, and trappings.',
-    rulesBasis: 'Structured from the common WFRP4e character sheet profile layout; detailed advances remain manual.',
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'species', label: 'Species', type: 'text', section: 'identity' },
-      { id: 'career', label: 'Career', type: 'text', section: 'identity' },
-      { id: 'status', label: 'Status', type: 'text', section: 'identity' },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Current Wounds', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max Wounds', type: 'number', section: 'combat' },
-      { id: 'move', label: 'Move', type: 'number', section: 'combat' },
-      { id: 'weaponSkill', label: 'Weapon Skill', type: 'number', section: 'abilities' },
-      { id: 'ballisticSkill', label: 'Ballistic Skill', type: 'number', section: 'abilities' },
-      { id: 'strength', label: 'Strength', type: 'number', section: 'abilities' },
-      { id: 'toughness', label: 'Toughness', type: 'number', section: 'abilities' },
-      { id: 'initiativeStat', label: 'Initiative Stat', type: 'number', section: 'abilities' },
-      { id: 'agility', label: 'Agility', type: 'number', section: 'abilities' },
-      { id: 'dexterity', label: 'Dexterity', type: 'number', section: 'abilities' },
-      { id: 'intelligence', label: 'Intelligence', type: 'number', section: 'abilities' },
-      { id: 'willpower', label: 'Willpower', type: 'number', section: 'abilities' },
-      { id: 'fellowship', label: 'Fellowship', type: 'number', section: 'abilities' },
-      { id: 'skills', label: 'Skills', type: 'textarea', section: 'choices' },
-      { id: 'talents', label: 'Talents', type: 'textarea', section: 'choices' },
-      { id: 'trappings', label: 'Trappings', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Campaign Notes', type: 'textarea', section: 'notes' }
+  warhammer4e: {
+    title: "Warhammer Fantasy Roleplay 4e",
+    builderFile: "warhammer4e_character_builder.html",
+    theme: "wfrp4e",
+    overviewStats: [
+      { key: "wounds", label: "Wounds" },
+      { key: "movement", label: "Move" },
+      { key: "advantage", label: "Advantage" },
+      { key: "fortune", label: "Fortune" },
+      { key: "resilience", label: "Resilience" },
+      { key: "initiative", label: "Init" }
     ],
-    summaryFields: ['species', 'career', 'status']
+    resources: [
+      { key: "career", label: "Career", type: "text" },
+      { key: "characteristics", label: "Main characteristics", type: "textarea" },
+      { key: "armor", label: "Armor / locations", type: "textarea" },
+      { key: "skills", label: "Skills / talents", type: "textarea" },
+      { key: "notes", label: "Criticals / corruption / notes", type: "textarea" }
+    ]
   },
   starfinder: {
-    key: 'starfinder',
-    name: 'Starfinder',
-    shortName: 'Starfinder',
-    builderPath: 'starfinder_character_builder.html',
-    accent: '#2d7d8f',
-    description: 'Starfinder worksheet for species, class, theme/background, stamina/HP, AC, six abilities, proficiencies, feats, and gear.',
-    rulesBasis: 'A current Starfinder-compatible scaffold using Paizo’s official character-creation guidance and a flexible sheet format.',
-    fields: [
-      { id: 'characterName', label: 'Character Name', type: 'text', section: 'identity' },
-      { id: 'species', label: 'Species / Ancestry', type: 'text', section: 'identity' },
-      { id: 'className', label: 'Class', type: 'text', section: 'identity' },
-      { id: 'theme', label: 'Theme / Background', type: 'text', section: 'identity' },
-      { id: 'level', label: 'Level', type: 'number', section: 'identity', defaultValue: 1 },
-      { id: 'initiative', label: 'Initiative', type: 'number', section: 'combat' },
-      { id: 'stamina', label: 'Stamina', type: 'number', section: 'combat' },
-      { id: 'currentHp', label: 'Current HP', type: 'number', section: 'combat' },
-      { id: 'maxHp', label: 'Max HP', type: 'number', section: 'combat' },
-      { id: 'eac', label: 'EAC', type: 'number', section: 'combat' },
-      { id: 'kac', label: 'KAC', type: 'number', section: 'combat' },
-      { id: 'str', label: 'STR', type: 'number', section: 'abilities' },
-      { id: 'dex', label: 'DEX', type: 'number', section: 'abilities' },
-      { id: 'con', label: 'CON', type: 'number', section: 'abilities' },
-      { id: 'int', label: 'INT', type: 'number', section: 'abilities' },
-      { id: 'wis', label: 'WIS', type: 'number', section: 'abilities' },
-      { id: 'cha', label: 'CHA', type: 'number', section: 'abilities' },
-      { id: 'skills', label: 'Skills / Proficiencies', type: 'textarea', section: 'choices' },
-      { id: 'feats', label: 'Feats / Features', type: 'textarea', section: 'choices' },
-      { id: 'gear', label: 'Weapons / Armor / Gear', type: 'textarea', section: 'choices' },
-      { id: 'notes', label: 'Notes', type: 'textarea', section: 'notes' }
+    title: "Starfinder",
+    builderFile: "starfinder_character_builder.html",
+    theme: "starfinder",
+    overviewStats: [
+      { key: "sp", label: "Stamina" },
+      { key: "hp", label: "HP" },
+      { key: "rp", label: "Resolve" },
+      { key: "eac", label: "EAC" },
+      { key: "kac", label: "KAC" },
+      { key: "initiative", label: "Init" }
     ],
-    summaryFields: ['species', 'className', 'theme', 'level']
+    resources: [
+      { key: "speed", label: "Speed", type: "text" },
+      { key: "class", label: "Class", type: "text" },
+      { key: "weapons", label: "Weapons", type: "textarea" },
+      { key: "abilities", label: "Spells / tech abilities", type: "textarea" },
+      { key: "notes", label: "Conditions / gear", type: "textarea" }
+    ]
   }
 };
 
-export function getRulesetSystem(mode) {
-  const normalized = String(mode || '').trim().toLowerCase();
-  return RULESET_SYSTEMS[normalized] || null;
+export function normalizeMode(mode) {
+  const value = String(mode || "").toLowerCase();
+  const aliases = {
+    ol: "openlegend",
+    open_legend: "openlegend",
+    pf2e: "pathfinder2e",
+    coc7e: "callofcthulhu7e",
+    swade: "savageworlds",
+    vtm5e: "vampire5e",
+    worldofdarkness: "vampire5e",
+    wfrp4e: "warhammer4e"
+  };
+  return aliases[value] || value;
 }
 
-export const EXTRA_RULESET_KEYS = Object.keys(RULESET_SYSTEMS);
+export function getSystemConfig(mode) {
+  const key = normalizeMode(mode);
+  return SYSTEMS[key] || SYSTEMS.openlegend;
+}

@@ -1,16 +1,1 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>shadowdark Builder</title>
-  <script>
-    (function () {
-      const params = new URLSearchParams(window.location.search);
-      params.set('mode', 'shadowdark');
-      window.location.replace(`ruleset_builder.html?${params.toString()}`);
-    })();
-  </script>
-</head>
-<body></body>
-</html>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Shadowdark Builder</title><script>location.replace(`ruleset_builder.html?mode=shadowdark&code=${encodeURIComponent(new URLSearchParams(location.search).get('code')||'')}`);</script></head><body></body></html>

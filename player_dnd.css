@@ -1,109 +1,11 @@
 body {
-  background: url('background_dnd.jpg') no-repeat center center fixed;
-  background-size: cover;
-  position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-color: rgba(46, 27, 24, 0.88);
-  z-index: -1;
-}
-
-.player-page.container {
-  background-color: rgba(46, 27, 24, 0.82);
-  box-shadow: 0 0 14px rgba(0, 0, 0, 0.55);
-}
-
-.player-panel {
-  background: rgba(78, 48, 38, 0.55);
-  border: 1px solid #8c5a4a;
-}
-
-.player-page h1,
-.player-page h2,
-.player-page .tracker-name,
-.player-page .stat-value {
-  color: #d4af37;
-}
-
-.player-page .muted,
-.player-page .tracker-progress,
-.player-page .stat-label,
-.player-page .field-stack label {
-  color: #e0d8b0;
-}
-
-.player-page .field-stack input,
-.player-page input[type="text"],
-.player-page input[type="number"] {
-  background-color: rgba(255, 255, 255, 0.12);
+  background: url('background_dnd.jpg') no-repeat center center fixed / cover;
   color: #f3e7c2;
-  border: 2px solid #d4af37;
+  font-family: Georgia, 'Times New Roman', serif;
 }
+.player-page.container { background: rgba(46,27,24,.84); }
+.player-panel { background: rgba(255,255,255,0.04); border: 1px solid #8c5a4a; }
+button, .button-link, input, textarea, select { color: #f3e7c2; border-color: #d4af37; }
+button, .button-link { background: #3f241c; }
+.overview-card .summary-value { color: #d4af37; }
 
-.player-page .field-stack input:focus,
-.player-page input[type="text"]:focus,
-.player-page input[type="number"]:focus {
-  border-color: #8c5a4a;
-  background-color: rgba(255, 255, 255, 0.18);
-}
-
-.player-page button,
-.player-page .button-link {
-  background-color: #3a241d;
-  color: #f0dfb0;
-  border: 2px solid #d4af37;
-}
-
-.player-page button:hover,
-.player-page .button-link:hover {
-  background-color: #5a382d;
-  color: #ffffff;
-}
-
-.player-page .remove-button {
-  background-color: #a8342d;
-  border-color: transparent;
-  color: #fff;
-}
-
-.player-page .remove-button:hover {
-  background-color: #851f1a;
-}
-
-.player-page .stat-card {
-  background: rgba(58, 36, 29, 0.95);
-  border: 1px solid #d4af37;
-}
-
-.player-page .hp-card {
-  border-color: #b22222;
-}
-
-.player-page .tracker-card {
-  background: rgba(58, 36, 29, 0.92);
-  border: 1px solid #8c5a4a;
-}
-
-.player-page .tracker-boxes input[type="checkbox"] {
-  background: #221613;
-  border: 2px solid #d4af37;
-}
-
-.player-page .tracker-boxes input[type="checkbox"]:checked {
-  background: #b22222;
-  border-color: #b22222;
-}
-
-.player-page .empty-state {
-  border: 1px dashed #8c5a4a;
-  color: #e0d8b0;
-}
-
-.player-page .initiative-panel {
-  background: rgba(58, 36, 29, 0.92);
-  border: 1px solid #d4af37;
-}

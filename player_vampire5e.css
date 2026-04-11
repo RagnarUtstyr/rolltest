@@ -1,86 +1,11 @@
 body {
-  background: linear-gradient(180deg, rgba(14,6,8,0.97), rgba(5,3,4,0.99));
-  position: relative;
+  background: linear-gradient(135deg,#13090b,#290d13);
+  color: #f0d9dd;
+  font-family: Georgia, serif;
 }
+.player-page.container { background: rgba(20,8,10,.94); }
+.player-panel { background: rgba(255,255,255,0.04); border: 1px solid #6f1d2f; }
+button, .button-link, input, textarea, select { color: #f0d9dd; border-color: #c13552; }
+button, .button-link { background: #220a12; }
+.overview-card .summary-value { color: #c13552; }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, #b0717e 18%, transparent), transparent 28%),
-    linear-gradient(rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.34));
-  z-index: -1;
-  pointer-events: none;
-}
-
-.player-page.container {
-  background-color: color-mix(in srgb, rgba(34, 10, 15, 0.7) 88%, #000000);
-  box-shadow: 0 0 14px rgba(0, 0, 0, 0.45);
-}
-
-.player-panel {
-  background: rgba(34, 10, 15, 0.7);
-  border: 1px solid #5e1825;
-}
-
-.player-page h1,
-.player-page h2,
-.player-page .tracker-name,
-.player-page .stat-value,
-.player-page #generic-ruleset-title {
-  color: #f0e4df;
-}
-
-.player-page .muted,
-.player-page .tracker-progress,
-.player-page .stat-label,
-.player-page .field-stack label,
-.player-page #generic-ruleset-description {
-  color: #c6b6b0;
-}
-
-.player-page .field-stack input,
-.player-page input[type="text"],
-.player-page input[type="number"] {
-  background: rgba(255,245,245,0.07);
-  color: #f0e4df;
-  border: 2px solid #5e1825;
-}
-
-.player-page .field-stack input:focus,
-.player-page input[type="text"]:focus,
-.player-page input[type="number"]:focus {
-  background: color-mix(in srgb, rgba(255,245,245,0.07) 88%, transparent);
-  border-color: #b0717e;
-}
-
-.player-page button,
-.player-page .button-link {
-  background-color: #3a0d16;
-  color: #f0e4df;
-  border: 2px solid #5e1825;
-}
-
-.player-page button:hover,
-.player-page .button-link:hover {
-  background-color: #641525;
-  color: #f0e4df;
-}
-
-.player-page .stat-card,
-.player-page .tracker-card {
-  background: color-mix(in srgb, rgba(34, 10, 15, 0.7) 76%, #000000);
-  border-color: #5e1825;
-}
-
-.player-page .tracker-fill {
-  background: linear-gradient(90deg, #5e1825 0%, #b0717e 100%);
-}
-
-.player-page .generic-ruleset-chip,
-.player-page .player-bane-chip {
-  border-color: #5e1825;
-  background: color-mix(in srgb, rgba(34, 10, 15, 0.7) 75%, #000000);
-  color: #c6b6b0;
-}

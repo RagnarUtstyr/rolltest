@@ -1,86 +1,11 @@
 body {
-  background: linear-gradient(180deg, rgba(246,242,236,0.98), rgba(218,213,206,0.98));
-  position: relative;
+  background: linear-gradient(135deg,#1a1a1a,#2a1516);
+  color: #141414;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, #d12e33 18%, transparent), transparent 28%),
-    linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.18));
-  z-index: -1;
-  pointer-events: none;
-}
-
-.player-page.container {
-  background-color: color-mix(in srgb, rgba(255, 255, 255, 0.75) 88%, #ffffff);
-  box-shadow: 0 0 14px rgba(0, 0, 0, 0.45);
-}
-
-.player-panel {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid #d12e33;
-}
-
-.player-page h1,
-.player-page h2,
-.player-page .tracker-name,
-.player-page .stat-value,
-.player-page #generic-ruleset-title {
-  color: #121212;
-}
-
-.player-page .muted,
-.player-page .tracker-progress,
-.player-page .stat-label,
-.player-page .field-stack label,
-.player-page #generic-ruleset-description {
-  color: #333333;
-}
-
-.player-page .field-stack input,
-.player-page input[type="text"],
-.player-page input[type="number"] {
-  background: rgba(16,16,16,0.04);
-  color: #111111;
-  border: 2px solid #d12e33;
-}
-
-.player-page .field-stack input:focus,
-.player-page input[type="text"]:focus,
-.player-page input[type="number"]:focus {
-  background: color-mix(in srgb, rgba(16,16,16,0.04) 88%, white);
-  border-color: #d12e33;
-}
-
-.player-page button,
-.player-page .button-link {
-  background-color: #111111;
-  color: #ffffff;
-  border: 2px solid #d12e33;
-}
-
-.player-page button:hover,
-.player-page .button-link:hover {
-  background-color: #d12e33;
-  color: #ffffff;
-}
-
-.player-page .stat-card,
-.player-page .tracker-card {
-  background: color-mix(in srgb, rgba(255, 255, 255, 0.75) 76%, #ffffff);
-  border-color: #d12e33;
-}
-
-.player-page .tracker-fill {
-  background: linear-gradient(90deg, #d12e33 0%, #d12e33 100%);
-}
-
-.player-page .generic-ruleset-chip,
-.player-page .player-bane-chip {
-  border-color: #d12e33;
-  background: color-mix(in srgb, rgba(255, 255, 255, 0.75) 75%, #ffffff);
-  color: #222222;
-}
+.player-page.container { background: rgba(245,245,245,.96); }
+.player-panel { background: rgba(255,255,255,0.04); border: 1px solid #2f2f2f; }
+button, .button-link, input, textarea, select { color: #141414; border-color: #e43b3b; }
+button, .button-link { background: #ffffff; }
+.overview-card .summary-value { color: #e43b3b; }
+.player-panel,.overview-card,.tracker-item{background:rgba(255,255,255,.92);} .muted{color:#444; opacity:1;} .chip{background:rgba(228,59,59,.08);}
