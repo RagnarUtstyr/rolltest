@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="lobby.css" />
+  <script type="module" src="login-page.js" defer></script>
+
+  <style>
+    .auth-shell {
+      text-align: center;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 12px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .auth-actions {
+      display: grid;
+      gap: 10px;
+      max-width: 360px;
+      margin: 14px auto 0;
+    }
+
+    .google-button {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .text-button {
+      background: none;
+      border: none;
+      color: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      opacity: 0.9;
+    }
+
+    .muted {
+      opacity: 0.8;
+    }
+
+    .status-text {
+      min-height: 1.25rem;
+      margin-top: 12px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.55);
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .modal[hidden] {
+      display: none;
+    }
+
+    .modal-card {
+      width: min(100%, 400px);
+      background: #1f2430;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: left;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .modal-card h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .modal-card p {
+      margin-top: 0;
+    }
+
+    .modal-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="container auth-shell">
+    <h1>Welcome to my Dungeon</h1>
+
+    <br><br>
+
+    <p class="muted">Sign in with Google or email to create or join a game.</p>
+
+    <br>
+
+
+    <button id="google-login-button" class="google-button" type="button">
+      Continue with Google
+    </button>
+    
+    <br><br>
+
+    <p class="muted">or</p>
+
+    <br>
+    
+    <form id="email-login-form" class="auth-form">
+      <input
+        id="login-email"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+        required
+      />
+
+      <input
+        id="login-password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      />
+
+      <button type="submit">Sign in with Email</button>
+    </form>
+
+    <div class="auth-actions">
+      <button type="button" id="open-register-modal">Create account</button>
+      <button type="button" id="open-reset-modal" class="text-button">Forgot password?</button>
+    </div>
+
+    <p id="login-status" class="muted status-text"></p>
+  </div>
+
+  <div id="register-modal" class="modal" hidden>
+    <div class="modal-card">
+      <h2>Create account</h2>
+      <p class="muted">Register with email and password.</p>
+
+      <form id="register-form" class="modal-form">
+        <input
+          id="register-email"
+          type="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+        />
+
+        <input
+          id="register-password"
+          type="password"
+          placeholder="Password"
+          autocomplete="new-password"
+          required
+        />
+
+        <input
+          id="register-confirm-password"
+          type="password"
+          placeholder="Confirm password"
+          autocomplete="new-password"
+          required
+        />
+
+        <p id="register-status" class="muted status-text"></p>
+
+        <div class="modal-actions">
+          <button type="button" data-close-modal="register-modal">Cancel</button>
+          <button type="submit">Create account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="reset-modal" class="modal" hidden>
+    <div class="modal-card">
+      <h2>Reset password</h2>
+      <p class="muted">Enter your email and Firebase will send a reset link.</p>
+
+      <form id="reset-form" class="modal-form">
+        <input
+          id="reset-email"
+          type="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+        />
+
+        <p id="reset-status" class="muted status-text"></p>
+
+        <div class="modal-actions">
+          <button type="button" data-close-modal="reset-modal">Cancel</button>
+          <button type="submit">Send reset email</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

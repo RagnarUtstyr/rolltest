@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png">
+    <title>Manage Saved Lists</title>
+
+    <script type="module" src="save.js" defer></script>
+    <link rel="stylesheet" href="turn.css">
+    <link rel="stylesheet" href="savelist.css">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Manage Saved Lists</h1>
+
+        <div class="input-controls">
+            <input type="text" id="list-name" placeholder="Enter list name" required>
+        </div>
+
+        <div class="button-controls">
+            <button id="save-list-button">Save List</button>
+            <button id="load-list-button">Load List</button>
+            <button id="delete-list-button">Delete List</button>
+        </div>
+
+        <h2>Saved Lists</h2>
+        <ul id="savedLists"></ul>
+
+        <a id="view-rankings-link" href="group_dnd.html" class="button-link">View Rankings</a>
+    </div>
+</body>
+
+</html>

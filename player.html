@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Sheet</title>
+
+  <link rel="stylesheet" href="player.css" />
+  <link rel="stylesheet" id="player-dnd-style" href="player_dnd.css" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="player_openlegend.css" disabled />
+  <link rel="stylesheet" href="auth.css" />
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
+
+  <script type="module" src="player.js?v=7" defer></script>
+
+<style>
+  .dnd-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+    align-items: stretch;
+  }
+
+  .dnd-action-card {
+    border: 1px solid #8C5A4A;
+    border-radius: 8px;
+    background: rgba(165, 123, 91, 0.12);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .dnd-action-card .field-stack {
+    margin: 0;
+  }
+
+  .dnd-action-card input[type="number"],
+  .dnd-action-card input[type="text"] {
+    width: 100%;
+    margin-bottom: 0;
+    padding: 10px;
+    border: 2px solid #D4AF37;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #E0D8B0;
+    font-family: 'MedievalSharp', serif;
+    font-size: 1em;
+    outline: none;
+  }
+
+  .dnd-action-card input[type="number"]:focus,
+  .dnd-action-card input[type="text"]:focus {
+    border: 2px solid #8C5A4A;
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .dnd-action-btn,
+  #save-initiative-button,
+  #create-tracker-btn {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'MedievalSharp', serif;
+    transition: background-color 0.3s, color 0.3s;
+    width: 100%;
+  }
+
+  .dnd-action-btn:hover,
+  #save-initiative-button:hover,
+  #create-tracker-btn:hover {
+    background-color: #8C5A4A;
+    color: #2E1B18;
+  }
+
+  #ol-apply-damage-btn,
+  #ol-heal-btn,
+  #ol-reset-hp-btn,
+  #player-add-bane-btn,
+  #player-view-banes-btn,
+  .bane-picker-add-btn,
+  .player-bane-remove-btn {
+    background-color: #0b2621;
+    color: #bdb382;
+    border: 2px solid #2d3d73;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'MedievalSharp', cursive;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  #ol-apply-damage-btn:hover,
+  #ol-heal-btn:hover,
+  #ol-reset-hp-btn:hover,
+  #player-add-bane-btn:hover,
+  #player-view-banes-btn:hover,
+  .bane-picker-add-btn:hover,
+  .player-bane-remove-btn:hover {
+    background-color: #1a3b4a;
+    color: #237768;
+  }
+
+  .dnd-temp-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    color: #E0D8B0;
+    font-size: 0.95rem;
+  }
+
+  .dnd-temp-toggle input {
+    margin: 0;
+    width: auto;
+  }
+
+  .calc-result {
+    margin-top: 14px;
+    text-align: center;
+  }
+
+  .player-banes-panel {
+    min-width: 0;
+  }
+
+  .bane-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .player-banes-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  .player-bane-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid #2d3d73;
+    border-radius: 999px;
+    background: rgba(11, 38, 33, 0.45);
+    color: #bdb382;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .player-bane-chip img,
+  .bane-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+
+  .player-banes-empty {
+    opacity: 0.8;
+  }
+
+  .ol-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10000;
+  }
+
+  .ol-modal[aria-hidden="true"] {
+    display: none;
+  }
+
+  .ol-modal__dialog {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 2px solid #2d3d73;
+    border-radius: 12px;
+    background: #10201f;
+    color: #d9d2ad;
+    padding: 22px;
+    box-sizing: border-box;
+  }
+
+  .ol-modal__dialog--wide {
+    width: min(760px, 100%);
+  }
+
+  .ol-modal__close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: 0;
+    color: #d9d2ad;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .bane-picker-list,
+  .banes-modal-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .bane-picker-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #2d3d73;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .bane-picker-left,
+  .bane-picker-open {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: inherit;
+  }
+
+  .bane-picker-open {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  /* D&D Effects panel styling */
+  #player-effects-panel {
+    border: 2px solid #8C5A4A;
+    background: rgba(46, 27, 24, 0.92);
+    color: #E0D8B0;
+  }
+
+  #player-effects-panel h2,
+  #player-effects-panel p,
+  #player-effects-panel label,
+  #player-effects-panel span,
+  #player-effects-panel .muted {
+    color: #E0D8B0;
+  }
+
+  #player-effects-panel .bane-toolbar {
+    margin-top: 10px;
+  }
+
+  #player-effects-panel #player-add-effect-btn,
+  #player-effects-panel #player-view-effects-btn {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'MedievalSharp', serif;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  #player-effects-panel #player-add-effect-btn:hover,
+  #player-effects-panel #player-view-effects-btn:hover {
+    background-color: #8C5A4A;
+    color: #2E1B18;
+  }
+
+  #player-effects-panel .player-banes-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  #player-effects-panel .player-bane-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid #D4AF37;
+    border-radius: 999px;
+    background: rgba(140, 90, 74, 0.22);
+    color: #E0D8B0;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: 'MedievalSharp', serif;
+  }
+
+  #player-effects-panel .player-bane-chip:hover {
+    background: rgba(212, 175, 55, 0.18);
+    color: #fff2c4;
+  }
+
+  #player-effects-panel .player-banes-empty {
+    color: #E0D8B0;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 760px) {
+    .dnd-action-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .top-character-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 12px !important;
+      width: 100% !important;
+      align-items: stretch !important;
+    }
+
+    .top-character-row > .player-panel,
+    .top-character-row > .compact-panel,
+    .top-character-row > .name-panel,
+    .top-character-row > .initiative-panel,
+    .top-character-row > #player-banes-panel,
+    .top-character-row > #player-effects-panel {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
+    }
+
+    .top-character-row > .name-panel {
+      grid-column: 1 / 2 !important;
+    }
+
+    .top-character-row > .initiative-panel {
+      grid-column: 2 / 3 !important;
+    }
+
+    .top-character-row > #player-banes-panel,
+    .top-character-row > #player-effects-panel {
+      grid-column: 1 / -1 !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container auth-shell player-shell player-page">
+    <div class="top-row">
+      <h1>Player Sheet</h1>
+      <a class="button-link" href="lobby.html">Back to lobby</a>
+    </div>
+
+    <div id="player-game-meta" class="player-panel"></div>
+
+    <div class="top-character-row">
+      <div class="player-panel compact-panel name-panel">
+        <h2>Name</h2>
+        <div class="name-grid">
+          <div class="field-stack">
+            <label for="player-name">Character Name</label>
+            <input type="text" id="player-name" placeholder="Character name" />
+          </div>
+        </div>
+      </div>
+
+      <div class="player-panel compact-panel initiative-panel">
+        <h2>Initiative</h2>
+        <div class="field-stack">
+          <label for="player-initiative">Initiative</label>
+          <input type="number" id="player-initiative" placeholder="17" />
+        </div>
+        <button id="save-initiative-button" type="button">Initiative</button>
+      </div>
+
+      <div id="player-effects-panel" class="player-panel compact-panel player-banes-panel hidden">
+        <h2>Effects</h2>
+        <p class="muted"></p>
+        <div class="bane-toolbar">
+          <button id="player-add-effect-btn" type="button">Add effect</button>
+          <button id="player-view-effects-btn" type="button">Manage effects</button>
+        </div>
+        <div id="player-effects-preview" class="player-banes-preview">
+          <span class="muted player-banes-empty">No effects added.</span>
+        </div>
+      </div>
+
+      <div id="player-banes-panel" class="player-panel compact-panel player-banes-panel hidden">
+        <h2>Banes</h2>
+        <p class="muted">Open Legend only.</p>
+        <div class="bane-toolbar">
+          <button id="player-add-bane-btn" type="button">Add bane</button>
+          <button id="player-view-banes-btn" type="button">Manage banes</button>
+        </div>
+        <div id="player-banes-preview" class="player-banes-preview">
+          <span class="muted player-banes-empty">No banes added.</span>
+        </div>
+      </div>
+    </div>
+
+    <section id="player-dnd-section" class="hidden">
+      <div class="player-panel">
+        <div class="builder-link-row">
+          <h2>Stats</h2>
+          <a id="dnd-builder-link" class="button-link" href="dnd_character_builder_firebase.html">Open Builder</a>
+        </div>
+
+        <div class="dnd-hp-top">
+          <div class="field-stack">
+            <label for="player-hp">HP</label>
+            <input type="number" id="player-hp" placeholder="24" />
+          </div>
+        </div>
+
+        <div class="dnd-ac-prof">
+          <div class="field-stack">
+            <label for="player-ac">AC</label>
+            <input type="number" id="player-ac" placeholder="16" />
+          </div>
+
+          <div class="field-stack">
+            <label for="player-prof">Prof</label>
+            <input type="number" id="player-prof" placeholder="2" />
+          </div>
+        </div>
+
+        <div class="dnd-stats-columns">
+          <div class="dnd-stat-column">
+            <div class="field-stack">
+              <label for="player-str">STR</label>
+              <input type="number" id="player-str" placeholder="10" />
+            </div>
+
+            <div class="field-stack">
+              <label for="player-dex">DEX</label>
+              <input type="number" id="player-dex" placeholder="14" />
+            </div>
+
+            <div class="field-stack">
+              <label for="player-con">CON</label>
+              <input type="number" id="player-con" placeholder="12" />
+            </div>
+          </div>
+
+          <div class="dnd-stat-column">
+            <div class="field-stack">
+              <label for="player-int">INT</label>
+              <input type="number" id="player-int" placeholder="8" />
+            </div>
+
+            <div class="field-stack">
+              <label for="player-wis">WIS</label>
+              <input type="number" id="player-wis" placeholder="13" />
+            </div>
+
+            <div class="field-stack">
+              <label for="player-cha">CHA</label>
+              <input type="number" id="player-cha" placeholder="15" />
+            </div>
+          </div>
+        </div>
+
+        <div class="dnd-action-grid">
+          <div class="dnd-action-card">
+            <div class="field-stack">
+              <label for="dnd-damage-input">Damage</label>
+              <input type="number" id="dnd-damage-input" min="0" placeholder="Damage" />
+            </div>
+            <button id="dnd-apply-damage-btn" class="dnd-action-btn" type="button">Apply</button>
+          </div>
+
+          <div class="dnd-action-card">
+            <div class="field-stack">
+              <label for="dnd-heal-amount">Heal</label>
+              <input type="number" id="dnd-heal-amount" min="0" placeholder="Heal amount" />
+            </div>
+            <label class="dnd-temp-toggle">
+              <input type="checkbox" id="dnd-temp-heal" />
+              Temp
+            </label>
+            <button id="dnd-heal-btn" class="dnd-action-btn" type="button">Heal</button>
+          </div>
+
+          <div class="dnd-action-card">
+            <div class="field-stack">
+              <label for="dnd-reset-note">Reset</label>
+              <input type="text" id="dnd-reset-note" value="Reload all D&amp;D fields from builder" readonly />
+            </div>
+            <button id="dnd-reset-hp-btn" class="dnd-action-btn" type="button">Reset HP</button>
+          </div>
+        </div>
+
+        <div id="dnd-calc-result" class="calc-result muted"></div>
+      </div>
+    </section>
+
+    <section id="player-openlegend-section" class="hidden">
+      <div class="player-panel">
+        <div class="builder-link-row">
+          <h2>Open Legend Sheet</h2>
+          <a id="openlegend-builder-link" class="button-link" href="openlegend_character_builder.html">Open Builder</a>
+        </div>
+
+        <div class="ol-summary-wrap">
+          <div class="summary-card hp-card hp-card-large">
+            <div class="summary-label">Current HP</div>
+            <div id="player-ol-current-hp" class="summary-value hp-display">—</div>
+          </div>
+
+          <div class="ol-defense-grid">
+            <div class="summary-card defense-card">
+              <div class="summary-label">GRD</div>
+              <div id="player-ol-grd-view" class="summary-value">—</div>
+            </div>
+
+            <div class="summary-card defense-card">
+              <div class="summary-label">RES</div>
+              <div id="player-ol-res-view" class="summary-value">—</div>
+            </div>
+
+            <div class="summary-card defense-card">
+              <div class="summary-label">TGH</div>
+              <div id="player-ol-tgh-view" class="summary-value">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="damage-panel">
+          <div class="field-stack">
+            <label for="ol-damage-input">DMG</label>
+            <input type="number" id="ol-damage-input" min="0" placeholder="Damage" />
+          </div>
+
+          <div class="field-stack">
+            <label>Reduce with</label>
+            <div class="damage-options">
+              <label><span>GRD</span><input type="checkbox" class="ol-defense-choice" value="grd" /></label>
+              <label><span>RES</span><input type="checkbox" class="ol-defense-choice" value="res" /></label>
+              <label><span>TGH</span><input type="checkbox" class="ol-defense-choice" value="tgh" /></label>
+            </div>
+          </div>
+
+          <div class="button-row damage-button-row" style="margin-top:0;">
+            <button id="ol-apply-damage-btn" type="button">Apply Damage</button>
+          </div>
+        </div>
+
+        <div class="ol-recovery-area">
+          <div class="button-row ol-recovery-row">
+            <div class="field-stack compact-heal-field">
+              <label for="ol-heal-amount">Heal Amount</label>
+              <input type="number" id="ol-heal-amount" min="0" placeholder="Heal" />
+            </div>
+            <button id="ol-heal-btn" type="button">Heal</button>
+          </div>
+
+          <div class="button-row ol-reset-row">
+            <button id="ol-reset-hp-btn" type="button">Reset HP</button>
+          </div>
+        </div>
+
+        <div id="ol-calc-result" class="calc-result muted"></div>
+      </div>
+    </section>
+
+    <div class="player-panel">
+      <h2>Trackers</h2>
+      <p class="muted tracker-subtitle">Saved with your character in this game.</p>
+
+      <div class="tracker-form">
+        <input type="text" id="tracker-name" placeholder="Tracker name" />
+        <input type="number" id="tracker-amount" min="1" placeholder="Amount" />
+        <button id="create-tracker-btn" type="button">Add tracker</button>
+      </div>
+
+      <label class="tracker-form-inline muted">
+        <input type="checkbox" id="tracker-start-full" />
+        Start fully checked
+      </label>
+
+      <ul id="tracker-list" class="tracker-list"></ul>
+      <div id="tracker-empty" class="empty-state">No trackers yet for this character.</div>
+    </div>
+
+    <div id="bane-picker-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bane-picker-title">
+        <button class="ol-modal__close" id="bane-picker-close" aria-label="Close">×</button>
+        <h3 id="bane-picker-title">Add bane</h3>
+        <div id="bane-picker-list" class="bane-picker-list"></div>
+      </div>
+    </div>
+
+    <div id="banes-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="banes-modal-title">
+        <button class="ol-modal__close" id="banes-modal-close" aria-label="Close">×</button>
+        <h3 id="banes-modal-title">Manage banes</h3>
+        <div id="banes-modal-list" class="banes-modal-list"></div>
+      </div>
+    </div>
+
+    <div id="effect-picker-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effect-picker-title">
+        <button class="ol-modal__close" id="effect-picker-close" aria-label="Close">×</button>
+        <h3 id="effect-picker-title">Add effect</h3>
+        <div id="effect-picker-list" class="bane-picker-list"></div>
+      </div>
+    </div>
+
+    <div id="effects-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effects-modal-title">
+        <button class="ol-modal__close" id="effects-modal-close" aria-label="Close">×</button>
+        <h3 id="effects-modal-title">Manage effects</h3>
+        <div id="effects-modal-list" class="banes-modal-list"></div>
+      </div>
+    </div>
+
+    <p id="player-status" class="muted"></p>
+  </div>
+</body>
+</html>
