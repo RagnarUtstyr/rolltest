@@ -531,6 +531,23 @@ import { requireAuth } from "./auth.js";
       return (n * (n + 1)) / 2;
     }
 
+    function getAttributeDie(score) {
+      const n = cleanInt(score);
+      const diceByScore = {
+        0: "",
+        1: "1D4",
+        2: "1D6",
+        3: "1D8",
+        4: "1D10",
+        5: "2D6",
+        6: "2D8",
+        7: "2D10",
+        8: "3D8",
+        9: "3D10"
+      };
+      return diceByScore[n] || "";
+    }
+
     function getAttributeCostBreakdown(attributes) {
       return Object.fromEntries(Object.entries(attributes).map(([name, value]) => [name, attributeCost(value)]));
     }
@@ -1090,13 +1107,17 @@ import { requireAuth } from "./auth.js";
       attrWrap.innerHTML = Object.entries(RULES.categories).map(([category, attrs]) => `
         <div class="sheet-box category-box">
           <div class="category-title">${escapeHtml(category.charAt(0).toUpperCase() + category.slice(1))}</div>
-          ${attrs.map((attr) => `
+          ${attrs.map((attr) => {
+            const score = cleanInt(character.attributes[attr]);
+            const die = getAttributeDie(score);
+            return `
             <div class="attribute-row">
-              <div class="attr-name">${escapeHtml(attr)}</div>
-              <div class="attr-cost">${attributeCost(character.attributes[attr])} pts</div>
-              <input data-attr="${escapeHtml(attr)}" type="number" min="0" value="${cleanInt(character.attributes[attr])}">
+              <div class="attr-name">${escapeHtml(attr)}${die ? `<div class="helper-text">${escapeHtml(die)}</div>` : ""}</div>
+              <div class="attr-cost">${attributeCost(score)} pts</div>
+              <input data-attr="${escapeHtml(attr)}" type="number" min="0" value="${score}">
             </div>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
       `).join("");
     }
