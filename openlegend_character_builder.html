@@ -1375,6 +1375,18 @@ import { requireAuth } from "./auth.js";
     }
 
 
+    function refreshComputedPanels() {
+      const result = validateCharacter(character, featRegistry);
+      const levelField = root.querySelector('[data-field="level"]');
+      if (levelField) levelField.value = result.level;
+
+      renderBudgets(result);
+      renderDerived(result);
+      renderStatus(result);
+
+      return result;
+    }
+
     function rerender() {
       const focusState = captureFocusState();
 
@@ -1383,14 +1395,7 @@ import { requireAuth } from "./auth.js";
       renderSimpleList(perkListWrap, character.perks, "perk", "Perk name");
       renderSimpleList(flawListWrap, character.flaws, "flaw", "Flaw name");
       renderWeapons();
-
-      const result = validateCharacter(character, featRegistry);
-      const levelField = root.querySelector('[data-field="level"]');
-      if (levelField) levelField.value = result.level;
-
-      renderBudgets(result);
-      renderDerived(result);
-      renderStatus(result);
+      const result = refreshComputedPanels();
       restoreFocusState(focusState);
 
       return result;
@@ -1511,20 +1516,7 @@ import { requireAuth } from "./auth.js";
         }
 
         syncFromDom();
-
-        const isWeaponField =
-          event.target.matches("[data-weapon-preset]") ||
-          event.target.matches("[data-weapon-name]") ||
-          event.target.matches("[data-weapon-attribute]") ||
-          event.target.matches("[data-weapon-damage]") ||
-          event.target.matches("[data-weapon-notes]") ||
-          event.target.matches("[data-weapon-boon]") ||
-          event.target.matches("[data-weapon-bane]");
-
-        if (!isWeaponField) {
-          rerender();
-        }
-
+        refreshComputedPanels();
         scheduleSave();
       });
 
