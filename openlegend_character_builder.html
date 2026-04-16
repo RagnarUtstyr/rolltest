@@ -1316,7 +1316,68 @@ import { requireAuth } from "./auth.js";
         : "Pick a feat from the dropdown or type the full name.";
     }
 
+    function captureFocusState() {
+      const active = document.activeElement;
+      if (!root || !active || !root.contains(active)) return null;
+
+      const keys = [
+        "attr",
+        "mod",
+        "field",
+        "weaponName",
+        "weaponAttribute",
+        "weaponDamage",
+        "weaponNotes",
+        "weaponBoon",
+        "weaponBane",
+        "weaponPreset",
+        "perkIndex",
+        "flawIndex",
+        "initAttr",
+        "featPicker"
+      ];
+
+      for (const key of keys) {
+        const attrName = key === "featPicker" ? "data-feat-picker" : `data-${key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}`;
+        if (active.hasAttribute && active.hasAttribute(attrName)) {
+          return {
+            attrName,
+            attrValue: active.getAttribute(attrName) || "",
+            value: active.value,
+            selectionStart: typeof active.selectionStart === "number" ? active.selectionStart : null,
+            selectionEnd: typeof active.selectionEnd === "number" ? active.selectionEnd : null
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function restoreFocusState(focusState) {
+      if (!root || !focusState) return;
+      const selector = focusState.attrValue
+        ? `[${focusState.attrName}="${CSS.escape(focusState.attrValue)}"]`
+        : `[${focusState.attrName}]`;
+      const nextField = root.querySelector(selector);
+      if (!nextField) return;
+
+      nextField.focus({ preventScroll: true });
+
+      if (typeof nextField.setSelectionRange === "function" &&
+          focusState.selectionStart !== null &&
+          focusState.selectionEnd !== null) {
+        try {
+          nextField.setSelectionRange(focusState.selectionStart, focusState.selectionEnd);
+        } catch (error) {
+          // Some input types (like number) do not support selection ranges.
+        }
+      }
+    }
+
+
     function rerender() {
+      const focusState = captureFocusState();
+
       renderAttributes();
       renderFeatList();
       renderSimpleList(perkListWrap, character.perks, "perk", "Perk name");
@@ -1330,6 +1391,7 @@ import { requireAuth } from "./auth.js";
       renderBudgets(result);
       renderDerived(result);
       renderStatus(result);
+      restoreFocusState(focusState);
 
       return result;
     }
