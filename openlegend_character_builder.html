@@ -164,7 +164,7 @@
 
     .main-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+      grid-template-columns: minmax(0, 1.45fr) minmax(240px, 0.7fr);
       gap: 16px;
       align-items: start;
     }
@@ -191,7 +191,7 @@
 
     .attribute-row {
       display: grid;
-      grid-template-columns: minmax(96px, 1fr) 52px 70px 64px;
+      grid-template-columns: minmax(110px, 1fr) 44px 62px 56px;
       gap: 6px;
       align-items: center;
       margin-bottom: 8px;
@@ -223,39 +223,44 @@
     .derived-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 8px;
+    }
+
+    .derived-grid .sheet-box {
+      padding: 8px 10px;
     }
 
     .derived-card .derived-top {
       display: flex;
       justify-content: space-between;
-      gap: 12px;
+      gap: 8px;
       align-items: baseline;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
 
     .derived-card .derived-name {
       color: #e3cf95;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     .derived-card .derived-total {
       color: #fff4c2;
-      font-size: 1.4rem;
+      font-size: 1.15rem;
       font-weight: 700;
+      white-space: nowrap;
     }
 
     .formula-list {
       display: grid;
-      gap: 6px;
-      font-size: 0.92rem;
+      gap: 4px;
+      font-size: 0.84rem;
     }
 
     .formula-row {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      padding: 6px 8px;
+      gap: 8px;
+      padding: 4px 6px;
       border-radius: 6px;
       background: rgba(255,255,255,0.05);
     }
@@ -378,6 +383,13 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-top: 10px;
+    }
+
+    @media (min-width: 921px) {
+      .derived-grid {
+        max-width: 280px;
+        justify-self: end;
+      }
     }
 
     @media (max-width: 920px) {
