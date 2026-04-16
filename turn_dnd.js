@@ -125,7 +125,12 @@ function applyHighlight(emitEvent = false, reason = "sync") {
     return;
   }
 
-  syncIndexToExistingHighlightOrEntry();
+  if (!emitEvent) {
+    syncIndexToExistingHighlightOrEntry();
+  } else {
+    if (currentHighlightIndex >= items.length) currentHighlightIndex = items.length - 1;
+    if (currentHighlightIndex < 0) currentHighlightIndex = 0;
+  }
 
   items.forEach((item) => item.classList.remove("highlighted"));
 

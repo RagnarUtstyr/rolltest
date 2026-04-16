@@ -486,6 +486,8 @@ function clearList() {
     .then(() => {
       document.getElementById("rankingList").innerHTML = "";
       countdownById.clear();
+      window.roundCounter = 1;
+      window.updateRoundDisplay?.();
     })
     .catch((error) => {
       console.error("Error clearing list:", error);
@@ -780,10 +782,10 @@ onReady(() => {
 
     document.getElementById("apply-damage-button")?.addEventListener("click", applyDamageToAll);
     document.getElementById("clear-list-button")?.addEventListener("click", async () => {
-  await clearList();
-  window.roundCounter = 1;
-  window.updateRoundDisplay?.();
-});
+      await clearList();
+      window.roundCounter = 1;
+      window.updateRoundDisplay?.();
+    });
   }).catch((error) => {
     console.error("Auth failed on DND page:", error);
   });

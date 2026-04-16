@@ -132,7 +132,12 @@ function highlightCurrentEntry(emitEvent = false, reason = "sync") {
     return;
   }
 
-  syncIndexToStoredEntryId();
+  if (!emitEvent) {
+    syncIndexToStoredEntryId();
+  } else {
+    if (currentHighlightIndex >= listItems.length) currentHighlightIndex = listItems.length - 1;
+    if (currentHighlightIndex < 0) currentHighlightIndex = 0;
+  }
 
   listItems.forEach((item) => item.classList.remove("highlighted"));
 
