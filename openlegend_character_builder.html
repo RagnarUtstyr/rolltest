@@ -191,7 +191,7 @@
 
     .attribute-row {
       display: grid;
-      grid-template-columns: minmax(110px, 1fr) 84px 74px;
+      grid-template-columns: minmax(110px, 1fr) 84px 84px 74px;
       gap: 8px;
       align-items: center;
       margin-bottom: 8px;
@@ -201,6 +201,7 @@
       color: #ddd2a8;
     }
 
+    .attribute-row .attr-die,
     .attribute-row .attr-cost {
       text-align: center;
       font-size: 0.92rem;
@@ -386,7 +387,7 @@
       body { padding: 6px; }
       .container { padding: 10px; }
       h1 { font-size: 1.4rem; }
-      .attribute-row { grid-template-columns: minmax(92px, 1fr) 72px 66px; }
+      .attribute-row { grid-template-columns: minmax(92px, 1fr) 72px 72px 66px; }
       .feat-controls { grid-template-columns: 1fr; }
       .tag-row { grid-template-columns: minmax(0, 1fr) 64px auto; }
     }
@@ -1112,7 +1113,8 @@ import { requireAuth } from "./auth.js";
             const die = getAttributeDie(score);
             return `
             <div class="attribute-row">
-              <div class="attr-name">${escapeHtml(attr)}${die ? `<div class="helper-text">${escapeHtml(die)}</div>` : ""}</div>
+              <div class="attr-name">${escapeHtml(attr)}</div>
+              <div class="attr-die">${die ? escapeHtml(die) : ""}</div>
               <div class="attr-cost">${attributeCost(score)} pts</div>
               <input data-attr="${escapeHtml(attr)}" type="number" min="0" value="${score}">
             </div>
