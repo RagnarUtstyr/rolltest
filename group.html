@@ -8,7 +8,7 @@
   <title>Initiative</title>
 
   <script type="module" src="server.js?v=20260406e" defer></script>
-  <script type="module" src="health.js?v=20260406e" defer></script>
+  <script type="module" src="health.js?v=20260418b" defer></script>
   <script type="module" src="turn.js?v=20260416a" defer></script>
 
   <link rel="stylesheet" href="style.css" />
@@ -33,51 +33,79 @@
     border: 1px solid #2d3d73;
   }
 
-  .top-nav-row {
+  .submit-entry-header {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     flex-wrap: wrap;
+    margin-bottom: 8px;
   }
 
-  #booncr-open {
-    display: inline-block;
-    text-decoration: none;
+  .submit-entry-header h2 {
+    margin: 0;
   }
 
-  .booncr-grid {
+  .custom-build-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
     margin-top: 12px;
   }
 
-  .booncr-grid h4 {
+  .custom-build-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .custom-build-card h4 {
     margin: 0 0 10px 0;
     color: #e3cf95;
   }
 
-  .booncr-list {
-    display: grid;
-    gap: 6px;
-  }
-
-  .booncr-row {
+  .custom-build-detail-row {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-    padding: 4px 0;
-    border-bottom: 1px solid #1a3b4a;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .booncr-row:last-child {
+  .custom-build-detail-row:last-child {
     border-bottom: none;
   }
 
+  .custom-build-text-block {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .custom-build-text-block h4 {
+    margin: 0 0 8px 0;
+    color: #e3cf95;
+  }
+
+  .custom-build-text-block p {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  #stat-custom-build {
+    display: none;
+  }
+
   @media (max-width: 600px) {
-    .booncr-grid {
+    .submit-entry-header {
+      align-items: stretch;
+    }
+
+    .custom-build-grid {
       grid-template-columns: 1fr;
-      gap: 14px;
     }
   }
 </style>
@@ -87,10 +115,7 @@
     <h1>Initiative</h1>
       <div id="game-code-badge">Code: ----</div>
         <br>
-        <div class="top-nav-row">
-          <a href="lobby.html" class="button-link">Lobby</a>
-          <button id="booncr-open" class="button-link" type="button">BOON CR</button>
-        </div>
+        <a href="lobby.html" class="button-link">Lobby</a>
         <br>
 
     <div class="ranking-container">
@@ -121,7 +146,10 @@
     <button id="reset-round-button">Reset Round</button>
     <br /><br />
 
-    <h2>Submit a New Entry</h2>
+    <div class="submit-entry-header">
+      <h2>Submit a New Entry</h2>
+      <a id="custom-npc-link" href="custom.html" class="button-link">Custom NPC</a>
+    </div>
 
     <label for="name">Name:</label>
     <input type="text" id="name" required />
@@ -162,6 +190,7 @@
 
       const saveLink = document.getElementById("save-link");
       const monsterLink = document.getElementById("monster-link");
+      const customNpcLink = document.getElementById("custom-npc-link");
 
       if (saveLink) {
         saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
@@ -169,6 +198,10 @@
 
       if (monsterLink) {
         monsterLink.href = `openmonsterlist.html?code=${encodeURIComponent(code)}`;
+      }
+
+      if (customNpcLink) {
+        customNpcLink.href = `custom.html?code=${encodeURIComponent(code)}`;
       }
     })();
   </script>
@@ -210,6 +243,7 @@
 
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="stat-add-bane" type="button">Bane</button>
+        <button id="stat-custom-build" type="button">Custom Build</button>
         <button id="stat-delete" class="remove-button" style="margin-top:0;">Delete from list</button>
       </div>
     </div>
@@ -243,75 +277,44 @@
     </div>
   </div>
 
-  <div id="booncr-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="booncr-modal-title">
-      <button class="ol-modal__close" id="booncr-close" aria-label="Close">×</button>
-      <h3 id="booncr-modal-title">BOON CR</h3>
+  <div id="custom-build-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="custom-build-title">
+      <button class="ol-modal__close" id="custom-build-close" aria-label="Close">×</button>
+      <h3 id="custom-build-title">Custom Build</h3>
 
-      <div class="booncr-grid">
-        <div>
-          <h4>Boon CR</h4>
-          <div class="booncr-list">
-            <div class="booncr-row"><span>1</span><span>12</span></div>
-            <div class="booncr-row"><span>2</span><span>14</span></div>
-            <div class="booncr-row"><span>3</span><span>16</span></div>
-            <div class="booncr-row"><span>4</span><span>18</span></div>
-            <div class="booncr-row"><span>5</span><span>20</span></div>
-            <div class="booncr-row"><span>6</span><span>22</span></div>
-            <div class="booncr-row"><span>7</span><span>24</span></div>
-            <div class="booncr-row"><span>8</span><span>26</span></div>
-            <div class="booncr-row"><span>9</span><span>28</span></div>
-          </div>
+      <div class="custom-build-grid">
+        <div class="custom-build-card">
+          <h4>Overview</h4>
+          <div id="custom-build-overview"></div>
         </div>
 
-        <div>
-          <h4>LVL Die</h4>
-          <div class="booncr-list">
-            <div class="booncr-row"><span>1</span><span>1D4</span></div>
-            <div class="booncr-row"><span>2</span><span>1D6</span></div>
-            <div class="booncr-row"><span>3</span><span>1D8</span></div>
-            <div class="booncr-row"><span>4</span><span>1D10</span></div>
-            <div class="booncr-row"><span>5</span><span>2D6</span></div>
-            <div class="booncr-row"><span>6</span><span>2D8</span></div>
-            <div class="booncr-row"><span>7</span><span>2D10</span></div>
-            <div class="booncr-row"><span>8</span><span>3D8</span></div>
-            <div class="booncr-row"><span>9</span><span>3D10</span></div>
-            <div class="booncr-row"><span>10</span><span>4D8</span></div>
-          </div>
+        <div class="custom-build-card">
+          <h4>Attributes</h4>
+          <div id="custom-build-attributes"></div>
         </div>
+      </div>
+
+      <div class="custom-build-text-block">
+        <h4>Favored Actions</h4>
+        <p id="custom-build-favored-actions">—</p>
+      </div>
+
+      <div class="custom-build-text-block">
+        <h4>Special Actions</h4>
+        <p id="custom-build-special-actions">—</p>
+      </div>
+
+      <div class="custom-build-text-block">
+        <h4>Feats</h4>
+        <p id="custom-build-feats">—</p>
+      </div>
+
+      <div class="custom-build-text-block">
+        <h4>Weapons</h4>
+        <p id="custom-build-weapons">—</p>
       </div>
     </div>
   </div>
-
-  <script>
-    (function () {
-      const openBtn = document.getElementById("booncr-open");
-      const modal = document.getElementById("booncr-modal");
-      const closeBtn = document.getElementById("booncr-close");
-
-      if (!openBtn || !modal || !closeBtn) return;
-
-      openBtn.addEventListener("click", () => {
-        modal.setAttribute("aria-hidden", "false");
-      });
-
-      closeBtn.addEventListener("click", () => {
-        modal.setAttribute("aria-hidden", "true");
-      });
-
-      modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          modal.setAttribute("aria-hidden", "true");
-        }
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && modal.getAttribute("aria-hidden") === "false") {
-          modal.setAttribute("aria-hidden", "true");
-        }
-      });
-    })();
-  </script>
 
   <script>
   (function () {

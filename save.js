@@ -152,7 +152,10 @@ async function loadList() {
       banes,
       countdownRemaining,
       countdownActive,
-      countdownEnded
+      countdownEnded,
+      customBuild,
+      createdByUid,
+      createdByName
     } = entry || {};
 
     await set(push(rankingsRef), {
@@ -186,6 +189,9 @@ async function loadList() {
       ac: typeof ac === "number" ? ac : null,
       url: url ?? null,
       banes: banes ?? null,
+      customBuild: customBuild ?? null,
+      createdByUid: createdByUid ?? customBuild?.createdByUid ?? null,
+      createdByName: createdByName ?? customBuild?.createdByName ?? null,
       countdownRemaining: typeof countdownRemaining === "number" ? countdownRemaining : null,
       countdownActive: !!countdownActive,
       countdownEnded: !!countdownEnded,

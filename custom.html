@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png" />
+  <title>Custom NPC</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="turn.css" />
+  <link rel="stylesheet" href="save.css" />
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
+
+  <style>
+    .page-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .custom-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .meta-note {
+      font-size: 0.95em;
+      opacity: 0.85;
+      margin-top: 6px;
+    }
+
+    .attribute-summary {
+      text-align: left;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 44px;
+      white-space: pre-wrap;
+    }
+
+    .attribute-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .attribute-card {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      text-align: left;
+    }
+
+    .attribute-card label {
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 2px solid #2d3d73;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #827b5a;
+      font-size: 1em;
+      box-sizing: border-box;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    @media (max-width: 700px) {
+      .custom-form-grid,
+      .attribute-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="page-row">
+      <h1 style="margin:0;">Custom NPC</h1>
+      <a id="back-link" href="group.html" class="button-link">Back to Initiative</a>
+    </div>
+
+    <p class="meta-note">
+      Create a custom Open Legend NPC and write it into this game's Firebase entry list.
+    </p>
+
+    <form id="custom-npc-form">
+      <div class="custom-form-grid">
+        <div>
+          <label for="npc-name">Name</label>
+          <input type="text" id="npc-name" required />
+        </div>
+
+        <div>
+          <label for="npc-initiative">Initiative</label>
+          <input type="number" id="npc-initiative" value="0" />
+        </div>
+
+        <div>
+          <label for="npc-level">Level</label>
+          <input type="number" id="npc-level" min="0" />
+        </div>
+
+        <div>
+          <label for="npc-size">Size</label>
+          <input type="text" id="npc-size" placeholder="Small, Medium, Large..." />
+        </div>
+
+        <div>
+          <label for="npc-hp">HP</label>
+          <input type="number" id="npc-hp" min="0" />
+        </div>
+
+        <div>
+          <label for="npc-speed">Speed</label>
+          <input type="text" id="npc-speed" placeholder="30, Fly 40, Swim 20..." />
+        </div>
+
+        <div>
+          <label for="npc-grd">GRD</label>
+          <input type="number" id="npc-grd" min="0" />
+        </div>
+
+        <div>
+          <label for="npc-tgh">TGH</label>
+          <input type="number" id="npc-tgh" min="0" />
+        </div>
+
+        <div>
+          <label for="npc-res">RES</label>
+          <input type="number" id="npc-res" min="0" />
+        </div>
+
+        <div class="full-width">
+          <button id="open-attributes-modal" type="button">Attributes</button>
+          <div id="attribute-summary" class="attribute-summary">No attributes selected yet.</div>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-favored-actions">Favored Actions</label>
+          <textarea id="npc-favored-actions" placeholder="One per line or free text"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-special-actions">Special Actions</label>
+          <textarea id="npc-special-actions" placeholder="One per line or free text"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-feats">Feats</label>
+          <textarea id="npc-feats" placeholder="One per line or free text"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-weapons">Weapons</label>
+          <textarea id="npc-weapons" placeholder="One per line or free text"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" id="create-custom-npc-button">Create Custom NPC</button>
+    </form>
+  </div>
+
+  <div id="attributes-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="attributes-modal-title">
+      <button class="ol-modal__close" id="attributes-modal-close" aria-label="Close">×</button>
+      <h3 id="attributes-modal-title">Attributes</h3>
+
+      <div class="attribute-grid" id="attribute-grid"></div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+        <button type="button" id="attributes-save-button">Save Attributes</button>
+        <button type="button" id="attributes-clear-button" class="remove-button">Clear Attributes</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { requireAuth } from "./auth.js";
+    import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
+    const ATTRIBUTE_NAMES = [
+      "Agility",
+      "Fortitude",
+      "Might",
+      "Learning",
+      "Logic",
+      "Perception",
+      "Will",
+      "Deception",
+      "Influence",
+      "Persuasion",
+      "Presence",
+      "Alteration",
+      "Creation",
+      "Energy",
+      "Entropy",
+      "Movement",
+      "Prescience",
+      "Protection"
+    ];
+
+    function getGameCode() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get("code") || "").trim().toUpperCase();
+    }
+
+    function getEntriesPath() {
+      const code = getGameCode();
+      if (!code) throw new Error("Missing game code in URL.");
+      return `games/${code}/entries`;
+    }
+
+    function getBackHref() {
+      const code = getGameCode();
+      return `group.html?code=${encodeURIComponent(code)}`;
+    }
+
+    function parseOptionalNumber(value) {
+      const trimmed = String(value ?? "").trim();
+      if (trimmed === "") return null;
+      const parsed = parseInt(trimmed, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    function buildAttributeInputs() {
+      const grid = document.getElementById("attribute-grid");
+      if (!grid) return;
+
+      grid.innerHTML = "";
+      ATTRIBUTE_NAMES.forEach((name) => {
+        const card = document.createElement("div");
+        card.className = "attribute-card";
+
+        const label = document.createElement("label");
+        label.setAttribute("for", `attr-${name.toLowerCase()}`);
+        label.textContent = name;
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.min = "0";
+        input.id = `attr-${name.toLowerCase()}`;
+        input.dataset.attributeName = name;
+
+        card.appendChild(label);
+        card.appendChild(input);
+        grid.appendChild(card);
+      });
+    }
+
+    function getAttributesFromModal() {
+      const inputs = Array.from(document.querySelectorAll("#attribute-grid input[data-attribute-name]"));
+      const attributes = {};
+
+      inputs.forEach((input) => {
+        const name = input.dataset.attributeName;
+        const value = parseOptionalNumber(input.value);
+        if (name && value !== null) {
+          attributes[name] = value;
+        }
+      });
+
+      return attributes;
+    }
+
+    function setAttributesInModal(attributes) {
+      const inputs = Array.from(document.querySelectorAll("#attribute-grid input[data-attribute-name]"));
+      inputs.forEach((input) => {
+        const name = input.dataset.attributeName;
+        input.value = attributes?.[name] ?? "";
+      });
+    }
+
+    function renderAttributeSummary(attributes) {
+      const summary = document.getElementById("attribute-summary");
+      if (!summary) return;
+
+      const entries = Object.entries(attributes || {});
+      if (!entries.length) {
+        summary.textContent = "No attributes selected yet.";
+        return;
+      }
+
+      summary.textContent = entries
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([name, value]) => `${name}: ${value}`)
+        .join("\n");
+    }
+
+    function openAttributesModal() {
+      document.getElementById("attributes-modal")?.setAttribute("aria-hidden", "false");
+    }
+
+    function closeAttributesModal() {
+      document.getElementById("attributes-modal")?.setAttribute("aria-hidden", "true");
+    }
+
+    let currentAttributes = {};
+
+    buildAttributeInputs();
+    renderAttributeSummary(currentAttributes);
+
+    const backLink = document.getElementById("back-link");
+    if (backLink) backLink.href = getBackHref();
+
+    document.getElementById("open-attributes-modal")?.addEventListener("click", () => {
+      setAttributesInModal(currentAttributes);
+      openAttributesModal();
+    });
+
+    document.getElementById("attributes-modal-close")?.addEventListener("click", closeAttributesModal);
+    document.getElementById("attributes-modal")?.addEventListener("click", (e) => {
+      if (e.target.id === "attributes-modal") closeAttributesModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && document.getElementById("attributes-modal")?.getAttribute("aria-hidden") === "false") {
+        closeAttributesModal();
+      }
+    });
+
+    document.getElementById("attributes-save-button")?.addEventListener("click", () => {
+      currentAttributes = getAttributesFromModal();
+      renderAttributeSummary(currentAttributes);
+      closeAttributesModal();
+    });
+
+    document.getElementById("attributes-clear-button")?.addEventListener("click", () => {
+      currentAttributes = {};
+      setAttributesInModal(currentAttributes);
+      renderAttributeSummary(currentAttributes);
+    });
+
+    document.getElementById("custom-npc-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const user = await requireAuth();
+      const code = getGameCode();
+
+      if (!code) {
+        alert("Missing game code in URL.");
+        return;
+      }
+
+      const name = document.getElementById("npc-name")?.value?.trim();
+      const initiative = parseOptionalNumber(document.getElementById("npc-initiative")?.value) ?? 0;
+      const level = parseOptionalNumber(document.getElementById("npc-level")?.value);
+      const size = document.getElementById("npc-size")?.value?.trim() || "";
+      const hp = parseOptionalNumber(document.getElementById("npc-hp")?.value);
+      const speed = document.getElementById("npc-speed")?.value?.trim() || "";
+      const grd = parseOptionalNumber(document.getElementById("npc-grd")?.value);
+      const tgh = parseOptionalNumber(document.getElementById("npc-tgh")?.value);
+      const res = parseOptionalNumber(document.getElementById("npc-res")?.value);
+      const favoredActions = document.getElementById("npc-favored-actions")?.value?.trim() || "";
+      const specialActions = document.getElementById("npc-special-actions")?.value?.trim() || "";
+      const feats = document.getElementById("npc-feats")?.value?.trim() || "";
+      const weapons = document.getElementById("npc-weapons")?.value?.trim() || "";
+
+      if (!name) {
+        alert("Name is required.");
+        return;
+      }
+
+      const createdByName = user.displayName || user.email || "Unknown";
+
+      const customBuild = {
+        level,
+        size: size || null,
+        hp,
+        speed: speed || null,
+        grd,
+        tgh,
+        res,
+        attributes: currentAttributes,
+        favoredActions: favoredActions || null,
+        specialActions: specialActions || null,
+        feats: feats || null,
+        weapons: weapons || null,
+        createdByUid: user.uid,
+        createdByName
+      };
+
+      const entry = {
+        name,
+        playerName: name,
+        number: initiative,
+        initiative,
+        health: hp,
+        currentHp: hp,
+        grd,
+        tgh,
+        res,
+        customBuild,
+        createdByUid: user.uid,
+        createdByName,
+        updatedAt: Date.now()
+      };
+
+      try {
+        await push(ref(db, getEntriesPath()), entry);
+        window.location.href = getBackHref();
+      } catch (error) {
+        console.error("Error creating custom NPC:", error);
+        alert("Could not create custom NPC.");
+      }
+    });
+  </script>
+</body>
+</html>
