@@ -244,9 +244,9 @@
 
     function parseOptionalNumber(value) {
       const trimmed = String(value ?? "").trim();
-      if (trimmed === "") return null;
+      if (trimmed === "") return "";
       const parsed = parseInt(trimmed, 10);
-      return Number.isNaN(parsed) ? null : parsed;
+      return Number.isNaN(parsed) ? "" : parsed;
     }
 
     function buildAttributeInputs() {
@@ -282,7 +282,7 @@
       inputs.forEach((input) => {
         const name = input.dataset.attributeName;
         const value = parseOptionalNumber(input.value);
-        if (name && value !== null) {
+        if (name && value !== "") {
           attributes[name] = value;
         }
       });
@@ -372,8 +372,8 @@
 
       const user = await requireAuth();
 
-      const name = document.getElementById("npc-name")?.value?.trim();
-      const initiative = parseOptionalNumber(document.getElementById("npc-initiative")?.value) ?? 0;
+      const name = document.getElementById("npc-name")?.value?.trim() || "";
+      const initiative = parseOptionalNumber(document.getElementById("npc-initiative")?.value);
       const level = parseOptionalNumber(document.getElementById("npc-level")?.value);
       const size = document.getElementById("npc-size")?.value?.trim() || "";
       const hp = parseOptionalNumber(document.getElementById("npc-hp")?.value);
@@ -393,30 +393,36 @@
 
       const createdByName = user.displayName || user.email || "Unknown";
 
+      const initiativeValue = initiative === "" ? 0 : initiative;
+      const hpValue = hp === "" ? "" : hp;
+      const grdValue = grd === "" ? "" : grd;
+      const tghValue = tgh === "" ? "" : tgh;
+      const resValue = res === "" ? "" : res;
+
       const entry = {
         name,
         playerName: name,
-        number: initiative,
-        initiative,
-        health: hp,
-        currentHp: hp,
-        grd,
-        tgh,
-        res,
+        number: initiativeValue,
+        initiative: initiativeValue,
+        health: hpValue,
+        currentHp: hpValue,
+        grd: grdValue,
+        tgh: tghValue,
+        res: resValue,
         isCustom: true,
         createdByUid: user.uid,
         createdByName,
         updatedAt: Date.now(),
         customBuild: {
           level,
-          size: size || null,
-          hp,
-          speed: speed || null,
+          size,
+          hp: hpValue,
+          speed,
           attributes: currentAttributes,
-          favoredActions: favoredActions || null,
-          specialActions: specialActions || null,
-          feats: feats || null,
-          weapons: weapons || null,
+          favoredActions,
+          specialActions,
+          feats,
+          weapons,
           createdByUid: user.uid,
           createdByName
         }
