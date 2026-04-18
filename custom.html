@@ -90,6 +90,18 @@
       margin-top: 10px;
     }
 
+    .debug-box {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
     @media (max-width: 700px) {
       .custom-form-grid,
       .attribute-grid {
@@ -188,6 +200,8 @@
         <a id="cancel-link" href="group.html" class="button-link">Cancel</a>
       </div>
     </form>
+
+    <div id="debug-output" class="debug-box">Waiting for submit…</div>
   </div>
 
   <div id="attributes-modal" class="ol-modal" aria-hidden="true">
@@ -242,7 +256,7 @@
       return `group.html?code=${encodeURIComponent(code)}`;
     }
 
-    function parseOptionalNumber(value) {
+    function parseNumberOrEmpty(value) {
       const trimmed = String(value ?? "").trim();
       if (trimmed === "") return "";
       const parsed = parseInt(trimmed, 10);
@@ -281,7 +295,7 @@
 
       inputs.forEach((input) => {
         const name = input.dataset.attributeName;
-        const value = parseOptionalNumber(input.value);
+        const value = parseNumberOrEmpty(input.value);
         if (name && value !== "") {
           attributes[name] = value;
         }
@@ -373,14 +387,14 @@
       const user = await requireAuth();
 
       const name = document.getElementById("npc-name")?.value?.trim() || "";
-      const initiative = parseOptionalNumber(document.getElementById("npc-initiative")?.value);
-      const level = parseOptionalNumber(document.getElementById("npc-level")?.value);
+      const initiative = parseNumberOrEmpty(document.getElementById("npc-initiative")?.value);
+      const level = parseNumberOrEmpty(document.getElementById("npc-level")?.value);
       const size = document.getElementById("npc-size")?.value?.trim() || "";
-      const hp = parseOptionalNumber(document.getElementById("npc-hp")?.value);
+      const hp = parseNumberOrEmpty(document.getElementById("npc-hp")?.value);
       const speed = document.getElementById("npc-speed")?.value?.trim() || "";
-      const grd = parseOptionalNumber(document.getElementById("npc-grd")?.value);
-      const tgh = parseOptionalNumber(document.getElementById("npc-tgh")?.value);
-      const res = parseOptionalNumber(document.getElementById("npc-res")?.value);
+      const grd = parseNumberOrEmpty(document.getElementById("npc-grd")?.value);
+      const tgh = parseNumberOrEmpty(document.getElementById("npc-tgh")?.value);
+      const res = parseNumberOrEmpty(document.getElementById("npc-res")?.value);
       const favoredActions = document.getElementById("npc-favored-actions")?.value?.trim() || "";
       const specialActions = document.getElementById("npc-special-actions")?.value?.trim() || "";
       const feats = document.getElementById("npc-feats")?.value?.trim() || "";
@@ -427,6 +441,11 @@
           createdByName
         }
       };
+
+      document.getElementById("debug-output").textContent =
+        "Submitting this object:\\n\\n" + JSON.stringify(entry, null, 2);
+
+      console.log("CUSTOM NPC SUBMIT", entry);
 
       try {
         await push(ref(db, getEntriesPath()), entry);
