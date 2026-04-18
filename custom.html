@@ -83,6 +83,13 @@
       resize: vertical;
     }
 
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
     @media (max-width: 700px) {
       .custom-form-grid,
       .attribute-grid {
@@ -98,6 +105,11 @@
       <h1 style="margin:0;">Custom NPC</h1>
       <a id="back-link" href="group.html" class="button-link">Back to Initiative</a>
     </div>
+
+    <p class="meta-note">
+      Create a custom Open Legend NPC and add it directly to this game's initiative list.
+    </p>
+
     <form id="custom-npc-form">
       <div class="custom-form-grid">
         <div>
@@ -171,7 +183,10 @@
         </div>
       </div>
 
-      <button type="submit" id="create-custom-npc-button">Create Custom NPC</button>
+      <div class="button-row">
+        <button type="submit" id="create-custom-npc-button">Create Custom NPC</button>
+        <a id="cancel-link" href="group.html" class="button-link">Cancel</a>
+      </div>
     </form>
   </div>
 
@@ -182,7 +197,7 @@
 
       <div class="attribute-grid" id="attribute-grid"></div>
 
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+      <div class="button-row">
         <button type="button" id="attributes-save-button">Save Attributes</button>
         <button type="button" id="attributes-clear-button" class="remove-button">Clear Attributes</button>
       </div>
@@ -215,19 +230,15 @@
       "Protection"
     ];
 
-    function getGameCode() {
-      const params = new URLSearchParams(window.location.search);
-      return (params.get("code") || "").trim().toUpperCase();
-    }
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get("code") || "").trim().toUpperCase();
 
     function getEntriesPath() {
-      const code = getGameCode();
       if (!code) throw new Error("Missing game code in URL.");
       return `games/${code}/entries`;
     }
 
     function getBackHref() {
-      const code = getGameCode();
       return `group.html?code=${encodeURIComponent(code)}`;
     }
 
@@ -243,6 +254,7 @@
       if (!grid) return;
 
       grid.innerHTML = "";
+
       ATTRIBUTE_NAMES.forEach((name) => {
         const card = document.createElement("div");
         card.className = "attribute-card";
@@ -299,7 +311,7 @@
       summary.textContent = entries
         .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([name, value]) => `${name}: ${value}`)
-        .join("\n");
+        .join("\\n");
     }
 
     function openAttributesModal() {
@@ -316,7 +328,10 @@
     renderAttributeSummary(currentAttributes);
 
     const backLink = document.getElementById("back-link");
+    const cancelLink = document.getElementById("cancel-link");
+
     if (backLink) backLink.href = getBackHref();
+    if (cancelLink) cancelLink.href = getBackHref();
 
     document.getElementById("open-attributes-modal")?.addEventListener("click", () => {
       setAttributesInModal(currentAttributes);
@@ -324,6 +339,7 @@
     });
 
     document.getElementById("attributes-modal-close")?.addEventListener("click", closeAttributesModal);
+
     document.getElementById("attributes-modal")?.addEventListener("click", (e) => {
       if (e.target.id === "attributes-modal") closeAttributesModal();
     });
@@ -349,13 +365,12 @@
     document.getElementById("custom-npc-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const user = await requireAuth();
-      const code = getGameCode();
-
       if (!code) {
         alert("Missing game code in URL.");
         return;
       }
+
+      const user = await requireAuth();
 
       const name = document.getElementById("npc-name")?.value?.trim();
       const initiative = parseOptionalNumber(document.getElementById("npc-initiative")?.value) ?? 0;
@@ -378,23 +393,6 @@
 
       const createdByName = user.displayName || user.email || "Unknown";
 
-      const customBuild = {
-        level,
-        size: size || null,
-        hp,
-        speed: speed || null,
-        grd,
-        tgh,
-        res,
-        attributes: currentAttributes,
-        favoredActions: favoredActions || null,
-        specialActions: specialActions || null,
-        feats: feats || null,
-        weapons: weapons || null,
-        createdByUid: user.uid,
-        createdByName
-      };
-
       const entry = {
         name,
         playerName: name,
@@ -406,10 +404,22 @@
         tgh,
         res,
         isCustom: true,
-        customBuild,
         createdByUid: user.uid,
         createdByName,
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        customBuild: {
+          level,
+          size: size || null,
+          hp,
+          speed: speed || null,
+          attributes: currentAttributes,
+          favoredActions: favoredActions || null,
+          specialActions: specialActions || null,
+          feats: feats || null,
+          weapons: weapons || null,
+          createdByUid: user.uid,
+          createdByName
+        }
       };
 
       try {
