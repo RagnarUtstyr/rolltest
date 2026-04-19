@@ -640,7 +640,7 @@ import { requireAuth } from "../js/auth.js";
     import { watchOrLoadGame } from "../js/game-service.js";
     import { OPENLEGEND_FEATS } from "../js/openlegend_feats.js";
     import { OPENLEGEND_WEAPONS, OPENLEGEND_WEAPON_VS_OPTIONS, createOpenLegendWeapon, findOpenLegendWeaponPreset, getOpenLegendAttributeDie, composeOpenLegendWeaponDamage } from "../js/openlegend_weapons.js";
-    import { BANES } from "../js/banes.js";
+    import { OPENLEGEND_BANES } from "../js/openlegend_banes.js";
     import {
       ref,
       get,
@@ -959,6 +959,19 @@ import { requireAuth } from "../js/auth.js";
         registry[feat.name] = feat;
       }
       return registry;
+    }
+
+
+    function createDefaultBaneRegistry() {
+      const registry = {};
+      for (const bane of OPENLEGEND_BANES) {
+        registry[bane.name] = bane;
+      }
+      return registry;
+    }
+
+    function getBaneEntryByName(name) {
+      return baneRegistry[String(name || '').trim()] || null;
     }
 
     function getFeatEntryByKey(key) {
@@ -1321,6 +1334,86 @@ import { requireAuth } from "../js/auth.js";
       scheduleSave();
     }
 
+    function renderBaneLibrary() {
+      if (!baneListWrap) return;
+      const query = String(baneFilterInput?.value || '').trim().toLowerCase();
+      const entries = OPENLEGEND_BANES.filter((bane) => {
+        if (!query) return true;
+        return String(bane.name || '').toLowerCase().includes(query)
+          || String(bane.slug || '').toLowerCase().includes(query)
+          || String(bane.summary || '').toLowerCase().includes(query);
+      });
+
+      if (!entries.length) {
+        baneListWrap.innerHTML = '<div class="message-box">No banes matched that search.</div>';
+        return;
+      }
+
+      baneListWrap.innerHTML = entries.map((entry) => `
+        <div class="tag-row">
+          <div class="tag-meta">
+            <div class="tag-name">${escapeHtml(entry.name)}</div>
+            <div class="tag-subtitle">${escapeHtml(entry.summary || 'Reference entry')}</div>
+          </div>
+          <div class="tag-cost">Bane</div>
+          <div class="tag-actions">
+            <button type="button" data-open-bane="${escapeHtml(entry.name)}">Details</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openBaneModalByName(name) {
+      const entry = getBaneEntryByName(name);
+      if (!baneModal || !baneModalBody || !entry) return;
+
+      activeBaneModalName = entry.name;
+      baneModalBody.innerHTML = `
+        <div class="feat-modal__top">
+          <div>
+            <h2 class="feat-modal__title">${escapeHtml(entry.name)}</h2>
+            <div class="tag-subtitle">${escapeHtml(entry.displayTitle || entry.name)}</div>
+          </div>
+          <div class="feat-pill">Bane Reference</div>
+        </div>
+
+        <div class="feat-modal__section">
+          <h3>Overview</h3>
+          <div class="feat-modal__richtext">${entry.descriptionHtml || escapeHtml(entry.description || 'No local bane description is available yet.')}</div>
+        </div>
+
+        ${entry.effectHtml ? `
+          <div class="feat-modal__section">
+            <h3>Effect</h3>
+            <div class="feat-modal__richtext">${entry.effectHtml}</div>
+          </div>
+        ` : ''}
+
+        <div class="feat-modal__section">
+          <h3>Reference</h3>
+          <div class="message-box">
+            ${entry.icon ? `<div style="margin-bottom:10px;"><img src="${escapeHtml(entry.icon)}" alt="${escapeHtml(entry.name)} icon" style="width:32px;height:32px;object-fit:contain;border-radius:50%;"></div>` : ''}
+            <div>${escapeHtml(entry.summary || 'Official Open Legend bane reference.')}</div>
+            <div class="helper-text" style="margin-top:8px;">This bane entry was structured for the builder in the same way as feat data. The uploaded banes.txt did not contain bane records, so this local entry is based on the linked bane reference.</div>
+          </div>
+        </div>
+
+        <div class="feat-modal__footer">
+          <div class="tag-subtitle">${entry.url ? 'Opens the official bane page in a new tab.' : 'No official URL stored for this bane.'}</div>
+          <div class="feat-level-controls">
+            ${entry.url ? `<a class="button-link" href="${escapeHtml(entry.url)}" target="_blank" rel="noopener noreferrer">Open Official Page</a>` : ''}
+            <button type="button" data-close-bane-modal>Close</button>
+          </div>
+        </div>
+      `;
+      baneModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeBaneModal() {
+      activeBaneModalName = null;
+      if (baneModal) baneModal.setAttribute('aria-hidden', 'true');
+    }
+
     function renderWeapons() {
       if (!weaponListWrap) return;
 
@@ -1358,36 +1451,30 @@ import { requireAuth } from "../js/auth.js";
         : (Array.isArray(preset?.availableBanes) ? preset.availableBanes : []);
 
       if (!available.length) {
-        const note = preset?.officialBanesNote || weapon?.officialBanesNote || 'No official fixed bane list verified for this weapon preset.';
+        const note = preset?.officialBanesNote || weapon?.officialBanesNote || 'No fixed bane list is stored for this weapon preset.';
         return `
           <div class="message-box">
             <strong>Available Banes</strong><br>
-            ${escapeHtml(note)}<br>
-            <span class="helper-text">Open Legend’s official equipment rules say a typical weapon has 2 or 3 associated banes, but an official per-weapon master table was not verified for this preset.</span>
+            ${escapeHtml(note)}
           </div>
         `;
       }
 
       const normalized = available
-        .map((name) => {
-          const bane = Array.isArray(BANES)
-            ? BANES.find((entry) => String(entry?.name || '').toLowerCase() === String(name || '').toLowerCase())
-            : null;
-          return bane || { name: String(name || '').trim(), url: '', icon: '' };
-        })
+        .map((name) => getBaneEntryByName(name) || { name: String(name || '').trim(), url: '', icon: '', summary: 'Reference entry' })
         .filter((bane) => bane.name);
 
       if (!normalized.length) {
-        return '<div class="message-box">No official bane links available for this weapon.</div>';
+        return '<div class="message-box">No bane references are available for this weapon.</div>';
       }
 
       return `
         <div class="bane-overview-grid">
           ${normalized.map((bane) => `
-            <a class="bane-overview-card" href="${escapeHtml(bane.url || '#')}" target="_blank" rel="noopener noreferrer">
+            <button type="button" class="bane-overview-card" data-open-bane="${escapeHtml(bane.name)}">
               ${bane.icon ? `<img src="${escapeHtml(bane.icon)}" alt="${escapeHtml(bane.name || 'Bane')} icon">` : ''}
               <span>${escapeHtml(bane.name || 'Bane')}</span>
-            </a>
+            </button>
           `).join('')}
         </div>
       `;
@@ -1636,6 +1723,11 @@ import { requireAuth } from "../js/auth.js";
       renderSimpleList(perkListWrap, character.perks, "perk", "Perk name");
       renderSimpleList(flawListWrap, character.flaws, "flaw", "Flaw name");
       renderWeapons();
+      renderBaneLibrary();
+      if (baneCountInput) {
+        const visibleCount = baneListWrap ? baneListWrap.querySelectorAll('[data-open-bane]').length : 0;
+        baneCountInput.value = String(visibleCount || 0);
+      }
       const result = refreshComputedPanels();
       restoreFocusState(focusState);
 
@@ -1712,6 +1804,21 @@ import { requireAuth } from "../js/auth.js";
             </div>
           </div>
 
+          <div class="sheet-box" style="margin-top:16px;">
+            <h2>Banes Reference</h2>
+            <div class="feat-controls">
+              <label>Find bane
+                <input data-bane-filter type="text" placeholder="Search banes by name">
+              </label>
+              <label>Entries
+                <input data-bane-count type="text" readonly value="${OPENLEGEND_BANES.length}">
+              </label>
+              <button type="button" data-clear-bane-filter>Show All</button>
+            </div>
+            <p class="helper-text">Structured bane reference for the character builder. Open Details for the local entry and the official page link.</p>
+            <div class="tag-list" data-bane-list></div>
+          </div>
+
           <div class="two-col">
             <div class="sheet-box">
               <h2>Perks</h2>
@@ -1748,6 +1855,12 @@ import { requireAuth } from "../js/auth.js";
             <div data-weapon-modal-body></div>
           </div>
         </div>
+
+        <div class="feat-modal" data-bane-modal aria-hidden="true">
+          <div class="feat-modal__dialog" role="dialog" aria-modal="true" aria-label="Bane details">
+            <div data-bane-modal-body></div>
+          </div>
+        </div>
       `;
 
       attrWrap = root.querySelector("[data-attributes]");
@@ -1757,6 +1870,9 @@ import { requireAuth } from "../js/auth.js";
       perkListWrap = root.querySelector("[data-perk-list]");
       flawListWrap = root.querySelector("[data-flaw-list]");
       weaponListWrap = root.querySelector("[data-weapon-list]");
+      baneListWrap = root.querySelector("[data-bane-list]");
+      baneFilterInput = root.querySelector("[data-bane-filter]");
+      baneCountInput = root.querySelector("[data-bane-count]");
       statusWrap = root.querySelector("[data-status]");
       messagesWrap = root.querySelector("[data-messages]");
       featPicker = root.querySelector("[data-feat-picker]");
@@ -1766,10 +1882,21 @@ import { requireAuth } from "../js/auth.js";
       featModalBody = root.querySelector("[data-feat-modal-body]");
       weaponModal = root.querySelector("[data-weapon-modal]");
       weaponModalBody = root.querySelector("[data-weapon-modal-body]");
+      baneModal = root.querySelector("[data-bane-modal]");
+      baneModalBody = root.querySelector("[data-bane-modal-body]");
 
       root.addEventListener("input", (event) => {
         if (event.target.matches("[data-feat-picker]")) {
           refreshFeatPreview();
+          return;
+        }
+
+        if (event.target.matches("[data-bane-filter]")) {
+          renderBaneLibrary();
+          if (baneCountInput) {
+            const visibleCount = baneListWrap ? baneListWrap.querySelectorAll('[data-open-bane]').length : 0;
+            baneCountInput.value = String(visibleCount || 0);
+          }
           return;
         }
 
@@ -1821,6 +1948,11 @@ import { requireAuth } from "../js/auth.js";
           return;
         }
 
+        if (event.target === baneModal) {
+          closeBaneModal();
+          return;
+        }
+
         const button = event.target.closest("button");
         if (!button) return;
 
@@ -1863,6 +1995,23 @@ import { requireAuth } from "../js/auth.js";
 
         if (button.matches("[data-close-weapon-modal]")) {
           closeWeaponModal();
+          return;
+        }
+
+        if (button.matches("[data-open-bane]")) {
+          openBaneModalByName(button.dataset.openBane);
+          return;
+        }
+
+        if (button.matches("[data-close-bane-modal]")) {
+          closeBaneModal();
+          return;
+        }
+
+        if (button.matches("[data-clear-bane-filter]")) {
+          if (baneFilterInput) baneFilterInput.value = '';
+          renderBaneLibrary();
+          if (baneCountInput) baneCountInput.value = String(OPENLEGEND_BANES.length);
           return;
         }
 
