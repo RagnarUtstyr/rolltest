@@ -175,6 +175,10 @@
     opacity: 0.8;
   }
 
+  .player-weapons-panel .muted {
+    margin-top: 6px;
+  }
+
   .ol-modal {
     position: fixed;
     inset: 0;
@@ -585,6 +589,14 @@
 
         <div id="ol-calc-result" class="calc-result muted"></div>
       </div>
+
+      <div id="player-weapons-panel" class="player-panel compact-panel player-weapons-panel hidden">
+        <h2>Weapons</h2>
+        <p class="muted">Open Legend weapon presets, computed damage, and VS targets.</p>
+        <div id="player-weapons-preview" class="player-banes-preview">
+          <span class="muted player-banes-empty">No weapons added.</span>
+        </div>
+      </div>
     </section>
 
     <div class="player-panel">
@@ -645,6 +657,13 @@
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-label="Feat details">
       <button type="button" class="ol-modal__close" id="player-feat-modal-close" aria-label="Close">×</button>
       <div id="player-feat-modal-content"></div>
+    </div>
+  </div>
+
+  <div id="player-weapon-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-label="Weapon details">
+      <button type="button" class="ol-modal__close" id="player-weapon-modal-close" aria-label="Close">×</button>
+      <div id="player-weapon-modal-content"></div>
     </div>
   </div>
 </body>

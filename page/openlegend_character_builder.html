@@ -481,6 +481,37 @@
       justify-content: flex-end;
     }
 
+    .weapon-row-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+
+    .weapon-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.92rem;
+      color: #ddd2a8;
+    }
+
+    .weapon-divider {
+      opacity: 0.55;
+    }
+
+    .weapon-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .weapon-modal-grid textarea {
+      min-height: 88px;
+    }
+
     .status-ok {
       color: #d6f5a3;
       font-weight: 700;
@@ -576,6 +607,7 @@ import { requireAuth } from "../js/auth.js";
     import { db } from "../js/firebase-config.js";
     import { watchOrLoadGame } from "../js/game-service.js";
     import { OPENLEGEND_FEATS } from "../js/openlegend_feats.js";
+    import { OPENLEGEND_WEAPONS, OPENLEGEND_WEAPON_VS_OPTIONS, createOpenLegendWeapon, findOpenLegendWeaponPreset, getOpenLegendAttributeDie, composeOpenLegendWeaponDamage } from "../js/openlegend_weapons.js";
     import {
       ref,
       get,
@@ -631,40 +663,8 @@ import { requireAuth } from "../js/auth.js";
       ...RULES.categories.extraordinary
     ];
 
-    const WEAPON_PRESETS = [
-      { name: "Unarmed Strike", attribute: "Agility", boon: 0, bane: 0, damage: "1d4", notes: "Melee, basic attack" },
-      { name: "Dagger", attribute: "Agility", boon: 0, bane: 0, damage: "1d6", notes: "Melee or thrown, precise" },
-      { name: "Shortsword", attribute: "Agility", boon: 0, bane: 0, damage: "1d6", notes: "Melee, precise" },
-      { name: "Longsword", attribute: "Might", boon: 0, bane: 0, damage: "1d8", notes: "Versatile melee" },
-      { name: "Greatsword", attribute: "Might", boon: 0, bane: 0, damage: "1d10", notes: "Two-handed melee, forceful" },
-      { name: "Spear", attribute: "Might", boon: 0, bane: 0, damage: "1d8", notes: "Melee, can be thrown" },
-      { name: "Warhammer", attribute: "Might", boon: 0, bane: 0, damage: "1d8", notes: "Melee, forceful" },
-      { name: "Bow", attribute: "Agility", boon: 0, bane: 0, damage: "1d8", notes: "Long ranged, two-handed" },
-      { name: "Crossbow", attribute: "Agility", boon: 0, bane: 0, damage: "1d8", notes: "Ranged, heavy/slow feel" },
-      { name: "Revolver", attribute: "Agility", boon: 0, bane: 0, damage: "1d8", notes: "Short ranged, swift" },
-      { name: "Rifle", attribute: "Agility", boon: 0, bane: 0, damage: "1d10", notes: "Long ranged, two-handed" },
-      { name: "Sniper Rifle", attribute: "Agility", boon: 0, bane: 0, damage: "1d10", notes: "Extreme ranged, precise" },
-      { name: "Grenade", attribute: "Agility", boon: 0, bane: 0, damage: "1d8", notes: "Close ranged, area, expendable" },
-      { name: "Flamethrower", attribute: "Agility", boon: 0, bane: 0, damage: "1d10", notes: "Area, heavy, slow" },
-      { name: "Cannon", attribute: "Agility", boon: 0, bane: 0, damage: "2d10", notes: "Extreme ranged, heavy, slow, stationary" }
-    ];
-
-    function createEmptyAttributes() {
-      return ATTRIBUTE_ORDER.reduce((acc, key) => {
-        acc[key] = 0;
-        return acc;
-      }, {});
-    }
-
     function createEmptyWeapon() {
-      return {
-        name: "",
-        attribute: "Agility",
-        boon: 0,
-        bane: 0,
-        damage: "",
-        notes: ""
-      };
+      return createOpenLegendWeapon();
     }
 
     function clone(value) {
@@ -700,6 +700,52 @@ import { requireAuth } from "../js/auth.js";
         9: "3D10"
       };
       return diceByScore[n] || "";
+    }
+
+    function normalizeWeaponEntry(rawWeapon = {}) {
+      const preset = findOpenLegendWeaponPreset(rawWeapon.presetKey || rawWeapon.name || "");
+      const base = preset ? createOpenLegendWeapon(preset.key) : createOpenLegendWeapon();
+      const tagsValue = Array.isArray(rawWeapon.tags) ? rawWeapon.tags.join(", ") : (rawWeapon.tags ?? base.tags ?? "");
+
+      return {
+        ...base,
+        presetKey: rawWeapon.presetKey || preset?.key || base.presetKey || "",
+        name: rawWeapon.name || preset?.name || base.name || "",
+        attribute: rawWeapon.attribute || preset?.defaultAttribute || base.attribute || "Agility",
+        vs: rawWeapon.vs || base.vs || "GRD",
+        range: rawWeapon.range || base.range || "Melee",
+        bonusDice: rawWeapon.bonusDice ?? base.bonusDice ?? "",
+        flatBonus: Number(rawWeapon.flatBonus ?? base.flatBonus ?? 0),
+        boon: cleanInt(rawWeapon.boon ?? base.boon ?? 0),
+        bane: cleanInt(rawWeapon.bane ?? base.bane ?? 0),
+        tags: String(tagsValue || "").trim(),
+        notes: String(rawWeapon.notes ?? base.notes ?? "").trim(),
+        customDamage: String(rawWeapon.customDamage ?? "").trim()
+      };
+    }
+
+    function getWeaponComputedDamage(weapon) {
+      const attributeDie = getOpenLegendAttributeDie(character.attributes?.[weapon.attribute] || 0);
+      return composeOpenLegendWeaponDamage({
+        attributeDie,
+        bonusDice: weapon.bonusDice,
+        flatBonus: weapon.flatBonus,
+        customDamage: weapon.customDamage
+      });
+    }
+
+    function getWeaponSummaryHtml(weapon) {
+      const damage = getWeaponComputedDamage(weapon);
+      const tags = String(weapon.tags || "").trim();
+      return [
+        `<span><strong>DMG</strong> ${escapeHtml(damage || "—")}</span>`,
+        `<span><strong>ATK</strong> ${escapeHtml(weapon.attribute || "—")}</span>`,
+        `<span><strong>VS</strong> ${escapeHtml(weapon.vs || "GRD")}</span>`,
+        `<span><strong>Range</strong> ${escapeHtml(weapon.range || "—")}</span>`,
+        weapon.boon ? `<span><strong>Boon</strong> ${cleanInt(weapon.boon)}</span>` : "",
+        weapon.bane ? `<span><strong>Bane</strong> ${cleanInt(weapon.bane)}</span>` : "",
+        tags ? `<span><strong>Tags</strong> ${escapeHtml(tags)}</span>` : ""
+      ].filter(Boolean).join("<span class="weapon-divider">•</span>");
     }
 
     function getAttributeCostBreakdown(attributes) {
@@ -798,7 +844,7 @@ import { requireAuth } from "../js/auth.js";
       const feats = normalizeSavedFeats(seed.feats);
       const perks = Array.isArray(seed.perks) ? clone(seed.perks) : [];
       const flaws = Array.isArray(seed.flaws) ? clone(seed.flaws) : [];
-      const weapons = Array.isArray(seed.weapons) ? clone(seed.weapons) : [];
+      const weapons = Array.isArray(seed.weapons) ? clone(seed.weapons).map((weapon) => normalizeWeaponEntry(weapon)) : [];
 
       return {
         name: seed.name || "",
@@ -1000,6 +1046,9 @@ import { requireAuth } from "../js/auth.js";
     let featModal = null;
     let featModalBody = null;
     let activeFeatModalIndex = null;
+    let weaponModal = null;
+    let weaponModalBody = null;
+    let activeWeaponModalIndex = null;
 
     function builderPath() {
       return `games/${code}/builderSheets/${user.uid}`;
@@ -1037,17 +1086,7 @@ import { requireAuth } from "../js/auth.js";
         .map((el) => el.value.trim())
         .filter(Boolean);
 
-      character.weapons = Array.from(root.querySelectorAll("[data-weapon-index]")).map((card) => {
-        const index = Number(card.dataset.weaponIndex);
-        return {
-          name: root.querySelector(`[data-weapon-name="${index}"]`)?.value?.trim() || "",
-          attribute: root.querySelector(`[data-weapon-attribute="${index}"]`)?.value || "Agility",
-          boon: cleanInt(root.querySelector(`[data-weapon-boon="${index}"]`)?.value),
-          bane: cleanInt(root.querySelector(`[data-weapon-bane="${index}"]`)?.value),
-          damage: root.querySelector(`[data-weapon-damage="${index}"]`)?.value?.trim() || "",
-          notes: root.querySelector(`[data-weapon-notes="${index}"]`)?.value?.trim() || ""
-        };
-      });
+      character.weapons = (Array.isArray(character.weapons) ? character.weapons : []).map((weapon) => normalizeWeaponEntry(weapon));
     }
 
     function renderAttributes() {
@@ -1242,59 +1281,168 @@ import { requireAuth } from "../js/auth.js";
     }
 
     function renderWeapons() {
-      weaponListWrap.innerHTML = character.weapons.map((weapon, index) => `
-        <div class="weapon-card" data-weapon-index="${index}">
-          <div class="weapon-grid">
-            <label>
-              Preset
-              <select data-weapon-preset="${index}">
-                <option value="">Custom</option>
-                ${WEAPON_PRESETS.map((preset) => `
-                  <option value="${escapeHtml(preset.name)}" ${weapon.name === preset.name ? "selected" : ""}>${escapeHtml(preset.name)}</option>
-                `).join("")}
-              </select>
-            </label>
+      if (!weaponListWrap) return;
 
-            <label>
-              Weapon Name
-              <input data-weapon-name="${index}" type="text" value="${escapeHtml(weapon.name || "")}" placeholder="Longsword">
-            </label>
+      if (!character.weapons.length) {
+        weaponListWrap.innerHTML = '<div class="message-box">No weapons added yet.</div>';
+        return;
+      }
 
-            <label>
-              Attack Attribute
-              <select data-weapon-attribute="${index}">
-                ${ATTRIBUTE_ORDER.map((attr) => `
-                  <option value="${escapeHtml(attr)}" ${weapon.attribute === attr ? "selected" : ""}>${escapeHtml(attr)}</option>
-                `).join("")}
-              </select>
-            </label>
-
-            <label>
-              Damage
-              <input data-weapon-damage="${index}" type="text" value="${escapeHtml(weapon.damage || "")}" placeholder="1d8">
-            </label>
-
-            <label>
-              Boon
-              <input data-weapon-boon="${index}" type="number" min="0" value="${cleanInt(weapon.boon)}">
-            </label>
-
-            <label>
-              Bane
-              <input data-weapon-bane="${index}" type="number" min="0" value="${cleanInt(weapon.bane)}">
-            </label>
-
-            <label style="grid-column: 1 / -1;">
-              Notes
-              <input data-weapon-notes="${index}" type="text" value="${escapeHtml(weapon.notes || "")}" placeholder="Reach, precise, area, etc.">
-            </label>
+      weaponListWrap.innerHTML = character.weapons.map((rawWeapon, index) => {
+        const weapon = normalizeWeaponEntry(rawWeapon);
+        character.weapons[index] = weapon;
+        const preset = findOpenLegendWeaponPreset(weapon.presetKey || weapon.name || "");
+        return `
+          <div class="weapon-card" data-weapon-index="${index}">
+            <div class="weapon-row-top">
+              <div>
+                <div class="tag-name">${escapeHtml(weapon.name || `Weapon ${index + 1}`)}</div>
+                <div class="tag-subtitle">${escapeHtml(preset?.category || "Custom Weapon")}</div>
+              </div>
+              <div class="weapon-actions">
+                <button type="button" data-edit-weapon="${index}">Details</button>
+                <button type="button" class="remove-button" data-remove-weapon="${index}">Remove</button>
+              </div>
+            </div>
+            <div class="weapon-summary">${getWeaponSummaryHtml(weapon)}</div>
+            ${weapon.notes ? `<div class="helper-text">${escapeHtml(weapon.notes)}</div>` : ''}
           </div>
+        `;
+      }).join("");
+    }
 
-          <div class="weapon-actions">
-            <button type="button" class="remove-button" data-remove-weapon="${index}">Remove Weapon</button>
+    function openWeaponModal(index) {
+      if (!weaponModal || !weaponModalBody) return;
+      const weapon = normalizeWeaponEntry(character.weapons[index] || createEmptyWeapon());
+      character.weapons[index] = weapon;
+      activeWeaponModalIndex = index;
+      const preset = findOpenLegendWeaponPreset(weapon.presetKey || weapon.name || "");
+      const attributeScore = cleanInt(character.attributes?.[weapon.attribute] || 0);
+      const attributeDie = getOpenLegendAttributeDie(attributeScore);
+      const damage = getWeaponComputedDamage(weapon);
+
+      weaponModalBody.innerHTML = `
+        <div class="feat-modal__header">
+          <div>
+            <div class="tag-name">${escapeHtml(weapon.name || 'Weapon')}</div>
+            <div class="tag-subtitle">${escapeHtml(preset?.category || 'Custom Weapon')} • ${escapeHtml(weapon.range || '—')}</div>
+          </div>
+          <button type="button" data-close-weapon-modal>Close</button>
+        </div>
+
+        <div class="weapon-modal-grid">
+          <label>
+            Preset
+            <select data-weapon-modal-preset>
+              <option value="">Custom</option>
+              ${OPENLEGEND_WEAPONS.map((item) => `<option value="${escapeHtml(item.key)}" ${weapon.presetKey === item.key ? 'selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}
+            </select>
+          </label>
+
+          <label>
+            Weapon Name
+            <input data-weapon-modal-name type="text" value="${escapeHtml(weapon.name || '')}" placeholder="Weapon name">
+          </label>
+
+          <label>
+            Attack Attribute
+            <select data-weapon-modal-attribute>
+              ${ATTRIBUTE_ORDER.map((attr) => `<option value="${escapeHtml(attr)}" ${weapon.attribute === attr ? 'selected' : ''}>${escapeHtml(attr)}</option>`).join('')}
+            </select>
+          </label>
+
+          <label>
+            VS
+            <select data-weapon-modal-vs>
+              ${OPENLEGEND_WEAPON_VS_OPTIONS.map((vs) => `<option value="${escapeHtml(vs)}" ${weapon.vs === vs ? 'selected' : ''}>${escapeHtml(vs)}</option>`).join('')}
+            </select>
+          </label>
+
+          <label>
+            Range
+            <input data-weapon-modal-range type="text" value="${escapeHtml(weapon.range || '')}" placeholder="Melee, Close, Short, Long, Extreme">
+          </label>
+
+          <label>
+            Bonus Dice
+            <input data-weapon-modal-bonus-dice type="text" value="${escapeHtml(weapon.bonusDice || '')}" placeholder="+1 or 1D6">
+          </label>
+
+          <label>
+            Flat Bonus
+            <input data-weapon-modal-flat-bonus type="number" value="${Number(weapon.flatBonus || 0)}">
+          </label>
+
+          <label>
+            Boon
+            <input data-weapon-modal-boon type="number" min="0" value="${cleanInt(weapon.boon)}">
+          </label>
+
+          <label>
+            Bane
+            <input data-weapon-modal-bane type="number" min="0" value="${cleanInt(weapon.bane)}">
+          </label>
+
+          <label style="grid-column: 1 / -1;">
+            Tags
+            <input data-weapon-modal-tags type="text" value="${escapeHtml(weapon.tags || '')}" placeholder="Precise, Area, Reach">
+          </label>
+
+          <label style="grid-column: 1 / -1;">
+            Notes
+            <textarea data-weapon-modal-notes placeholder="Special handling, ammo, rider effects, etc.">${escapeHtml(weapon.notes || '')}</textarea>
+          </label>
+
+          <div class="message-box" style="grid-column: 1 / -1;">
+            <strong>Computed Damage</strong><br>
+            <span data-weapon-modal-damage>${escapeHtml(damage)}</span><br>
+            <span class="helper-text">Based on ${escapeHtml(weapon.attribute)} ${attributeScore} (${escapeHtml(attributeDie || '—')}) plus any bonus dice / flat bonus.</span>
           </div>
         </div>
-      `).join("");
+
+        <div class="feat-modal__footer">
+          <div class="tag-subtitle">Weapon damage updates automatically when the selected attribute changes.</div>
+          <div class="feat-level-controls">
+            <button type="button" data-close-weapon-modal>Done</button>
+          </div>
+        </div>
+      `;
+
+      weaponModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeWeaponModal() {
+      activeWeaponModalIndex = null;
+      if (weaponModal) weaponModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function updateWeaponFromModal() {
+      if (activeWeaponModalIndex === null || !weaponModal) return;
+      const weapon = normalizeWeaponEntry(character.weapons[activeWeaponModalIndex] || createEmptyWeapon());
+      const read = (selector) => weaponModal.querySelector(selector);
+      weapon.presetKey = read('[data-weapon-modal-preset]')?.value || '';
+      weapon.name = read('[data-weapon-modal-name]')?.value?.trim() || weapon.name || '';
+      weapon.attribute = read('[data-weapon-modal-attribute]')?.value || 'Agility';
+      weapon.vs = read('[data-weapon-modal-vs]')?.value || 'GRD';
+      weapon.range = read('[data-weapon-modal-range]')?.value?.trim() || 'Melee';
+      weapon.bonusDice = read('[data-weapon-modal-bonus-dice]')?.value?.trim() || '';
+      weapon.flatBonus = Number(read('[data-weapon-modal-flat-bonus]')?.value || 0);
+      weapon.boon = cleanInt(read('[data-weapon-modal-boon]')?.value);
+      weapon.bane = cleanInt(read('[data-weapon-modal-bane]')?.value);
+      weapon.tags = read('[data-weapon-modal-tags]')?.value?.trim() || '';
+      weapon.notes = read('[data-weapon-modal-notes]')?.value?.trim() || '';
+      character.weapons[activeWeaponModalIndex] = normalizeWeaponEntry(weapon);
+
+      const damageEl = read('[data-weapon-modal-damage]');
+      if (damageEl) damageEl.textContent = getWeaponComputedDamage(character.weapons[activeWeaponModalIndex]);
+      const score = cleanInt(character.attributes?.[weapon.attribute] || 0);
+      const die = getOpenLegendAttributeDie(score);
+      const helper = damageEl?.nextElementSibling;
+      if (helper) helper.textContent = `Based on ${weapon.attribute} ${score} (${die || '—'}) plus any bonus dice / flat bonus.`;
+
+      renderWeapons();
+      refreshComputedPanels();
+      scheduleSave();
     }
 
     function renderStatus(result) {
@@ -1469,6 +1617,7 @@ import { requireAuth } from "../js/auth.js";
 
           <div class="sheet-box" style="margin-top:16px;">
             <h2>Weapons</h2>
+            <p class="helper-text">Weapons are shown as compact cards. Open Details to edit presets, attack attribute, VS defense, range, and computed damage.</p>
             <div class="weapon-list" data-weapon-list></div>
             <div class="export-row">
               <button type="button" data-add-weapon>Add Weapon</button>
@@ -1505,6 +1654,12 @@ import { requireAuth } from "../js/auth.js";
             <div data-feat-modal-body></div>
           </div>
         </div>
+
+        <div class="feat-modal" data-weapon-modal aria-hidden="true">
+          <div class="feat-modal__dialog" role="dialog" aria-modal="true" aria-label="Weapon details">
+            <div data-weapon-modal-body></div>
+          </div>
+        </div>
       `;
 
       attrWrap = root.querySelector("[data-attributes]");
@@ -1521,10 +1676,17 @@ import { requireAuth } from "../js/auth.js";
       featHelper = root.querySelector("[data-feat-helper]");
       featModal = root.querySelector("[data-feat-modal]");
       featModalBody = root.querySelector("[data-feat-modal-body]");
+      weaponModal = root.querySelector("[data-weapon-modal]");
+      weaponModalBody = root.querySelector("[data-weapon-modal-body]");
 
       root.addEventListener("input", (event) => {
         if (event.target.matches("[data-feat-picker]")) {
           refreshFeatPreview();
+          return;
+        }
+
+        if (event.target.closest('[data-weapon-modal]')) {
+          updateWeaponFromModal();
           return;
         }
 
@@ -1534,25 +1696,25 @@ import { requireAuth } from "../js/auth.js";
       });
 
       root.addEventListener("change", (event) => {
-        const presetSelect = event.target.closest("[data-weapon-preset]");
-        if (presetSelect) {
-          const index = Number(presetSelect.dataset.weaponPreset);
-          const preset = WEAPON_PRESETS.find((item) => item.name === presetSelect.value);
-
-          if (preset && character.weapons[index]) {
-            character.weapons[index] = {
-              ...character.weapons[index],
-              name: preset.name,
-              attribute: preset.attribute,
-              boon: preset.boon,
-              bane: preset.bane,
-              damage: preset.damage,
-              notes: preset.notes
-            };
-            rerender();
-            scheduleSave();
-            return;
+        if (event.target.closest('[data-weapon-modal]')) {
+          if (event.target.matches('[data-weapon-modal-preset]')) {
+            const preset = findOpenLegendWeaponPreset(event.target.value || '');
+            if (preset && activeWeaponModalIndex !== null) {
+              const current = character.weapons[activeWeaponModalIndex] || createEmptyWeapon();
+              character.weapons[activeWeaponModalIndex] = {
+                ...normalizeWeaponEntry(current),
+                ...createOpenLegendWeapon(preset.key),
+                name: preset.name
+              };
+              renderWeapons();
+              openWeaponModal(activeWeaponModalIndex);
+              scheduleSave();
+              return;
+            }
           }
+
+          updateWeaponFromModal();
+          return;
         }
 
         syncFromDom();
@@ -1563,6 +1725,11 @@ import { requireAuth } from "../js/auth.js";
       root.addEventListener("click", async (event) => {
         if (event.target === featModal) {
           closeFeatModal();
+          return;
+        }
+
+        if (event.target === weaponModal) {
+          closeWeaponModal();
           return;
         }
 
@@ -1631,6 +1798,7 @@ import { requireAuth } from "../js/auth.js";
           syncFromDom();
           character.weapons.push(createEmptyWeapon());
           rerender();
+          openWeaponModal(character.weapons.length - 1);
           scheduleSave();
           return;
         }
@@ -1712,12 +1880,14 @@ import { requireAuth } from "../js/auth.js";
           userName: user.displayName || "",
           mode: "openlegend",
           name: character.name || user.displayName || "",
+          attributes: clone(character.attributes),
           baseHp: derivedBaseHp,
           currentHp: nextCurrentHp,
           grd: Number(derived.guard.total) || 0,
           res: Number(derived.resolve.total) || 0,
           tgh: Number(derived.toughness.total) || 0,
           feats: clone(character.feats),
+          weapons: clone(character.weapons).map((weapon) => ({ ...weapon, computedDamage: getWeaponComputedDamage(weapon) })),
           builderUpdatedAt: Date.now()
         };
 

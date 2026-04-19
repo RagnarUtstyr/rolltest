@@ -4,6 +4,7 @@ import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
 import { EFFECTS } from "./effects.js";
 import { OPENLEGEND_FEATS } from "./openlegend_feats.js";
+import { findOpenLegendWeaponPreset, getOpenLegendAttributeDie, composeOpenLegendWeaponDamage } from "./openlegend_weapons.js";
 import {
   ref,
   get,
@@ -79,6 +80,11 @@ const playerFeatsPreviewEl = document.getElementById("player-feats-preview");
 const playerFeatModal = document.getElementById("player-feat-modal");
 const playerFeatModalContent = document.getElementById("player-feat-modal-content");
 const playerFeatModalClose = document.getElementById("player-feat-modal-close");
+const playerWeaponsPanel = document.getElementById("player-weapons-panel");
+const playerWeaponsPreviewEl = document.getElementById("player-weapons-preview");
+const playerWeaponModal = document.getElementById("player-weapon-modal");
+const playerWeaponModalContent = document.getElementById("player-weapon-modal-content");
+const playerWeaponModalClose = document.getElementById("player-weapon-modal-close");
 
 const user = await requireAuth();
 
@@ -201,6 +207,7 @@ function getCurrentSheetCache() {
 function setCurrentSheetCache(data) {
   window.__playerSheetCache = data || null;
   renderPlayerFeats(Array.isArray(data?.feats) ? data.feats : []);
+  renderPlayerWeapons(Array.isArray(data?.weapons) ? data.weapons : []);
 }
 
 function getCurrentBanes() {
@@ -293,6 +300,71 @@ function renderPlayerEffects(effects = []) {
 
 function findFeatEntry(name) {
   return OPENLEGEND_FEATS.find((feat) => feat.name === name) || null;
+}
+
+function getWeaponComputedDamage(weapon = {}) {
+  const score = getCurrentSheetCache()?.attributes?.[weapon.attribute] ?? 0;
+  return composeOpenLegendWeaponDamage({
+    attributeDie: getOpenLegendAttributeDie(score),
+    bonusDice: weapon.bonusDice,
+    flatBonus: weapon.flatBonus,
+    customDamage: weapon.customDamage || ""
+  });
+}
+
+function renderPlayerWeapons(weapons = []) {
+  if (!playerWeaponsPreviewEl) return;
+
+  const safeWeapons = Array.isArray(weapons) ? weapons.filter(Boolean) : [];
+  if (!safeWeapons.length) {
+    playerWeaponsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No weapons added.</span>';
+    return;
+  }
+
+  playerWeaponsPreviewEl.innerHTML = "";
+  safeWeapons.slice(0, 6).forEach((weapon) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "player-bane-chip";
+    chip.title = weapon.name || "Weapon";
+    chip.innerHTML = `<span>${weapon.name || "Weapon"}</span>`;
+    chip.addEventListener("click", () => openPlayerWeaponModal(weapon));
+    playerWeaponsPreviewEl.appendChild(chip);
+  });
+
+  if (safeWeapons.length > 6) {
+    const more = document.createElement("span");
+    more.className = "muted";
+    more.textContent = `+${safeWeapons.length - 6} more`;
+    playerWeaponsPreviewEl.appendChild(more);
+  }
+}
+
+function openPlayerWeaponModal(weapon) {
+  if (!playerWeaponModal || !playerWeaponModalContent || !weapon) return;
+  const preset = findOpenLegendWeaponPreset(weapon.presetKey || weapon.name);
+  const score = Number(getCurrentSheetCache()?.attributes?.[weapon.attribute] || 0);
+  const die = getOpenLegendAttributeDie(score);
+  const damage = getWeaponComputedDamage(weapon);
+
+  playerWeaponModalContent.innerHTML = `
+    <h2>${weapon.name || "Weapon"}</h2>
+    <p><strong>Damage:</strong> ${damage || '—'} &nbsp; <strong>Attack:</strong> ${weapon.attribute || '—'} (${die || '—'}) &nbsp; <strong>VS:</strong> ${weapon.vs || 'GRD'}</p>
+    <div class="formula-list">
+      <div class="formula-row"><span>Category</span><span>${preset?.category || 'Custom'}</span></div>
+      <div class="formula-row"><span>Range</span><span>${weapon.range || '—'}</span></div>
+      <div class="formula-row"><span>Boon</span><span>${Number(weapon.boon || 0)}</span></div>
+      <div class="formula-row"><span>Bane</span><span>${Number(weapon.bane || 0)}</span></div>
+      <div class="formula-row"><span>Tags</span><span>${weapon.tags || '—'}</span></div>
+    </div>
+    <h3>Notes</h3>
+    <div>${weapon.notes || '—'}</div>
+  `;
+  playerWeaponModal.setAttribute("aria-hidden", "false");
+}
+
+function closePlayerWeaponModal() {
+  if (playerWeaponModal) playerWeaponModal.setAttribute("aria-hidden", "true");
 }
 
 function renderPlayerFeats(feats = []) {
@@ -794,6 +866,7 @@ function setOpenLegendValues(data = {}) {
   document.getElementById("player-ol-res-view").textContent = data.res ?? "—";
   document.getElementById("player-ol-tgh-view").textContent = data.tgh ?? "—";
   setPlayerBanes(data.banes ?? []);
+  renderPlayerWeapons(data.weapons ?? []);
 }
 
 function getSelectedOlDefense() {
@@ -1116,7 +1189,9 @@ function buildSheetPayload(existing = {}) {
       grd: ol.grd,
       res: ol.res,
       tgh: ol.tgh,
-      banes: ol.banes
+      banes: ol.banes,
+      feats: existing.feats || [],
+      weapons: existing.weapons || []
     };
   }
 
@@ -1167,7 +1242,8 @@ async function loadExistingCharacter() {
         grd: data.grd ?? "—",
         res: data.res ?? "—",
         tgh: data.tgh ?? "—",
-        banes: data.banes ?? []
+        banes: data.banes ?? [],
+        weapons: data.weapons ?? []
       });
     }
 
@@ -1194,7 +1270,8 @@ async function loadExistingCharacter() {
         grd: "—",
         res: "—",
         tgh: "—",
-        banes: entry.banes ?? []
+        banes: entry.banes ?? [],
+        weapons: entry.weapons ?? []
       });
     }
 
@@ -1409,4 +1486,10 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 
 await loadExistingCharacter();
 playerFeatModalClose?.addEventListener("click", closePlayerFeatModal);
+playerWeaponModalClose?.addEventListener("click", closePlayerWeaponModal);
 playerFeatModal?.addEventListener("click", (event) => { if (event.target === playerFeatModal) closePlayerFeatModal(); });
+
+
+playerWeaponModal?.addEventListener("click", (event) => {
+  if (event.target === playerWeaponModal) closePlayerWeaponModal();
+});
