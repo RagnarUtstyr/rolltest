@@ -45,6 +45,35 @@ function __normalizeAttributes(attributes) {
     .sort((a, b) => a[0].localeCompare(b[0]));
 }
 
+function __attributeScoreToDice(score) {
+  const value = Number(score);
+  if (!Number.isFinite(value) || value <= 0) return '—';
+
+  const diceMap = {
+    1: '1d4',
+    2: '1d6',
+    3: '1d8',
+    4: '1d10',
+    5: '2d6',
+    6: '2d8',
+    7: '2d10',
+    8: '3d8',
+    9: '3d10',
+    10: '4d8'
+  };
+
+  return diceMap[value] || '—';
+}
+
+function __formatAttributesInline(attributes) {
+  const rows = __normalizeAttributes(attributes);
+  if (!rows.length) return 'Attributes: —';
+
+  return rows
+    .map(([name, value]) => `${name}: ${value} (${__attributeScoreToDice(value)})`)
+    .join(', ');
+}
+
 let __currentCustomBuild = null;
 
 function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild }) {
@@ -58,14 +87,11 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   document.getElementById('stat-tgh').textContent = (tgh ?? 'N/A');
 
   __currentCustomBuild = customBuild ?? null;
-  console.log("openStatModal customBuild:", customBuild);
-console.log("stat-custom-build button:", document.getElementById("stat-custom-build"));
 
-const customBuildBtn = document.getElementById('stat-custom-build');
-if (customBuildBtn) {
-  customBuildBtn.style.display = customBuild ? 'inline-block' : 'none';
-  console.log("stat-custom-build display:", customBuildBtn.style.display);
-}
+  const customBuildBtn = document.getElementById('stat-custom-build');
+  if (customBuildBtn) {
+    customBuildBtn.style.display = customBuild ? 'inline-block' : 'none';
+  }
 
   const link = document.getElementById('stat-url');
   if (url) {
@@ -93,46 +119,36 @@ function openCustomBuildModal(name, customBuild) {
   const modal = document.getElementById('custom-build-modal');
   if (!modal || !customBuild) return;
 
-  document.getElementById('custom-build-title').textContent = `${name ?? 'Custom NPC'} - Custom Build`;
+  const titleEl = document.getElementById('custom-build-title');
+  const levelEl = document.getElementById('custom-build-level-badge');
+  const sizeEl = document.getElementById('custom-build-size-pill');
 
-  const overviewEl = document.getElementById('custom-build-overview');
-  const attributesEl = document.getElementById('custom-build-attributes');
+  const hpInlineEl = document.getElementById('custom-build-hp-inline');
+  const speedInlineEl = document.getElementById('custom-build-speed-inline');
+  const attributesInlineEl = document.getElementById('custom-build-attributes-inline');
+
+  const grdEl = document.getElementById('custom-build-grd-inline');
+  const tghEl = document.getElementById('custom-build-tgh-inline');
+  const resEl = document.getElementById('custom-build-res-inline');
+
   const favoredEl = document.getElementById('custom-build-favored-actions');
   const specialEl = document.getElementById('custom-build-special-actions');
   const featsEl = document.getElementById('custom-build-feats');
   const weaponsEl = document.getElementById('custom-build-weapons');
 
-  const overviewRows = [
-    ['Level', customBuild.level ?? '—'],
-    ['Size', customBuild.size ?? '—'],
-    ['HP', customBuild.hp ?? '—'],
-    ['Speed', customBuild.speed ?? '—'],
-    ['GRD', customBuild.grd ?? '—'],
-    ['TGH', customBuild.tgh ?? '—'],
-    ['RES', customBuild.res ?? '—'],
-    ['Created By', customBuild.createdByName ?? '—']
-  ];
+  if (titleEl) titleEl.textContent = name ?? 'Custom NPC';
+  if (levelEl) levelEl.textContent = `LVL ${customBuild.level ?? '—'}`;
+  if (sizeEl) sizeEl.textContent = customBuild.size ?? '—';
 
-  if (overviewEl) {
-    overviewEl.innerHTML = overviewRows.map(([label, value]) => `
-      <div class="custom-build-detail-row">
-        <span>${__escapeHtml(label)}</span>
-        <span>${__escapeHtml(value)}</span>
-      </div>
-    `).join('');
+  if (hpInlineEl) hpInlineEl.textContent = `HP: ${customBuild.hp ?? '—'}`;
+  if (speedInlineEl) speedInlineEl.textContent = `Speed: ${customBuild.speed ?? '—'}`;
+  if (attributesInlineEl) {
+    attributesInlineEl.textContent = __formatAttributesInline(customBuild.attributes);
   }
 
-  const attrRows = __normalizeAttributes(customBuild.attributes);
-  if (attributesEl) {
-    attributesEl.innerHTML = attrRows.length
-      ? attrRows.map(([label, value]) => `
-          <div class="custom-build-detail-row">
-            <span>${__escapeHtml(label)}</span>
-            <span>${__escapeHtml(value)}</span>
-          </div>
-        `).join('')
-      : `<div class="custom-build-detail-row"><span>No attributes set</span><span>—</span></div>`;
-  }
+  if (grdEl) grdEl.textContent = `${customBuild.grd ?? '—'}`;
+  if (tghEl) tghEl.textContent = `${customBuild.tgh ?? '—'}`;
+  if (resEl) resEl.textContent = `${customBuild.res ?? '—'}`;
 
   if (favoredEl) favoredEl.textContent = __normalizeTextBlock(customBuild.favoredActions);
   if (specialEl) specialEl.textContent = __normalizeTextBlock(customBuild.specialActions);
@@ -235,7 +251,7 @@ onReady(() => {
 
 });
 
-const __countdownById = new Map(); 
+const __countdownById = new Map();
 function __getCountdownState(id) {
   return __countdownById.get(id) || { remaining: null, active: false, ended: false };
 }
@@ -459,46 +475,16 @@ function fetchRankings() {
       nameCol.style.cursor = 'pointer';
       nameCol.title = customBuild ? 'Show defenses and custom build' : 'Show defenses (GRD / RES / TGH)';
       nameCol.addEventListener('click', () => {
-  __currentEntryId = id;
-  const s = __getCountdownState(id);
-
-  console.log("ENTRY CLICKED", {
-    id,
-    displayName,
-    customBuild,
-    entry: {
-      id,
-      name,
-      playerName,
-      grd,
-      res,
-      tgh,
-      health,
-      currentHp,
-      url,
-      number,
-      initiative,
-      countdownRemaining,
-      countdownActive,
-      countdownEnded,
-      banes,
-      customBuild
-    }
-  });
-
-  openStatModal({
-    name: displayName,
-    grd,
-    res,
-    tgh,
-    url,
-    initiative: displayInitiative,
-    countdownRemaining: s.remaining,
-    countdownActive: s.active,
-    countdownEnded: s.ended,
-    customBuild
-  });
-});
+        __currentEntryId = id;
+        const s = __getCountdownState(id);
+        openStatModal({
+          name: displayName, grd, res, tgh, url, initiative: displayInitiative,
+          countdownRemaining: s.remaining,
+          countdownActive: s.active,
+          countdownEnded: s.ended,
+          customBuild
+        });
+      });
 
       const baneArray = __normalizeBanes(banes);
 
