@@ -99,28 +99,23 @@
     white-space: nowrap;
   }
 
-  .custom-build-inline-top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .custom-build-inline-top span {
-    line-height: 1.4;
-  }
-
-  .custom-build-attributes-row {
+  .custom-build-info-box {
     padding: 10px 12px;
     border-radius: 10px;
     margin-bottom: 12px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .custom-build-info-row {
     line-height: 1.4;
+  }
+
+  .custom-build-info-row + .custom-build-info-row {
+    margin-top: 8px;
+  }
+
+  .custom-build-info-attributes-row {
     white-space: nowrap;
     overflow-x: auto;
   }
@@ -376,12 +371,17 @@
         <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
       </div>
 
-      <div class="custom-build-inline-top">
-        <span id="custom-build-hp-inline">HP: —</span>
-        <span id="custom-build-speed-inline">Speed: —</span>
+      <div class="custom-build-info-box">
+        <div class="custom-build-info-row">
+          <span id="custom-build-hp-inline">HP: —</span>
+        </div>
+        <div class="custom-build-info-row">
+          <span id="custom-build-speed-inline">Speed: —</span>
+        </div>
+        <div class="custom-build-info-row custom-build-info-attributes-row">
+          <span id="custom-build-attributes-inline">Attributes: —</span>
+        </div>
       </div>
-
-      <div id="custom-build-attributes-inline" class="custom-build-attributes-row">Attributes: —</div>
 
       <div class="custom-build-stat-row">
         <div class="custom-build-stat-box">
