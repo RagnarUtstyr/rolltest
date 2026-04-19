@@ -209,8 +209,8 @@
 
   <script type="module">
     import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-    import { db } from "./js/firebase-config.js";
-    import { requireAuth } from "./js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { requireAuth } from "../js/auth.js";
 
     await requireAuth();
     const monsterTable = document.getElementById("monsterTable");
