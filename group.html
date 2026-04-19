@@ -8,7 +8,7 @@
   <title>Initiative</title>
 
   <script type="module" src="server.js?v=20260406e" defer></script>
-  <script type="module" src="health.js?v=20260419debug1" defer></script>
+  <script type="module" src="health.js?v=20260419modalstyle" defer></script>
   <script type="module" src="turn.js?v=20260416a" defer></script>
 
   <link rel="stylesheet" href="style.css" />
@@ -99,6 +99,81 @@
     display: none;
   }
 
+  .custom-build-header-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .custom-build-header-row h3 {
+    margin: 0;
+    text-align: center;
+  }
+
+  .custom-build-level-badge,
+  .custom-build-size-pill {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e3cf95;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .custom-build-inline-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .custom-build-inline-row span {
+    line-height: 1.4;
+  }
+
+  .custom-build-stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .custom-build-stat-box {
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .custom-build-stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #bdb382;
+    margin-bottom: 6px;
+  }
+
+  .custom-build-stat-value {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #e3cf95;
+  }
+
+  #custom-build-modal .ol-modal__dialog {
+    width: min(960px, 96vw);
+    max-width: 96vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
   @media (max-width: 600px) {
     .submit-entry-header {
       align-items: stretch;
@@ -107,89 +182,19 @@
     .custom-build-grid {
       grid-template-columns: 1fr;
     }
+
+    .custom-build-header-row {
+      grid-template-columns: 1fr;
+    }
+
+    .custom-build-header-row h3 {
+      text-align: left;
+    }
+
+    .custom-build-stat-row {
+      grid-template-columns: 1fr;
+    }
   }
-
-  .custom-build-header-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.custom-build-header-row h3 {
-  margin: 0;
-  text-align: center;
-}
-
-.custom-build-level-badge,
-.custom-build-size-pill {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
-  color: #e3cf95;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.custom-build-inline-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.custom-build-inline-row span {
-  line-height: 1.4;
-}
-
-.custom-build-stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.custom-build-stat-box {
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.custom-build-stat-label {
-  display: block;
-  font-size: 0.85rem;
-  color: #bdb382;
-  margin-bottom: 6px;
-}
-
-.custom-build-stat-value {
-  display: block;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #e3cf95;
-}
-
-@media (max-width: 600px) {
-  .custom-build-header-row {
-    grid-template-columns: 1fr;
-  }
-
-  .custom-build-header-row h3 {
-    text-align: left;
-  }
-
-  .custom-build-stat-row {
-    grid-template-columns: 1fr;
-  }
-}
 
 </style>
 
@@ -386,57 +391,57 @@
   </div>
 
   <div id="custom-build-modal" class="ol-modal" aria-hidden="true">
-  <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="custom-build-title">
-    <button class="ol-modal__close" id="custom-build-close" aria-label="Close">×</button>
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="custom-build-title">
+      <button class="ol-modal__close" id="custom-build-close" aria-label="Close">×</button>
 
-    <div class="custom-build-header-row">
-      <div id="custom-build-level-badge" class="custom-build-level-badge">LVL —</div>
-      <h3 id="custom-build-title">Custom NPC</h3>
-      <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
-    </div>
-
-    <div class="custom-build-inline-row">
-      <span id="custom-build-hp-inline">HP: —</span>
-      <span id="custom-build-speed-inline">Speed: —</span>
-      <span id="custom-build-attributes-inline">Attributes: —</span>
-    </div>
-
-    <div class="custom-build-stat-row">
-      <div class="custom-build-stat-box">
-        <span class="custom-build-stat-label">GRD</span>
-        <span id="custom-build-grd-inline" class="custom-build-stat-value">—</span>
+      <div class="custom-build-header-row">
+        <div id="custom-build-level-badge" class="custom-build-level-badge">LVL —</div>
+        <h3 id="custom-build-title">Custom NPC</h3>
+        <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
       </div>
-      <div class="custom-build-stat-box">
-        <span class="custom-build-stat-label">TGH</span>
-        <span id="custom-build-tgh-inline" class="custom-build-stat-value">—</span>
+
+      <div class="custom-build-inline-row">
+        <span id="custom-build-hp-inline">HP: —</span>
+        <span id="custom-build-speed-inline">Speed: —</span>
+        <span id="custom-build-attributes-inline">Attributes: —</span>
       </div>
-      <div class="custom-build-stat-box">
-        <span class="custom-build-stat-label">RES</span>
-        <span id="custom-build-res-inline" class="custom-build-stat-value">—</span>
+
+      <div class="custom-build-stat-row">
+        <div class="custom-build-stat-box">
+          <span class="custom-build-stat-label">GRD</span>
+          <span id="custom-build-grd-inline" class="custom-build-stat-value">—</span>
+        </div>
+        <div class="custom-build-stat-box">
+          <span class="custom-build-stat-label">TGH</span>
+          <span id="custom-build-tgh-inline" class="custom-build-stat-value">—</span>
+        </div>
+        <div class="custom-build-stat-box">
+          <span class="custom-build-stat-label">RES</span>
+          <span id="custom-build-res-inline" class="custom-build-stat-value">—</span>
+        </div>
       </div>
-    </div>
 
-    <div class="custom-build-text-block">
-      <h4>Favored Actions</h4>
-      <p id="custom-build-favored-actions">—</p>
-    </div>
+      <div class="custom-build-text-block">
+        <h4>Favored Actions</h4>
+        <p id="custom-build-favored-actions">—</p>
+      </div>
 
-    <div class="custom-build-text-block">
-      <h4>Special Actions</h4>
-      <p id="custom-build-special-actions">—</p>
-    </div>
+      <div class="custom-build-text-block">
+        <h4>Special Actions</h4>
+        <p id="custom-build-special-actions">—</p>
+      </div>
 
-    <div class="custom-build-text-block">
-      <h4>Feats</h4>
-      <p id="custom-build-feats">—</p>
-    </div>
+      <div class="custom-build-text-block">
+        <h4>Feats</h4>
+        <p id="custom-build-feats">—</p>
+      </div>
 
-    <div class="custom-build-text-block">
-      <h4>Weapons</h4>
-      <p id="custom-build-weapons">—</p>
+      <div class="custom-build-text-block">
+        <h4>Weapons</h4>
+        <p id="custom-build-weapons">—</p>
+      </div>
     </div>
   </div>
-</div>
 
   <script>
   (function () {

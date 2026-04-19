@@ -577,7 +577,7 @@ function applyDamageToAll() {
   const selectedStat = document.querySelector('input[name="globalStat"]:checked')?.value ?? 'grd';
 
   inputs.forEach(input => {
-    if (!('health' in input.dataset)) {
+    if (!("health" in input.dataset)) {
       input.value = '';
       return;
     }
