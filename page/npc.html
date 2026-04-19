@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Custom NPC List</title>
-  <link rel="stylesheet" href="../style/list.css" />
-  <link rel="stylesheet" href="../style/style.css" />
+  <link rel="stylesheet" href="list.css" />
+  <link rel="stylesheet" href="style.css" />
   <style>
     .npc-summary-card {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto;
       gap: 12px;
       align-items: center;
     }
@@ -31,51 +31,89 @@
       opacity: 0.9;
     }
 
-    .npc-modal-grid {
+    .npc-modal-header-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 12px;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
-    .npc-modal-card {
+    .npc-modal-header-row h3 {
+      margin: 0;
+      text-align: center;
+    }
+
+    .npc-level-badge,
+    .npc-size-pill {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: #e3cf95;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .npc-info-box {
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-info-row {
+      line-height: 1.5;
+    }
+
+    .npc-info-row + .npc-info-row {
+      margin-top: 8px;
+    }
+
+    .npc-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .npc-stat-box {
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-stat-label {
+      display: block;
+      font-size: 0.85rem;
+      color: #bdb382;
+      margin-bottom: 6px;
+    }
+
+    .npc-stat-value {
+      display: block;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #e3cf95;
+    }
+
+    .npc-text-block {
+      margin-top: 12px;
       padding: 12px;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .npc-modal-card h4 {
+    .npc-text-block h4 {
       margin: 0 0 8px 0;
       color: #e3cf95;
     }
 
-    .npc-modal-detail-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 5px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .npc-modal-detail-row:last-child {
-      border-bottom: none;
-    }
-
-    .npc-modal-text-block {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .npc-modal-text-block h4 {
-      margin: 0 0 8px 0;
-      color: #e3cf95;
-    }
-
-    .npc-modal-text-block p {
+    .npc-text-block p {
       margin: 0;
       white-space: pre-wrap;
     }
@@ -87,17 +125,29 @@
       margin-top: 14px;
     }
 
-    .npc-modal-attributes {
-      line-height: 1.5;
-      white-space: pre-wrap;
+    #npc-details-modal .ol-modal__dialog {
+      width: min(960px, 96vw);
+      max-width: 96vw;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     @media (max-width: 700px) {
       .npc-summary-card {
         grid-template-columns: 1fr;
       }
+    }
 
-      .npc-modal-grid {
+    @media (max-width: 600px) {
+      .npc-modal-header-row {
+        grid-template-columns: 1fr;
+      }
+
+      .npc-modal-header-row h3 {
+        text-align: left;
+      }
+
+      .npc-stat-row {
         grid-template-columns: 1fr;
       }
     }
@@ -120,36 +170,56 @@
   <div id="npc-details-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="npc-details-title">
       <button class="ol-modal__close" id="npc-details-close" aria-label="Close">×</button>
-      <h3 id="npc-details-title">NPC Details</h3>
 
-      <div class="npc-modal-grid">
-        <div class="npc-modal-card">
-          <h4>Overview</h4>
-          <div id="npc-details-overview"></div>
+      <div class="npc-modal-header-row">
+        <div id="npc-details-level-badge" class="npc-level-badge">LVL —</div>
+        <h3 id="npc-details-title">NPC Details</h3>
+        <div id="npc-details-size-pill" class="npc-size-pill">—</div>
+      </div>
+
+      <div class="npc-info-box">
+        <div class="npc-info-row">
+          <span id="npc-details-hp-inline">HP: —</span>
         </div>
-
-        <div class="npc-modal-card">
-          <h4>Attributes</h4>
-          <div id="npc-details-attributes" class="npc-modal-attributes"></div>
+        <div class="npc-info-row">
+          <span id="npc-details-speed-inline">Speed: —</span>
+        </div>
+        <div class="npc-info-row">
+          <span id="npc-details-attributes-inline">Attributes: —</span>
         </div>
       </div>
 
-      <div class="npc-modal-text-block">
+      <div class="npc-stat-row">
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">GRD</span>
+          <span id="npc-details-grd-inline" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">TGH</span>
+          <span id="npc-details-tgh-inline" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">RES</span>
+          <span id="npc-details-res-inline" class="npc-stat-value">—</span>
+        </div>
+      </div>
+
+      <div class="npc-text-block">
         <h4>Favored Actions</h4>
         <p id="npc-details-favored">—</p>
       </div>
 
-      <div class="npc-modal-text-block">
+      <div class="npc-text-block">
         <h4>Special Actions</h4>
         <p id="npc-details-special">—</p>
       </div>
 
-      <div class="npc-modal-text-block">
+      <div class="npc-text-block">
         <h4>Feats</h4>
         <p id="npc-details-feats">—</p>
       </div>
 
-      <div class="npc-modal-text-block">
+      <div class="npc-text-block">
         <h4>Weapons</h4>
         <p id="npc-details-weapons">—</p>
       </div>
@@ -161,8 +231,8 @@
   </div>
 
   <script type="module">
-    import { firestore, db } from "../js/firebase-config.js";
-    import { requireAuth } from "../js/auth.js";
+    import { firestore, db } from "./firebase-config.js";
+    import { requireAuth } from "./auth.js";
     import {
       collection,
       getDocs,
@@ -213,6 +283,7 @@
       if (!attributes || typeof attributes !== "object") return [];
       return Object.entries(attributes)
         .filter(([, value]) => value !== null && value !== undefined && value !== "")
+        .map(([name, value]) => [name, Number(value)])
         .sort((a, b) => a[0].localeCompare(b[0]));
     }
 
@@ -238,11 +309,13 @@
 
     function formatAttributesForModal(attributes) {
       const rows = normalizeAttributes(attributes);
-      if (!rows.length) return "—";
+      if (!rows.length) return "Attributes: —";
 
-      return rows
+      const formatted = rows
         .map(([name, value]) => `${name}: ${value} (${attributeScoreToDice(value)})`)
         .join(", ");
+
+      return `Attributes: ${formatted}`;
     }
 
     async function loadCustomNpcs() {
@@ -334,8 +407,17 @@
       currentModalNpc = npc;
 
       const titleEl = document.getElementById("npc-details-title");
-      const overviewEl = document.getElementById("npc-details-overview");
-      const attributesEl = document.getElementById("npc-details-attributes");
+      const levelEl = document.getElementById("npc-details-level-badge");
+      const sizeEl = document.getElementById("npc-details-size-pill");
+
+      const hpInlineEl = document.getElementById("npc-details-hp-inline");
+      const speedInlineEl = document.getElementById("npc-details-speed-inline");
+      const attributesInlineEl = document.getElementById("npc-details-attributes-inline");
+
+      const grdEl = document.getElementById("npc-details-grd-inline");
+      const tghEl = document.getElementById("npc-details-tgh-inline");
+      const resEl = document.getElementById("npc-details-res-inline");
+
       const favoredEl = document.getElementById("npc-details-favored");
       const specialEl = document.getElementById("npc-details-special");
       const featsEl = document.getElementById("npc-details-feats");
@@ -343,29 +425,16 @@
       const modal = document.getElementById("npc-details-modal");
 
       if (titleEl) titleEl.textContent = npc.name || "NPC Details";
+      if (levelEl) levelEl.textContent = `LVL ${npc.level ?? "—"}`;
+      if (sizeEl) sizeEl.textContent = npc.size ?? "—";
 
-      const overviewRows = [
-        ["Level", npc.level ?? "—"],
-        ["Size", npc.size ?? "—"],
-        ["HP", npc.hp ?? "—"],
-        ["Speed", npc.speed ?? "—"],
-        ["GRD", npc.grd ?? "—"],
-        ["TGH", npc.tgh ?? "—"],
-        ["RES", npc.res ?? "—"]
-      ];
+      if (hpInlineEl) hpInlineEl.textContent = `HP: ${npc.hp ?? "—"}`;
+      if (speedInlineEl) speedInlineEl.textContent = `Speed: ${npc.speed ?? "—"}`;
+      if (attributesInlineEl) attributesInlineEl.textContent = formatAttributesForModal(npc.attributes);
 
-      if (overviewEl) {
-        overviewEl.innerHTML = overviewRows.map(([label, value]) => `
-          <div class="npc-modal-detail-row">
-            <span>${escapeHtml(label)}</span>
-            <span>${escapeHtml(value)}</span>
-          </div>
-        `).join("");
-      }
-
-      if (attributesEl) {
-        attributesEl.textContent = formatAttributesForModal(npc.attributes);
-      }
+      if (grdEl) grdEl.textContent = `${npc.grd ?? "—"}`;
+      if (tghEl) tghEl.textContent = `${npc.tgh ?? "—"}`;
+      if (resEl) resEl.textContent = `${npc.res ?? "—"}`;
 
       if (favoredEl) favoredEl.textContent = normalizeTextBlock(npc.favoredActions);
       if (specialEl) specialEl.textContent = normalizeTextBlock(npc.specialActions);
