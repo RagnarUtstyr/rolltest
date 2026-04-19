@@ -1,7 +1,7 @@
 // Firebase test-project ready: shared config + authenticated access.
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-import { db } from "./firebase-config.js";
-import { requireAuth } from "./auth.js";
+import { db } from "./js/firebase-config.js";
+import { requireAuth } from "./js/fauth.js";
 
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);

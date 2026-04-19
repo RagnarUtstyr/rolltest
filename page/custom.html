@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="../favicon-64x64.png" />
   <title>Custom NPC Library</title>
 
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="turn.css" />
-  <link rel="stylesheet" href="save.css" />
+  <link rel="stylesheet" href="../style/style.css" />
+  <link rel="stylesheet" href="../style/turn.css" />
+  <link rel="stylesheet" href="../style/save.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
   <style>
@@ -262,8 +262,8 @@
   </div>
 
   <script type="module">
-    import { firestore } from "./firebase-config.js?v=20260419b";
-    import { requireAuth } from "./auth.js";
+    import { firestore } from "./js/firebase-config.js?v=20260419b";
+    import { requireAuth } from "./js/auth.js";
     import {
       collection,
       addDoc,

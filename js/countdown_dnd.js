@@ -1,5 +1,5 @@
 // countdown_dnd.js
-import { db } from "./firebase-config.js";
+import { db } from "./js/ffirebase-config.js";
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 const latestCountdownState = new Map();

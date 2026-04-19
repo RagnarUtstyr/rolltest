@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Open Legend Monster List</title>
-  <link rel="stylesheet" href="list.css" />
+  <link rel="stylesheet" href="../style/list.css" />
 </head>
 <body>
   <a id="back-link" href="group.html" class="button-link">Back to Initiative</a>
@@ -21,7 +21,7 @@
   <div id="monster-list" class="table-container"></div>
 
   <script type="module">
-    import { db } from "./firebase-config.js";
+    import { db } from "./js/firebase-config.js";
     import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
     const params = new URLSearchParams(window.location.search);

@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OpenLegend Monster List</title>
-  <link rel="stylesheet" href="list.css" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="../style/list.css" />
+  <link rel="stylesheet" href="../style/style.css" />
 </head>
 <body>
   <a href="group.html" class="button-link">View Initiative</a>
@@ -209,8 +209,8 @@
 
   <script type="module">
     import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-    import { db } from "./firebase-config.js";
-    import { requireAuth } from "./auth.js";
+    import { db } from "./js/firebase-config.js";
+    import { requireAuth } from "./js/auth.js";
 
     await requireAuth();
     const monsterTable = document.getElementById("monsterTable");
