@@ -1352,14 +1352,38 @@ import { requireAuth } from "../js/auth.js";
       }).join("");
     }
 
-    function renderBanesOverviewHtml() {
-      if (!Array.isArray(BANES) || !BANES.length) {
-        return '<div class="message-box">No bane data available.</div>';
+    function renderBanesOverviewHtml(weapon, preset) {
+      const available = Array.isArray(weapon?.availableBanes) && weapon.availableBanes.length
+        ? weapon.availableBanes
+        : (Array.isArray(preset?.availableBanes) ? preset.availableBanes : []);
+
+      if (!available.length) {
+        const note = preset?.officialBanesNote || weapon?.officialBanesNote || 'No official fixed bane list verified for this weapon preset.';
+        return `
+          <div class="message-box">
+            <strong>Available Banes</strong><br>
+            ${escapeHtml(note)}<br>
+            <span class="helper-text">Open Legend’s official equipment rules say a typical weapon has 2 or 3 associated banes, but an official per-weapon master table was not verified for this preset.</span>
+          </div>
+        `;
+      }
+
+      const normalized = available
+        .map((name) => {
+          const bane = Array.isArray(BANES)
+            ? BANES.find((entry) => String(entry?.name || '').toLowerCase() === String(name || '').toLowerCase())
+            : null;
+          return bane || { name: String(name || '').trim(), url: '', icon: '' };
+        })
+        .filter((bane) => bane.name);
+
+      if (!normalized.length) {
+        return '<div class="message-box">No official bane links available for this weapon.</div>';
       }
 
       return `
         <div class="bane-overview-grid">
-          ${BANES.map((bane) => `
+          ${normalized.map((bane) => `
             <a class="bane-overview-card" href="${escapeHtml(bane.url || '#')}" target="_blank" rel="noopener noreferrer">
               ${bane.icon ? `<img src="${escapeHtml(bane.icon)}" alt="${escapeHtml(bane.name || 'Bane')} icon">` : ''}
               <span>${escapeHtml(bane.name || 'Bane')}</span>
@@ -1461,7 +1485,7 @@ import { requireAuth } from "../js/auth.js";
         <div class="feat-modal__section">
           <h3>Available Banes</h3>
           <div class="helper-text" style="margin-bottom:10px;">Overview from your bane library for quick reference while editing a weapon.</div>
-          ${renderBanesOverviewHtml()}
+          ${renderBanesOverviewHtml(weapon, preset)}
         </div>
 
         <div class="feat-modal__footer">
