@@ -745,7 +745,7 @@ import { requireAuth } from "../js/auth.js";
         weapon.boon ? `<span><strong>Boon</strong> ${cleanInt(weapon.boon)}</span>` : "",
         weapon.bane ? `<span><strong>Bane</strong> ${cleanInt(weapon.bane)}</span>` : "",
         tags ? `<span><strong>Tags</strong> ${escapeHtml(tags)}</span>` : ""
-      ].filter(Boolean).join("<span class="weapon-divider">•</span>");
+      ].filter(Boolean).join('<span class="weapon-divider">•</span>');
     }
 
     function getAttributeCostBreakdown(attributes) {
