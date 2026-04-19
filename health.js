@@ -34,7 +34,20 @@ function __escapeHtml(value) {
 
 function __normalizeTextBlock(value) {
   const text = String(value ?? '').trim();
-  return text || '—';
+  if (!text) return '—';
+
+  const lines = text.split('\n');
+
+  return lines.map(line => {
+    const [name, ...rest] = line.split(':');
+    const description = rest.join(':').trim();
+
+    if (!description) {
+      return `<strong>${__escapeHtml(name.trim())}</strong>`;
+    }
+
+    return `<strong>${__escapeHtml(name.trim())}</strong>: ${__escapeHtml(description)}`;
+  }).join('<br>');
 }
 
 function __normalizeAttributes(attributes) {
@@ -150,10 +163,10 @@ function openCustomBuildModal(name, customBuild) {
   if (tghEl) tghEl.textContent = `${customBuild.tgh ?? '—'}`;
   if (resEl) resEl.textContent = `${customBuild.res ?? '—'}`;
 
-  if (favoredEl) favoredEl.textContent = __normalizeTextBlock(customBuild.favoredActions);
-  if (specialEl) specialEl.textContent = __normalizeTextBlock(customBuild.specialActions);
-  if (featsEl) featsEl.textContent = __normalizeTextBlock(customBuild.feats);
-  if (weaponsEl) weaponsEl.textContent = __normalizeTextBlock(customBuild.weapons);
+if (favoredEl) favoredEl.innerHTML = __normalizeTextBlock(customBuild.favoredActions);
+if (specialEl) specialEl.innerHTML = __normalizeTextBlock(customBuild.specialActions);
+if (featsEl) featsEl.innerHTML = __normalizeTextBlock(customBuild.feats);
+if (weaponsEl) weaponsEl.innerHTML = __normalizeTextBlock(customBuild.weapons);
 
   modal.setAttribute('aria-hidden', 'false');
 }
