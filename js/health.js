@@ -1,6 +1,6 @@
 import { BANES } from "./banes.js";
 import { ref, update, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-import { db } from "./js/firebase-config.js";
+import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth.js";
 
 function getGameCode() {
