@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom NPC List</title>
+  <link rel="stylesheet" href="list.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a id="back-link" href="group.html" class="button-link">Back to Initiative</a>
+
+  <h1>Saved Custom NPCs</h1>
+
+  <input
+    type="text"
+    id="search"
+    placeholder="Search custom NPCs..."
+    autocomplete="off"
+  />
+
+  <div id="npc-list" class="table-container"></div>
+
+  <script type="module">
+    import { firestore, db } from "./firebase-config.js";
+    import { requireAuth } from "./auth.js";
+    import {
+      collection,
+      getDocs,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+    import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get("code") || "").trim().toUpperCase();
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function parseNumberOrDefault(value, fallback = 0) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : fallback;
+    }
+
+    async function loadCustomNpcs() {
+      const user = await requireAuth();
+      const npcRef = collection(firestore, "users", user.uid, "customNpcs");
+      const npcQuery = query(npcRef, orderBy("name"));
+      const snap = await getDocs(npcQuery);
+
+      return snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    }
+
+    async function addNpcToInitiative(npc) {
+      if (!code) {
+        alert("Missing game code in URL.");
+        return;
+      }
+
+      const initiativeInput = window.prompt(
+        `Enter initiative for ${npc.name}:`,
+        "0"
+      );
+
+      if (initiativeInput === null) {
+        return;
+      }
+
+      const initiative = parseInt(initiativeInput, 10);
+
+      if (Number.isNaN(initiative)) {
+        alert("Initiative must be a number.");
+        return;
+      }
+
+      const hp = parseNumberOrDefault(npc.hp, 0);
+      const grd = parseNumberOrDefault(npc.grd, 0);
+      const res = parseNumberOrDefault(npc.res, 0);
+      const tgh = parseNumberOrDefault(npc.tgh, 0);
+
+      const entryPayload = {
+        name: npc.name || "Unnamed NPC",
+        playerName: npc.name || "Unnamed NPC",
+        number: initiative,
+        initiative,
+        health: hp,
+        currentHp: hp,
+        grd,
+        res,
+        tgh,
+        isCustom: true,
+        source: "custom-npc-library",
+        customNpcId: npc.id,
+        createdByUid: npc.ownerUid || "",
+        createdByName: npc.ownerName || "",
+        updatedAt: Date.now(),
+        customBuild: {
+          level: npc.level ?? "",
+          size: npc.size ?? "",
+          hp,
+          speed: npc.speed ?? "",
+          attributes: npc.attributes ?? {},
+          favoredActions: npc.favoredActions ?? "",
+          specialActions: npc.specialActions ?? "",
+          feats: npc.feats ?? "",
+          weapons: npc.weapons ?? "",
+          ownerUid: npc.ownerUid || "",
+          ownerName: npc.ownerName || ""
+        }
+      };
+
+      try {
+        await push(ref(db, `games/${code}/entries`), entryPayload);
+        alert(`${npc.name} added to initiative.`);
+      } catch (error) {
+        console.error("Failed to add custom NPC:", error);
+        alert("Could not add custom NPC.");
+      }
+    }
+
+    function createNpcCard(npc) {
+      const entry = document.createElement("div");
+      entry.className = "table-entry";
+
+      const attributes = npc.attributes && Object.keys(npc.attributes).length
+        ? Object.entries(npc.attributes)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([name, value]) => `${name}: ${value}`)
+            .join(", ")
+        : "—";
+
+      entry.innerHTML = `
+        <div><span class="label">Name</span><span class="content">${escapeHtml(npc.name || "Unnamed NPC")}</span></div>
+        <div><span class="label">Level</span><span class="content">${escapeHtml(npc.level ?? "")}</span></div>
+        <div><span class="label">Size</span><span class="content">${escapeHtml(npc.size ?? "")}</span></div>
+        <div><span class="label">HP</span><span class="content">${escapeHtml(npc.hp ?? "")}</span></div>
+        <div><span class="label">Speed</span><span class="content">${escapeHtml(npc.speed ?? "")}</span></div>
+        <div><span class="label">GRD</span><span class="content">${escapeHtml(npc.grd ?? "")}</span></div>
+        <div><span class="label">RES</span><span class="content">${escapeHtml(npc.res ?? "")}</span></div>
+        <div><span class="label">TGH</span><span class="content">${escapeHtml(npc.tgh ?? "")}</span></div>
+        <div><span class="label">Attributes</span><span class="content">${escapeHtml(attributes)}</span></div>
+        <div><span class="label">Favored Actions</span><span class="content">${escapeHtml(npc.favoredActions ?? "")}</span></div>
+        <div><span class="label">Special Actions</span><span class="content">${escapeHtml(npc.specialActions ?? "")}</span></div>
+        <div><span class="label">Feats</span><span class="content">${escapeHtml(npc.feats ?? "")}</span></div>
+        <div><span class="label">Weapons</span><span class="content">${escapeHtml(npc.weapons ?? "")}</span></div>
+      `;
+
+      const buttonWrap = document.createElement("div");
+      buttonWrap.className = "link-button";
+
+      const addButton = document.createElement("button");
+      addButton.className = "add-to-list-button";
+      addButton.textContent = "Add to Initiative";
+      addButton.addEventListener("click", async () => {
+        await addNpcToInitiative(npc);
+      });
+
+      buttonWrap.appendChild(addButton);
+      entry.appendChild(buttonWrap);
+
+      return entry;
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const container = document.getElementById("npc-list");
+      const searchInput = document.getElementById("search");
+      const backLink = document.getElementById("back-link");
+
+      if (backLink && code) {
+        backLink.href = `group.html?code=${encodeURIComponent(code)}`;
+      }
+
+      let npcs = [];
+
+      try {
+        npcs = await loadCustomNpcs();
+      } catch (error) {
+        console.error("Could not load custom NPCs:", error);
+        container.innerHTML = `
+          <div class="table-entry">
+            <div>
+              <span class="label">Error</span>
+              <span class="content">Could not load custom NPCs.</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      function renderNpcs(filterText = "") {
+        const q = filterText.trim().toLowerCase();
+        container.innerHTML = "";
+
+        const filtered = npcs.filter((npc) => {
+          const haystack = [
+            npc.name,
+            npc.size,
+            npc.level,
+            npc.favoredActions,
+            npc.specialActions,
+            npc.feats,
+            npc.weapons
+          ]
+            .map((v) => String(v ?? "").toLowerCase())
+            .join(" ");
+
+          return haystack.includes(q);
+        });
+
+        if (!filtered.length) {
+          const empty = document.createElement("div");
+          empty.className = "table-entry";
+          empty.innerHTML = `
+            <div>
+              <span class="label">Result</span>
+              <span class="content">No custom NPCs found.</span>
+            </div>
+          `;
+          container.appendChild(empty);
+          return;
+        }
+
+        filtered.forEach((npc) => {
+          container.appendChild(createNpcCard(npc));
+        });
+      }
+
+      searchInput.addEventListener("input", (event) => {
+        renderNpcs(event.target.value);
+      });
+
+      renderNpcs();
+    });
+  </script>
+</body>
+</html>
