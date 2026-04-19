@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="../favicon-64x64.png" />
+  <link rel="icon" href="../favicon.ico" />
   <title>Custom DnD NPC Library</title>
 
   <link rel="stylesheet" href="../style/style.css" />
@@ -241,11 +241,6 @@
         <div>
           <label for="npc-alignment">Alignment</label>
           <input type="text" id="npc-alignment" placeholder="Lawful Good, Chaotic Evil..." />
-        </div>
-
-        <div>
-          <label for="npc-initiative">Initiative</label>
-          <input type="number" id="npc-initiative" value="0" />
         </div>
 
         <div>
@@ -911,7 +906,6 @@
       const size = document.getElementById("npc-size")?.value?.trim() || "";
       const type = document.getElementById("npc-type")?.value?.trim() || "";
       const alignment = document.getElementById("npc-alignment")?.value?.trim() || "";
-      const initiative = parseNumberOrEmpty(document.getElementById("npc-initiative")?.value);
       const ac = parseNumberOrEmpty(document.getElementById("npc-ac")?.value);
       const hp = parseNumberOrEmpty(document.getElementById("npc-hp")?.value);
       const speed = document.getElementById("npc-speed")?.value?.trim() || "";
@@ -977,7 +971,6 @@
         size,
         type,
         alignment,
-        initiative,
         ac,
         hp,
         speed,
