@@ -326,6 +326,16 @@ function openBaneDetailModal(bane) {
   const summary = entry?.summary || "—";
   const description = entry?.descriptionHtml || entry?.description || "No local bane details available.";
   const effect = entry?.effectHtml || "";
+  const special = entry?.specialHtml || "";
+  const attackAttributes = Array.isArray(entry?.attackAttributes) && entry.attackAttributes.length
+    ? entry.attackAttributes.join(", ")
+    : "—";
+  const attackLines = Array.isArray(entry?.attackLines) && entry.attackLines.length
+    ? entry.attackLines.join("<br>")
+    : "—";
+  const duration = entry?.duration || "—";
+  const invocationTime = entry?.invocationTime || "—";
+  const powerLevel = entry?.powerLevel || "—";
   const url = entry?.url || bane?.url || "";
 
   if (title) title.textContent = name;
@@ -336,8 +346,17 @@ function openBaneDetailModal(bane) {
         <strong>${name}</strong>
       </div>
       <p class="muted" style="margin:0 0 12px 0;">${summary}</p>
+      <div class="formula-list" style="margin-bottom:16px;">
+        <div class="formula-row"><span>Duration</span><span>${duration}</span></div>
+        <div class="formula-row"><span>Invocation Time</span><span>${invocationTime}</span></div>
+        <div class="formula-row"><span>Power Level</span><span>${powerLevel}</span></div>
+        <div class="formula-row"><span>Attack Attributes</span><span>${attackAttributes}</span></div>
+        <div class="formula-row"><span>Attack</span><span>${attackLines}</span></div>
+      </div>
+      <h4 style="margin:16px 0 8px;">Description</h4>
       <div>${description}</div>
       ${effect ? `<h4 style="margin:16px 0 8px;">Effect</h4><div>${effect}</div>` : ""}
+      ${special ? `<h4 style="margin:16px 0 8px;">Special</h4><div>${special}</div>` : ""}
       ${url ? `<p style="margin-top:16px;"><a class="button-link" target="_blank" rel="noopener" href="${url}">Official page</a></p>` : ""}
     </div>
   `;
