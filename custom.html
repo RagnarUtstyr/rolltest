@@ -103,9 +103,52 @@
       min-height: 44px;
     }
 
+    .list-builder {
+      margin-top: 8px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .list-builder-header {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.8fr);
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      font-weight: 700;
+    }
+
+    .list-builder-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.8fr);
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: start;
+    }
+
+    .list-builder-row input,
+    .list-builder-row textarea {
+      margin: 0;
+    }
+
+    .list-builder-row textarea {
+      min-height: 76px;
+    }
+
+    .list-helper-text {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
     @media (max-width: 700px) {
       .custom-form-grid,
-      .attribute-grid {
+      .attribute-grid,
+      .list-builder-header,
+      .list-builder-row {
         grid-template-columns: 1fr;
       }
     }
@@ -171,23 +214,27 @@
         </div>
 
         <div class="full-width">
-          <label for="npc-favored-actions">Favored Actions</label>
-          <textarea id="npc-favored-actions" placeholder="One per line or free text"></textarea>
+          <label>Favored Actions</label>
+          <div id="favored-actions-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
         </div>
 
         <div class="full-width">
-          <label for="npc-special-actions">Special Actions</label>
-          <textarea id="npc-special-actions" placeholder="One per line or free text"></textarea>
+          <label>Special Actions</label>
+          <div id="special-actions-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
         </div>
 
         <div class="full-width">
-          <label for="npc-feats">Feats</label>
-          <textarea id="npc-feats" placeholder="One per line or free text"></textarea>
+          <label>Feats</label>
+          <div id="feats-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
         </div>
 
         <div class="full-width">
-          <label for="npc-weapons">Weapons</label>
-          <textarea id="npc-weapons" placeholder="One per line or free text"></textarea>
+          <label>Weapons</label>
+          <div id="weapons-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
         </div>
       </div>
 
@@ -338,10 +385,120 @@
       if (output) output.textContent = message;
     }
 
+    function makeListRow(sectionKey, index, item = {}) {
+      const row = document.createElement("div");
+      row.className = "list-builder-row";
+      row.dataset.sectionKey = sectionKey;
+      row.dataset.rowIndex = String(index);
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.placeholder = "Name";
+      nameInput.value = item.name ?? "";
+      nameInput.dataset.field = "name";
+
+      const descInput = document.createElement("textarea");
+      descInput.placeholder = "Description";
+      descInput.value = item.description ?? "";
+      descInput.dataset.field = "description";
+
+      const onInput = () => ensureTrailingEmptyRow(sectionKey);
+      nameInput.addEventListener("input", onInput);
+      descInput.addEventListener("input", onInput);
+
+      row.appendChild(nameInput);
+      row.appendChild(descInput);
+
+      return row;
+    }
+
+    function buildListSection(containerId, sectionKey) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.className = "list-builder-header";
+      header.innerHTML = `
+        <div>Name</div>
+        <div>Description</div>
+      `;
+      container.appendChild(header);
+
+      container.appendChild(makeListRow(sectionKey, 0));
+    }
+
+    function getSectionContainer(sectionKey) {
+      const map = {
+        favoredActions: "favored-actions-list",
+        specialActions: "special-actions-list",
+        feats: "feats-list",
+        weapons: "weapons-list"
+      };
+      return document.getElementById(map[sectionKey]);
+    }
+
+    function getSectionRows(sectionKey) {
+      const container = getSectionContainer(sectionKey);
+      if (!container) return [];
+      return Array.from(container.querySelectorAll(`.list-builder-row[data-section-key="${sectionKey}"]`));
+    }
+
+    function rowHasContent(row) {
+      const name = row.querySelector('[data-field="name"]')?.value?.trim() || "";
+      const description = row.querySelector('[data-field="description"]')?.value?.trim() || "";
+      return !!(name || description);
+    }
+
+    function ensureTrailingEmptyRow(sectionKey) {
+      const rows = getSectionRows(sectionKey);
+      if (!rows.length) return;
+
+      const lastRow = rows[rows.length - 1];
+      if (!rowHasContent(lastRow)) return;
+
+      const container = getSectionContainer(sectionKey);
+      if (!container) return;
+
+      container.appendChild(makeListRow(sectionKey, rows.length));
+    }
+
+    function readListSection(sectionKey) {
+      const rows = getSectionRows(sectionKey);
+
+      return rows
+        .map((row) => ({
+          name: row.querySelector('[data-field="name"]')?.value?.trim() || "",
+          description: row.querySelector('[data-field="description"]')?.value?.trim() || ""
+        }))
+        .filter((item) => item.name || item.description);
+    }
+
+    function formatListSectionForText(items) {
+      if (!items.length) return "";
+
+      return items.map((item) => {
+        const name = item.name?.trim() || "";
+        const description = item.description?.trim() || "";
+
+        if (name && description) {
+          return `${name}: ${description}`;
+        }
+
+        return name || description;
+      }).join("\n");
+    }
+
     let currentAttributes = {};
 
     buildAttributeInputs();
     renderAttributeSummary(currentAttributes);
+
+    buildListSection("favored-actions-list", "favoredActions");
+    buildListSection("special-actions-list", "specialActions");
+    buildListSection("feats-list", "feats");
+    buildListSection("weapons-list", "weapons");
 
     const backLink = document.getElementById("back-link");
     const cancelLink = document.getElementById("cancel-link");
@@ -396,10 +553,11 @@
       const grd = parseNumberOrEmpty(document.getElementById("npc-grd")?.value);
       const tgh = parseNumberOrEmpty(document.getElementById("npc-tgh")?.value);
       const res = parseNumberOrEmpty(document.getElementById("npc-res")?.value);
-      const favoredActions = document.getElementById("npc-favored-actions")?.value?.trim() || "";
-      const specialActions = document.getElementById("npc-special-actions")?.value?.trim() || "";
-      const feats = document.getElementById("npc-feats")?.value?.trim() || "";
-      const weapons = document.getElementById("npc-weapons")?.value?.trim() || "";
+
+      const favoredActionsItems = readListSection("favoredActions");
+      const specialActionsItems = readListSection("specialActions");
+      const featsItems = readListSection("feats");
+      const weaponsItems = readListSection("weapons");
 
       if (!name) {
         setStatus("Name is required.");
@@ -421,10 +579,17 @@
         tgh,
         res,
         attributes: currentAttributes,
-        favoredActions,
-        specialActions,
-        feats,
-        weapons,
+
+        favoredActions: formatListSectionForText(favoredActionsItems),
+        specialActions: formatListSectionForText(specialActionsItems),
+        feats: formatListSectionForText(featsItems),
+        weapons: formatListSectionForText(weaponsItems),
+
+        favoredActionsItems,
+        specialActionsItems,
+        featsItems,
+        weaponsItems,
+
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
