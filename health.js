@@ -63,7 +63,7 @@ console.log("stat-custom-build button:", document.getElementById("stat-custom-bu
 
 const customBuildBtn = document.getElementById('stat-custom-build');
 if (customBuildBtn) {
-  customBuildBtn.style.display = customBuild ? '' : 'none';
+  customBuildBtn.style.display = customBuild ? 'inline-block' : 'none';
   console.log("stat-custom-build display:", customBuildBtn.style.display);
 }
 
