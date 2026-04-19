@@ -2,6 +2,7 @@ import { requireAuth } from "./auth.js";
 import { db } from "./firebase-config.js";
 import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
+import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
 import { OPENLEGEND_FEATS } from "./openlegend_feats.js";
 import { findOpenLegendWeaponPreset, getOpenLegendAttributeDie, composeOpenLegendWeaponDamage } from "./openlegend_weapons.js";
@@ -85,6 +86,9 @@ const playerWeaponsPreviewEl = document.getElementById("player-weapons-preview")
 const playerWeaponModal = document.getElementById("player-weapon-modal");
 const playerWeaponModalContent = document.getElementById("player-weapon-modal-content");
 const playerWeaponModalClose = document.getElementById("player-weapon-modal-close");
+const baneDetailModal = document.getElementById("bane-detail-modal");
+const baneDetailContent = document.getElementById("bane-detail-content");
+const baneDetailClose = document.getElementById("bane-detail-close");
 
 const user = await requireAuth();
 
@@ -252,7 +256,7 @@ function renderPlayerBanes(banes = []) {
       <span>${bane.name || "Unknown"}</span>
     `;
     chip.addEventListener("click", () => {
-      openBanesModal();
+      openBaneDetailModal(bane);
     });
     playerBanesPreviewEl.appendChild(chip);
   });
@@ -429,6 +433,52 @@ function closePlayerFeatModal() {
 }
 
 
+
+function findBaneEntry(nameOrSlug) {
+  const key = String(nameOrSlug || "").trim().toLowerCase();
+  if (!key) return null;
+  return OPENLEGEND_BANES.find((bane) => {
+    return String(bane.name || "").trim().toLowerCase() === key
+      || String(bane.slug || "").trim().toLowerCase() === key
+      || String(bane.id || "").trim().toLowerCase() === key;
+  }) || null;
+}
+
+function buildBaneDetailHtml(bane) {
+  const entry = findBaneEntry(bane?.name || bane?.slug || bane?.id) || bane || {};
+  const title = entry.displayTitle || entry.name || bane?.name || "Bane";
+  const description = entry.descriptionHtml || entry.description || entry.summary || "No description available.";
+  const effect = entry.effectHtml || entry.effect || "";
+  const icon = entry.icon || bane?.icon || "../icons/banes/test.png";
+  const url = entry.url || bane?.url || "";
+
+  return `
+    <div class="bane-detail-header">
+      <img src="${icon}" alt="${title}">
+      <div>
+        <h3 id="bane-detail-title">${title}</h3>
+        <div class="muted">Open Legend bane reference</div>
+      </div>
+    </div>
+    <div class="bane-detail-section">
+      <h4>Description</h4>
+      <div>${description}</div>
+    </div>
+    ${effect ? `<div class="bane-detail-section"><h4>Effect</h4><div>${effect}</div></div>` : ""}
+    ${url ? `<div class="bane-detail-actions"><a class="button-link" href="${url}" target="_blank" rel="noopener">Official page</a></div>` : ""}
+  `;
+}
+
+function openBaneDetailModal(bane) {
+  if (!baneDetailModal || !baneDetailContent || !bane) return;
+  baneDetailContent.innerHTML = buildBaneDetailHtml(bane);
+  baneDetailModal.setAttribute("aria-hidden", "false");
+}
+
+function closeBaneDetailModal() {
+  baneDetailModal?.setAttribute("aria-hidden", "true");
+}
+
 function closeBanePickerModal() {
   document.getElementById("bane-picker-modal")?.setAttribute("aria-hidden", "true");
 }
@@ -459,8 +509,15 @@ function openBanePickerModal() {
     const row = document.createElement("div");
     row.className = "bane-picker-row";
 
-    const left = document.createElement("div");
-    left.className = "bane-picker-left";
+    const left = document.createElement("button");
+    left.type = "button";
+    left.className = "bane-picker-open";
+    left.addEventListener("click", () => {
+      openBaneDetailModal(bane);
+    });
+
+    const inner = document.createElement("div");
+    inner.className = "bane-picker-left";
 
     const icon = document.createElement("img");
     icon.className = "bane-icon";
@@ -481,8 +538,9 @@ function openBanePickerModal() {
       openBanePickerModal();
     });
 
-    left.appendChild(icon);
-    left.appendChild(name);
+    inner.appendChild(icon);
+    inner.appendChild(name);
+    left.appendChild(inner);
     row.appendChild(left);
     row.appendChild(addBtn);
     list.appendChild(row);
@@ -528,7 +586,7 @@ function openBanesModal() {
       left.appendChild(name);
       leftButton.appendChild(left);
       leftButton.addEventListener("click", () => {
-        if (bane.url) window.open(bane.url, "_blank", "noopener");
+        openBaneDetailModal(bane);
       });
 
       const removeBtn = document.createElement("button");
@@ -629,8 +687,9 @@ function openEffectPickerModal() {
       openEffectPickerModal();
     });
 
-    left.appendChild(icon);
-    left.appendChild(name);
+    inner.appendChild(icon);
+    inner.appendChild(name);
+    left.appendChild(inner);
     row.appendChild(left);
     row.appendChild(addBtn);
     list.appendChild(row);
@@ -1416,6 +1475,10 @@ document.getElementById("bane-picker-modal")?.addEventListener("click", (e) => {
 document.getElementById("banes-modal")?.addEventListener("click", (e) => {
   if (e.target?.id === "banes-modal") closeBanesModal();
 });
+baneDetailClose?.addEventListener("click", closeBaneDetailModal);
+baneDetailModal?.addEventListener("click", (e) => {
+  if (e.target === baneDetailModal) closeBaneDetailModal();
+});
 
 document.getElementById("player-add-effect-btn")?.addEventListener("click", openEffectPickerModal);
 document.getElementById("player-view-effects-btn")?.addEventListener("click", openEffectsModal);
@@ -1436,6 +1499,9 @@ document.addEventListener("keydown", (e) => {
   }
   if (document.getElementById("banes-modal")?.getAttribute("aria-hidden") === "false") {
     closeBanesModal();
+  }
+  if (baneDetailModal?.getAttribute("aria-hidden") === "false") {
+    closeBaneDetailModal();
   }
   if (document.getElementById("effect-picker-modal")?.getAttribute("aria-hidden") === "false") {
     closeEffectPickerModal();
