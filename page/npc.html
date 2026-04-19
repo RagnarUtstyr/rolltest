@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Custom NPC List</title>
-  <link rel="stylesheet" href="list.css" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style/list.css" />
+  <link rel="stylesheet" href="../style/style.css" />
   <style>
     .npc-summary-card {
       display: grid;
@@ -231,8 +232,8 @@
   </div>
 
   <script type="module">
-    import { firestore, db } from "./firebase-config.js";
-    import { requireAuth } from "./auth.js";
+    import { firestore, db } from "../js/firebase-config.js";
+    import { requireAuth } from "../js/auth.js";
     import {
       collection,
       getDocs,
