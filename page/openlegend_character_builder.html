@@ -608,6 +608,7 @@ import { requireAuth } from "../js/auth.js";
     import { watchOrLoadGame } from "../js/game-service.js";
     import { OPENLEGEND_FEATS } from "../js/openlegend_feats.js";
     import { OPENLEGEND_WEAPONS, OPENLEGEND_WEAPON_VS_OPTIONS, createOpenLegendWeapon, findOpenLegendWeaponPreset, getOpenLegendAttributeDie, composeOpenLegendWeaponDamage } from "../js/openlegend_weapons.js";
+    import { BANES } from "../js/banes.js";
     import {
       ref,
       get,
@@ -1408,6 +1409,12 @@ import { requireAuth } from "../js/auth.js";
           </div>
         </div>
 
+        <div class="feat-modal__section">
+          <h3>Available Banes</h3>
+          <div class="helper-text" style="margin-bottom:10px;">Overview from your bane library for quick reference while editing a weapon.</div>
+          ${renderBanesOverviewHtml()}
+        </div>
+
         <div class="feat-modal__footer">
           <div class="tag-subtitle">Weapon damage updates automatically when the selected attribute changes.</div>
           <div class="feat-level-controls">
@@ -1773,6 +1780,16 @@ import { requireAuth } from "../js/auth.js";
 
         if (button.matches("[data-close-feat-modal]")) {
           closeFeatModal();
+          return;
+        }
+
+        if (button.matches("[data-edit-weapon]")) {
+          openWeaponModal(Number(button.dataset.editWeapon));
+          return;
+        }
+
+        if (button.matches("[data-close-weapon-modal]")) {
+          closeWeaponModal();
           return;
         }
 
