@@ -6,6 +6,102 @@
   <title>Custom NPC List</title>
   <link rel="stylesheet" href="list.css" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .npc-summary-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .npc-summary-main {
+      min-width: 0;
+    }
+
+    .npc-summary-name {
+      display: block;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #e3cf95;
+      margin-bottom: 4px;
+    }
+
+    .npc-summary-level {
+      display: block;
+      opacity: 0.9;
+    }
+
+    .npc-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .npc-modal-card {
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-modal-card h4 {
+      margin: 0 0 8px 0;
+      color: #e3cf95;
+    }
+
+    .npc-modal-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .npc-modal-detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .npc-modal-text-block {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-modal-text-block h4 {
+      margin: 0 0 8px 0;
+      color: #e3cf95;
+    }
+
+    .npc-modal-text-block p {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .npc-modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .npc-modal-attributes {
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 700px) {
+      .npc-summary-card {
+        grid-template-columns: 1fr;
+      }
+
+      .npc-modal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <a id="back-link" href="group.html" class="button-link">Back to Initiative</a>
@@ -20,6 +116,49 @@
   />
 
   <div id="npc-list" class="table-container"></div>
+
+  <div id="npc-details-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="npc-details-title">
+      <button class="ol-modal__close" id="npc-details-close" aria-label="Close">×</button>
+      <h3 id="npc-details-title">NPC Details</h3>
+
+      <div class="npc-modal-grid">
+        <div class="npc-modal-card">
+          <h4>Overview</h4>
+          <div id="npc-details-overview"></div>
+        </div>
+
+        <div class="npc-modal-card">
+          <h4>Attributes</h4>
+          <div id="npc-details-attributes" class="npc-modal-attributes"></div>
+        </div>
+      </div>
+
+      <div class="npc-modal-text-block">
+        <h4>Favored Actions</h4>
+        <p id="npc-details-favored">—</p>
+      </div>
+
+      <div class="npc-modal-text-block">
+        <h4>Special Actions</h4>
+        <p id="npc-details-special">—</p>
+      </div>
+
+      <div class="npc-modal-text-block">
+        <h4>Feats</h4>
+        <p id="npc-details-feats">—</p>
+      </div>
+
+      <div class="npc-modal-text-block">
+        <h4>Weapons</h4>
+        <p id="npc-details-weapons">—</p>
+      </div>
+
+      <div class="npc-modal-actions">
+        <button type="button" id="npc-details-add-button">Add to Initiative</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { firestore, db } from "./firebase-config.js";
@@ -49,6 +188,8 @@
       throw new Error("Missing game code in URL.");
     }
 
+    let currentModalNpc = null;
+
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -61,6 +202,47 @@
     function parseNumberOrDefault(value, fallback = 0) {
       const num = Number(value);
       return Number.isFinite(num) ? num : fallback;
+    }
+
+    function normalizeTextBlock(value) {
+      const text = String(value ?? "").trim();
+      return text || "—";
+    }
+
+    function normalizeAttributes(attributes) {
+      if (!attributes || typeof attributes !== "object") return [];
+      return Object.entries(attributes)
+        .filter(([, value]) => value !== null && value !== undefined && value !== "")
+        .sort((a, b) => a[0].localeCompare(b[0]));
+    }
+
+    function attributeScoreToDice(score) {
+      const value = Number(score);
+      if (!Number.isFinite(value) || value <= 0) return "—";
+
+      const diceMap = {
+        1: "1d4",
+        2: "1d6",
+        3: "1d8",
+        4: "1d10",
+        5: "2d6",
+        6: "2d8",
+        7: "2d10",
+        8: "3d8",
+        9: "3d10",
+        10: "4d8"
+      };
+
+      return diceMap[value] || "—";
+    }
+
+    function formatAttributesForModal(attributes) {
+      const rows = normalizeAttributes(attributes);
+      if (!rows.length) return "—";
+
+      return rows
+        .map(([name, value]) => `${name}: ${value} (${attributeScoreToDice(value)})`)
+        .join(", ");
     }
 
     async function loadCustomNpcs() {
@@ -148,35 +330,71 @@
       }
     }
 
+    function openNpcModal(npc) {
+      currentModalNpc = npc;
+
+      const titleEl = document.getElementById("npc-details-title");
+      const overviewEl = document.getElementById("npc-details-overview");
+      const attributesEl = document.getElementById("npc-details-attributes");
+      const favoredEl = document.getElementById("npc-details-favored");
+      const specialEl = document.getElementById("npc-details-special");
+      const featsEl = document.getElementById("npc-details-feats");
+      const weaponsEl = document.getElementById("npc-details-weapons");
+      const modal = document.getElementById("npc-details-modal");
+
+      if (titleEl) titleEl.textContent = npc.name || "NPC Details";
+
+      const overviewRows = [
+        ["Level", npc.level ?? "—"],
+        ["Size", npc.size ?? "—"],
+        ["HP", npc.hp ?? "—"],
+        ["Speed", npc.speed ?? "—"],
+        ["GRD", npc.grd ?? "—"],
+        ["TGH", npc.tgh ?? "—"],
+        ["RES", npc.res ?? "—"]
+      ];
+
+      if (overviewEl) {
+        overviewEl.innerHTML = overviewRows.map(([label, value]) => `
+          <div class="npc-modal-detail-row">
+            <span>${escapeHtml(label)}</span>
+            <span>${escapeHtml(value)}</span>
+          </div>
+        `).join("");
+      }
+
+      if (attributesEl) {
+        attributesEl.textContent = formatAttributesForModal(npc.attributes);
+      }
+
+      if (favoredEl) favoredEl.textContent = normalizeTextBlock(npc.favoredActions);
+      if (specialEl) specialEl.textContent = normalizeTextBlock(npc.specialActions);
+      if (featsEl) featsEl.textContent = normalizeTextBlock(npc.feats);
+      if (weaponsEl) weaponsEl.textContent = normalizeTextBlock(npc.weapons);
+
+      if (modal) {
+        modal.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    function closeNpcModal() {
+      document.getElementById("npc-details-modal")?.setAttribute("aria-hidden", "true");
+      currentModalNpc = null;
+    }
+
     function createNpcCard(npc) {
       const entry = document.createElement("div");
       entry.className = "table-entry";
 
-      const attributes = npc.attributes && Object.keys(npc.attributes).length
-        ? Object.entries(npc.attributes)
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([name, value]) => `${name}: ${value}`)
-            .join(", ")
-        : "—";
+      const wrapper = document.createElement("div");
+      wrapper.className = "npc-summary-card";
 
-      entry.innerHTML = `
-        <div><span class="label">Name</span><span class="content">${escapeHtml(npc.name || "Unnamed NPC")}</span></div>
-        <div><span class="label">Level</span><span class="content">${escapeHtml(npc.level ?? "")}</span></div>
-        <div><span class="label">Size</span><span class="content">${escapeHtml(npc.size ?? "")}</span></div>
-        <div><span class="label">HP</span><span class="content">${escapeHtml(npc.hp ?? "")}</span></div>
-        <div><span class="label">Speed</span><span class="content">${escapeHtml(npc.speed ?? "")}</span></div>
-        <div><span class="label">GRD</span><span class="content">${escapeHtml(npc.grd ?? "")}</span></div>
-        <div><span class="label">RES</span><span class="content">${escapeHtml(npc.res ?? "")}</span></div>
-        <div><span class="label">TGH</span><span class="content">${escapeHtml(npc.tgh ?? "")}</span></div>
-        <div><span class="label">Attributes</span><span class="content">${escapeHtml(attributes)}</span></div>
-        <div><span class="label">Favored Actions</span><span class="content">${escapeHtml(npc.favoredActions ?? "")}</span></div>
-        <div><span class="label">Special Actions</span><span class="content">${escapeHtml(npc.specialActions ?? "")}</span></div>
-        <div><span class="label">Feats</span><span class="content">${escapeHtml(npc.feats ?? "")}</span></div>
-        <div><span class="label">Weapons</span><span class="content">${escapeHtml(npc.weapons ?? "")}</span></div>
+      const main = document.createElement("div");
+      main.className = "npc-summary-main";
+      main.innerHTML = `
+        <span class="npc-summary-name">${escapeHtml(npc.name || "Unnamed NPC")}</span>
+        <span class="npc-summary-level">Level: ${escapeHtml(npc.level ?? "—")}</span>
       `;
-
-      const buttonWrap = document.createElement("div");
-      buttonWrap.className = "link-button";
 
       const addButton = document.createElement("button");
       addButton.className = "add-to-list-button";
@@ -185,9 +403,18 @@
         await addNpcToInitiative(npc);
       });
 
-      buttonWrap.appendChild(addButton);
-      entry.appendChild(buttonWrap);
+      const viewButton = document.createElement("button");
+      viewButton.type = "button";
+      viewButton.textContent = "View";
+      viewButton.addEventListener("click", () => {
+        openNpcModal(npc);
+      });
 
+      wrapper.appendChild(main);
+      wrapper.appendChild(addButton);
+      wrapper.appendChild(viewButton);
+
+      entry.appendChild(wrapper);
       return entry;
     }
 
@@ -195,10 +422,29 @@
       const container = document.getElementById("npc-list");
       const searchInput = document.getElementById("search");
       const backLink = document.getElementById("back-link");
+      const modal = document.getElementById("npc-details-modal");
+      const modalClose = document.getElementById("npc-details-close");
+      const modalAddButton = document.getElementById("npc-details-add-button");
 
       if (backLink) {
         backLink.href = `group.html?code=${encodeURIComponent(code)}`;
       }
+
+      modalClose?.addEventListener("click", closeNpcModal);
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) closeNpcModal();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal?.getAttribute("aria-hidden") === "false") {
+          closeNpcModal();
+        }
+      });
+
+      modalAddButton?.addEventListener("click", async () => {
+        if (!currentModalNpc) return;
+        await addNpcToInitiative(currentModalNpc);
+      });
 
       let npcs = [];
 
@@ -224,13 +470,7 @@
         const filtered = npcs.filter((npc) => {
           const haystack = [
             npc.name,
-            npc.size,
-            npc.level,
-            npc.favoredActions,
-            npc.specialActions,
-            npc.feats,
-            npc.weapons,
-            npc.speed
+            npc.level
           ]
             .map((v) => String(v ?? "").toLowerCase())
             .join(" ");
