@@ -30,7 +30,10 @@
       query,
       orderBy
     } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
-    import { ref, push } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+    import {
+      ref,
+      push
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
     const params = new URLSearchParams(window.location.search);
     const code = (params.get("code") || "").trim().toUpperCase();
@@ -62,6 +65,7 @@
 
     async function loadCustomNpcs() {
       const user = await requireAuth();
+
       const npcRef = collection(
         firestore,
         "users",
@@ -70,6 +74,7 @@
         code,
         "npcs"
       );
+
       const npcQuery = query(npcRef, orderBy("name"));
       const snap = await getDocs(npcQuery);
 
@@ -121,14 +126,16 @@
           size: npc.size ?? "",
           hp,
           speed: npc.speed ?? "",
+          grd,
+          res,
+          tgh,
           attributes: npc.attributes ?? {},
           favoredActions: npc.favoredActions ?? "",
           specialActions: npc.specialActions ?? "",
           feats: npc.feats ?? "",
           weapons: npc.weapons ?? "",
-          ownerUid: npc.ownerUid || "",
-          ownerName: npc.ownerName || "",
-          gameCode: npc.gameCode ?? code
+          createdByUid: npc.ownerUid || "",
+          createdByName: npc.ownerName || ""
         }
       };
 
