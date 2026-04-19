@@ -28,6 +28,20 @@ function onReady(fn) {
   }
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function normalizeTextBlock(value) {
+  const text = String(value ?? "").trim();
+  return text || "—";
+}
+
 function normalizeEffects(effects) {
   if (!effects) return [];
   if (Array.isArray(effects)) return effects.filter(Boolean);
@@ -48,6 +62,7 @@ function getHealthInputForEntry(id) {
 
 let currentStatEntryId = null;
 let currentEffectsEntryId = null;
+let currentCustomBuild = null;
 
 const countdownById = new Map();
 const latestEntries = {};
@@ -99,6 +114,13 @@ function openStatModal(entryId) {
     }
   }
 
+  currentCustomBuild = entry.customBuild ?? null;
+
+  const customBuildBtn = document.getElementById("stat-custom-build");
+  if (customBuildBtn) {
+    customBuildBtn.style.display = entry.customBuild ? "inline-block" : "none";
+  }
+
   setStatCountdownDisplay(state);
 
   const healInput = document.getElementById("stat-heal-amount");
@@ -108,6 +130,51 @@ function openStatModal(entryId) {
   if (countdownInput) countdownInput.value = "";
 
   modal.setAttribute("aria-hidden", "false");
+}
+
+function openCustomBuildModal(entryId) {
+  const modal = document.getElementById("custom-build-modal");
+  const entry = latestEntries[entryId];
+  const customBuild = entry?.customBuild;
+  if (!modal || !entry || !customBuild) return;
+
+  document.getElementById("custom-build-title").textContent = entry.name ?? "Custom DnD NPC";
+  document.getElementById("custom-build-subtitle").textContent =
+    `${customBuild.size || "—"} ${customBuild.type || "—"}, ${customBuild.alignment || "—"}`;
+
+  document.getElementById("custom-build-ac").textContent = `AC: ${customBuild.ac ?? entry.ac ?? "—"}`;
+  document.getElementById("custom-build-hp").textContent = `HP: ${customBuild.hp ?? entry.health ?? "—"}`;
+  document.getElementById("custom-build-speed").textContent = `Speed: ${customBuild.speed ?? "—"}`;
+  document.getElementById("custom-build-cr").textContent = `CR: ${customBuild.cr ?? "—"}`;
+  document.getElementById("custom-build-prof").textContent = `Proficiency Bonus: ${customBuild.proficiencyBonus ?? "—"}`;
+
+  document.getElementById("custom-build-str").textContent = `${customBuild.str ?? "—"}`;
+  document.getElementById("custom-build-dex").textContent = `${customBuild.dex ?? "—"}`;
+  document.getElementById("custom-build-con").textContent = `${customBuild.con ?? "—"}`;
+  document.getElementById("custom-build-int").textContent = `${customBuild.int ?? "—"}`;
+  document.getElementById("custom-build-wis").textContent = `${customBuild.wis ?? "—"}`;
+  document.getElementById("custom-build-cha").textContent = `${customBuild.cha ?? "—"}`;
+  document.getElementById("custom-build-initiative").textContent =
+    `${entry.initiative ?? entry.number ?? "—"}`;
+
+  document.getElementById("custom-build-saving-throws").textContent = normalizeTextBlock(customBuild.savingThrows);
+  document.getElementById("custom-build-skills").textContent = normalizeTextBlock(customBuild.skills);
+  document.getElementById("custom-build-damage-resistances").textContent = normalizeTextBlock(customBuild.damageResistances);
+  document.getElementById("custom-build-damage-immunities").textContent = normalizeTextBlock(customBuild.damageImmunities);
+  document.getElementById("custom-build-condition-immunities").textContent = normalizeTextBlock(customBuild.conditionImmunities);
+  document.getElementById("custom-build-senses").textContent = normalizeTextBlock(customBuild.senses);
+  document.getElementById("custom-build-languages").textContent = normalizeTextBlock(customBuild.languages);
+  document.getElementById("custom-build-traits").textContent = normalizeTextBlock(customBuild.traits);
+  document.getElementById("custom-build-actions").textContent = normalizeTextBlock(customBuild.actions);
+  document.getElementById("custom-build-bonus-actions").textContent = normalizeTextBlock(customBuild.bonusActions);
+  document.getElementById("custom-build-reactions").textContent = normalizeTextBlock(customBuild.reactions);
+  document.getElementById("custom-build-legendary-actions").textContent = normalizeTextBlock(customBuild.legendaryActions);
+
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeCustomBuildModal() {
+  document.getElementById("custom-build-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function closeStatModal() {
@@ -131,6 +198,7 @@ function closeAllModals() {
   closeEffectPickerModal();
   closeEffectsModal();
   closeEffectDescriptionModal();
+  closeCustomBuildModal();
 }
 
 function openEffectDescriptionModal(effect) {
@@ -662,6 +730,11 @@ function bindModalActions() {
     if (e.target.id === "effect-description-modal") closeEffectDescriptionModal();
   });
 
+  document.getElementById("custom-build-close")?.addEventListener("click", closeCustomBuildModal);
+  document.getElementById("custom-build-modal")?.addEventListener("click", (e) => {
+    if (e.target.id === "custom-build-modal") closeCustomBuildModal();
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllModals();
   });
@@ -721,6 +794,11 @@ function bindModalActions() {
   document.getElementById("stat-add-effect")?.addEventListener("click", () => {
     if (!currentStatEntryId) return;
     openEffectPickerModal(currentStatEntryId);
+  });
+
+  document.getElementById("stat-custom-build")?.addEventListener("click", () => {
+    if (!currentStatEntryId || !currentCustomBuild) return;
+    openCustomBuildModal(currentStatEntryId);
   });
 
   const effectsModalList = document.getElementById("effects-modal-list");

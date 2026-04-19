@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../favicon.ico" />
+  <title>Custom DnD NPC Library</title>
+
+  <link rel="stylesheet" href="../style/style.css" />
+  <link rel="stylesheet" href="../style/turn.css" />
+  <link rel="stylesheet" href="../style/save.css" />
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
+
+  <style>
+    .page-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .custom-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .meta-note {
+      font-size: 0.95em;
+      opacity: 0.85;
+      margin-top: 6px;
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 2px solid #2d3d73;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #827b5a;
+      font-size: 1em;
+      box-sizing: border-box;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .status-box {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.9rem;
+      text-align: left;
+      min-height: 44px;
+    }
+
+    .abilities-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .ability-card {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      text-align: left;
+    }
+
+    .ability-card label {
+      margin-bottom: 6px;
+      display: block;
+      font-weight: 700;
+    }
+
+    .list-builder {
+      margin-top: 8px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .list-builder-header {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.8fr);
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      font-weight: 700;
+    }
+
+    .list-builder-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1.8fr);
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: start;
+    }
+
+    .list-builder-row input,
+    .list-builder-row textarea {
+      margin: 0;
+    }
+
+    .list-builder-row textarea {
+      min-height: 76px;
+    }
+
+    .list-helper-text {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 900px) {
+      .abilities-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .custom-form-grid,
+      .list-builder-header,
+      .list-builder-row,
+      .abilities-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="page-row">
+      <h1 style="margin:0;">Custom DnD NPC Library</h1>
+      <a id="back-link" href="group_dnd.html" class="button-link">Back to Initiative</a>
+    </div>
+
+    <p class="meta-note">
+      Save a custom DnD NPC for the current game code. This stores the NPC in Firestore under your user and this game only.
+    </p>
+
+    <form id="custom-npc-form">
+      <div class="custom-form-grid">
+        <div>
+          <label for="npc-name">Name</label>
+          <input type="text" id="npc-name" required />
+        </div>
+
+        <div>
+          <label for="npc-size">Size</label>
+          <input type="text" id="npc-size" placeholder="Tiny, Small, Medium, Large..." />
+        </div>
+
+        <div>
+          <label for="npc-type">Type</label>
+          <input type="text" id="npc-type" placeholder="Humanoid, Undead, Beast..." />
+        </div>
+
+        <div>
+          <label for="npc-alignment">Alignment</label>
+          <input type="text" id="npc-alignment" placeholder="Lawful Good, Chaotic Evil..." />
+        </div>
+
+        <div>
+          <label for="npc-initiative">Initiative</label>
+          <input type="number" id="npc-initiative" value="0" />
+        </div>
+
+        <div>
+          <label for="npc-ac">Armor Class</label>
+          <input type="number" id="npc-ac" min="0" />
+        </div>
+
+        <div>
+          <label for="npc-hp">Hit Points</label>
+          <input type="number" id="npc-hp" min="0" />
+        </div>
+
+        <div>
+          <label for="npc-speed">Speed</label>
+          <input type="text" id="npc-speed" placeholder="30 ft., fly 60 ft..." />
+        </div>
+
+        <div>
+          <label for="npc-cr">Challenge Rating</label>
+          <input type="text" id="npc-cr" placeholder="1/4, 3, 12..." />
+        </div>
+
+        <div>
+          <label for="npc-proficiency">Proficiency Bonus</label>
+          <input type="text" id="npc-proficiency" placeholder="+2" />
+        </div>
+
+        <div class="full-width">
+          <label>Ability Scores</label>
+          <div class="abilities-grid">
+            <div class="ability-card">
+              <label for="npc-str">STR</label>
+              <input type="number" id="npc-str" min="1" />
+            </div>
+            <div class="ability-card">
+              <label for="npc-dex">DEX</label>
+              <input type="number" id="npc-dex" min="1" />
+            </div>
+            <div class="ability-card">
+              <label for="npc-con">CON</label>
+              <input type="number" id="npc-con" min="1" />
+            </div>
+            <div class="ability-card">
+              <label for="npc-int">INT</label>
+              <input type="number" id="npc-int" min="1" />
+            </div>
+            <div class="ability-card">
+              <label for="npc-wis">WIS</label>
+              <input type="number" id="npc-wis" min="1" />
+            </div>
+            <div class="ability-card">
+              <label for="npc-cha">CHA</label>
+              <input type="number" id="npc-cha" min="1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-saving-throws">Saving Throws</label>
+          <textarea id="npc-saving-throws" placeholder="Dex +5, Wis +3"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-skills">Skills</label>
+          <textarea id="npc-skills" placeholder="Perception +4, Stealth +6"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-damage-resistances">Damage Resistances</label>
+          <textarea id="npc-damage-resistances" placeholder="cold; bludgeoning, piercing, and slashing from nonmagical attacks"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-damage-immunities">Damage Immunities</label>
+          <textarea id="npc-damage-immunities" placeholder="poison, fire"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-condition-immunities">Condition Immunities</label>
+          <textarea id="npc-condition-immunities" placeholder="charmed, frightened, poisoned"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-senses">Senses</label>
+          <textarea id="npc-senses" placeholder="darkvision 60 ft., passive Perception 14"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="npc-languages">Languages</label>
+          <textarea id="npc-languages" placeholder="Common, Infernal"></textarea>
+        </div>
+
+        <div class="full-width">
+          <label>Traits</label>
+          <div id="traits-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
+        </div>
+
+        <div class="full-width">
+          <label>Actions</label>
+          <div id="actions-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
+        </div>
+
+        <div class="full-width">
+          <label>Bonus Actions</label>
+          <div id="bonus-actions-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
+        </div>
+
+        <div class="full-width">
+          <label>Reactions</label>
+          <div id="reactions-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
+        </div>
+
+        <div class="full-width">
+          <label>Legendary Actions</label>
+          <div id="legendary-actions-list" class="list-builder"></div>
+          <div class="list-helper-text">Start typing in the last row to add another row automatically.</div>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button type="submit" id="create-custom-npc-button">Save Custom NPC</button>
+        <a id="cancel-link" href="group_dnd.html" class="button-link">Cancel</a>
+      </div>
+    </form>
+
+    <div id="status-output" class="status-box">Waiting for save…</div>
+  </div>
+
+  <script type="module">
+    import { firestore } from "../js/firebase-config.js";
+    import { requireAuth } from "../js/auth.js";
+    import {
+      collection,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get("code") || "").trim().toUpperCase();
+
+    function getBackHref() {
+      return code
+        ? `group_dnd.html?code=${encodeURIComponent(code)}`
+        : "group_dnd.html";
+    }
+
+    function parseNumberOrEmpty(value) {
+      const trimmed = String(value ?? "").trim();
+      if (trimmed === "") return "";
+      const parsed = parseInt(trimmed, 10);
+      return Number.isNaN(parsed) ? "" : parsed;
+    }
+
+    function setStatus(message) {
+      const output = document.getElementById("status-output");
+      if (output) output.textContent = message;
+    }
+
+    function makeListRow(sectionKey, index, item = {}) {
+      const row = document.createElement("div");
+      row.className = "list-builder-row";
+      row.dataset.sectionKey = sectionKey;
+      row.dataset.rowIndex = String(index);
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.placeholder = "Name";
+      nameInput.value = item.name ?? "";
+      nameInput.dataset.field = "name";
+
+      const descInput = document.createElement("textarea");
+      descInput.placeholder = "Description";
+      descInput.value = item.description ?? "";
+      descInput.dataset.field = "description";
+
+      const onInput = () => ensureTrailingEmptyRow(sectionKey);
+      nameInput.addEventListener("input", onInput);
+      descInput.addEventListener("input", onInput);
+
+      row.appendChild(nameInput);
+      row.appendChild(descInput);
+
+      return row;
+    }
+
+    function buildListSection(containerId, sectionKey) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.className = "list-builder-header";
+      header.innerHTML = `
+        <div>Name</div>
+        <div>Description</div>
+      `;
+      container.appendChild(header);
+
+      container.appendChild(makeListRow(sectionKey, 0));
+    }
+
+    function getSectionContainer(sectionKey) {
+      const map = {
+        traits: "traits-list",
+        actions: "actions-list",
+        bonusActions: "bonus-actions-list",
+        reactions: "reactions-list",
+        legendaryActions: "legendary-actions-list"
+      };
+      return document.getElementById(map[sectionKey]);
+    }
+
+    function getSectionRows(sectionKey) {
+      const container = getSectionContainer(sectionKey);
+      if (!container) return [];
+      return Array.from(container.querySelectorAll(`.list-builder-row[data-section-key="${sectionKey}"]`));
+    }
+
+    function rowHasContent(row) {
+      const name = row.querySelector('[data-field="name"]')?.value?.trim() || "";
+      const description = row.querySelector('[data-field="description"]')?.value?.trim() || "";
+      return !!(name || description);
+    }
+
+    function ensureTrailingEmptyRow(sectionKey) {
+      const rows = getSectionRows(sectionKey);
+      if (!rows.length) return;
+
+      const lastRow = rows[rows.length - 1];
+      if (!rowHasContent(lastRow)) return;
+
+      const container = getSectionContainer(sectionKey);
+      if (!container) return;
+
+      container.appendChild(makeListRow(sectionKey, rows.length));
+    }
+
+    function readListSection(sectionKey) {
+      const rows = getSectionRows(sectionKey);
+
+      return rows
+        .map((row) => ({
+          name: row.querySelector('[data-field="name"]')?.value?.trim() || "",
+          description: row.querySelector('[data-field="description"]')?.value?.trim() || ""
+        }))
+        .filter((item) => item.name || item.description);
+    }
+
+    function formatListSectionForText(items) {
+      if (!items.length) return "";
+
+      return items.map((item) => {
+        const name = item.name?.trim() || "";
+        const description = item.description?.trim() || "";
+
+        if (name && description) {
+          return `${name}: ${description}`;
+        }
+
+        return name || description;
+      }).join("\n");
+    }
+
+    buildListSection("traits-list", "traits");
+    buildListSection("actions-list", "actions");
+    buildListSection("bonus-actions-list", "bonusActions");
+    buildListSection("reactions-list", "reactions");
+    buildListSection("legendary-actions-list", "legendaryActions");
+
+    const backLink = document.getElementById("back-link");
+    const cancelLink = document.getElementById("cancel-link");
+    if (backLink) backLink.href = getBackHref();
+    if (cancelLink) cancelLink.href = getBackHref();
+
+    document.getElementById("custom-npc-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!code) {
+        setStatus("Missing game code in URL.");
+        return;
+      }
+
+      const user = await requireAuth();
+
+      const name = document.getElementById("npc-name")?.value?.trim() || "";
+      const size = document.getElementById("npc-size")?.value?.trim() || "";
+      const type = document.getElementById("npc-type")?.value?.trim() || "";
+      const alignment = document.getElementById("npc-alignment")?.value?.trim() || "";
+      const initiative = parseNumberOrEmpty(document.getElementById("npc-initiative")?.value);
+      const ac = parseNumberOrEmpty(document.getElementById("npc-ac")?.value);
+      const hp = parseNumberOrEmpty(document.getElementById("npc-hp")?.value);
+      const speed = document.getElementById("npc-speed")?.value?.trim() || "";
+      const cr = document.getElementById("npc-cr")?.value?.trim() || "";
+      const proficiencyBonus = document.getElementById("npc-proficiency")?.value?.trim() || "";
+
+      const str = parseNumberOrEmpty(document.getElementById("npc-str")?.value);
+      const dex = parseNumberOrEmpty(document.getElementById("npc-dex")?.value);
+      const con = parseNumberOrEmpty(document.getElementById("npc-con")?.value);
+      const intScore = parseNumberOrEmpty(document.getElementById("npc-int")?.value);
+      const wis = parseNumberOrEmpty(document.getElementById("npc-wis")?.value);
+      const cha = parseNumberOrEmpty(document.getElementById("npc-cha")?.value);
+
+      const savingThrows = document.getElementById("npc-saving-throws")?.value?.trim() || "";
+      const skills = document.getElementById("npc-skills")?.value?.trim() || "";
+      const damageResistances = document.getElementById("npc-damage-resistances")?.value?.trim() || "";
+      const damageImmunities = document.getElementById("npc-damage-immunities")?.value?.trim() || "";
+      const conditionImmunities = document.getElementById("npc-condition-immunities")?.value?.trim() || "";
+      const senses = document.getElementById("npc-senses")?.value?.trim() || "";
+      const languages = document.getElementById("npc-languages")?.value?.trim() || "";
+
+      const traitsItems = readListSection("traits");
+      const actionsItems = readListSection("actions");
+      const bonusActionsItems = readListSection("bonusActions");
+      const reactionsItems = readListSection("reactions");
+      const legendaryActionsItems = readListSection("legendaryActions");
+
+      if (!name) {
+        setStatus("Name is required.");
+        return;
+      }
+
+      const ownerName = user.displayName || user.email || "Unknown";
+
+      const payload = {
+        ownerUid: user.uid,
+        ownerName,
+        gameCode: code,
+        system: "dnd5e2014",
+        name,
+        size,
+        type,
+        alignment,
+        initiative,
+        ac,
+        hp,
+        speed,
+        cr,
+        proficiencyBonus,
+        str,
+        dex,
+        con,
+        int: intScore,
+        wis,
+        cha,
+        savingThrows,
+        skills,
+        damageResistances,
+        damageImmunities,
+        conditionImmunities,
+        senses,
+        languages,
+
+        traits: formatListSectionForText(traitsItems),
+        actions: formatListSectionForText(actionsItems),
+        bonusActions: formatListSectionForText(bonusActionsItems),
+        reactions: formatListSectionForText(reactionsItems),
+        legendaryActions: formatListSectionForText(legendaryActionsItems),
+
+        traitsItems,
+        actionsItems,
+        bonusActionsItems,
+        reactionsItems,
+        legendaryActionsItems,
+
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        const colRef = collection(
+          firestore,
+          "users",
+          user.uid,
+          "gameCustomNpcsDnd",
+          code,
+          "npcs"
+        );
+
+        const docRef = await addDoc(colRef, payload);
+
+        setStatus(
+          "Saved custom DnD NPC successfully.\n\n" +
+          "Document ID: " + docRef.id
+        );
+      } catch (error) {
+        console.error("Error saving custom DnD NPC:", error);
+        setStatus(
+          "Could not save custom DnD NPC.\n\n" +
+          "Error: " + (error?.message || String(error))
+        );
+      }
+    });
+  </script>
+</body>
+</html>

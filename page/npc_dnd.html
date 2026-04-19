@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom DnD NPC List</title>
+  <link rel="icon" href="../favicon.ico" />
+  <link rel="stylesheet" href="../style/list.css" />
+  <link rel="stylesheet" href="../style/style.css" />
+  <style>
+    .npc-summary-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .npc-summary-main {
+      min-width: 0;
+    }
+
+    .npc-summary-name {
+      display: block;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #e3cf95;
+      margin-bottom: 4px;
+    }
+
+    .npc-summary-level {
+      display: block;
+      opacity: 0.9;
+    }
+
+    .npc-modal-header-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .npc-modal-header-row h3 {
+      margin: 0;
+    }
+
+    .npc-type-line {
+      opacity: 0.9;
+      font-style: italic;
+    }
+
+    .npc-info-box {
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-info-row {
+      line-height: 1.5;
+    }
+
+    .npc-info-row + .npc-info-row {
+      margin-top: 8px;
+    }
+
+    .npc-stat-row {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .npc-stat-box {
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-stat-label {
+      display: block;
+      font-size: 0.85rem;
+      color: #bdb382;
+      margin-bottom: 6px;
+    }
+
+    .npc-stat-value {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #e3cf95;
+    }
+
+    .npc-text-block {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-text-block h4 {
+      margin: 0 0 8px 0;
+      color: #e3cf95;
+    }
+
+    .npc-text-block p {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .npc-modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    #npc-details-modal .ol-modal__dialog {
+      width: min(1020px, 96vw);
+      max-width: 96vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 900px) {
+      .npc-stat-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .npc-summary-card,
+      .npc-stat-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a id="back-link" href="group_dnd.html" class="button-link">Back to Initiative</a>
+
+  <h1>Saved Custom DnD NPCs</h1>
+
+  <input
+    type="text"
+    id="search"
+    placeholder="Search custom DnD NPCs..."
+    autocomplete="off"
+  />
+
+  <div id="npc-list" class="table-container"></div>
+
+  <div id="npc-details-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="npc-details-title">
+      <button class="ol-modal__close" id="npc-details-close" aria-label="Close">×</button>
+
+      <div class="npc-modal-header-row">
+        <h3 id="npc-details-title">NPC Details</h3>
+        <div id="npc-details-subtitle" class="npc-type-line">—</div>
+      </div>
+
+      <div class="npc-info-box">
+        <div class="npc-info-row"><span id="npc-details-ac">AC: —</span></div>
+        <div class="npc-info-row"><span id="npc-details-hp">HP: —</span></div>
+        <div class="npc-info-row"><span id="npc-details-speed">Speed: —</span></div>
+        <div class="npc-info-row"><span id="npc-details-cr">CR: —</span></div>
+        <div class="npc-info-row"><span id="npc-details-prof">Proficiency Bonus: —</span></div>
+      </div>
+
+      <div class="npc-stat-row">
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">STR</span>
+          <span id="npc-details-str" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">DEX</span>
+          <span id="npc-details-dex" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">CON</span>
+          <span id="npc-details-con" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">INT</span>
+          <span id="npc-details-int" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">WIS</span>
+          <span id="npc-details-wis" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">CHA</span>
+          <span id="npc-details-cha" class="npc-stat-value">—</span>
+        </div>
+        <div class="npc-stat-box">
+          <span class="npc-stat-label">INIT</span>
+          <span id="npc-details-initiative" class="npc-stat-value">—</span>
+        </div>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Saving Throws</h4>
+        <p id="npc-details-saving-throws">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Skills</h4>
+        <p id="npc-details-skills">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Damage Resistances</h4>
+        <p id="npc-details-damage-resistances">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Damage Immunities</h4>
+        <p id="npc-details-damage-immunities">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Condition Immunities</h4>
+        <p id="npc-details-condition-immunities">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Senses</h4>
+        <p id="npc-details-senses">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Languages</h4>
+        <p id="npc-details-languages">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Traits</h4>
+        <p id="npc-details-traits">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Actions</h4>
+        <p id="npc-details-actions">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Bonus Actions</h4>
+        <p id="npc-details-bonus-actions">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Reactions</h4>
+        <p id="npc-details-reactions">—</p>
+      </div>
+
+      <div class="npc-text-block">
+        <h4>Legendary Actions</h4>
+        <p id="npc-details-legendary-actions">—</p>
+      </div>
+
+      <div class="npc-modal-actions">
+        <button type="button" id="npc-details-add-button">Add to Initiative</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { firestore, db } from "../js/firebase-config.js";
+    import { requireAuth } from "../js/auth.js";
+    import {
+      collection,
+      getDocs,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+    import {
+      ref,
+      push
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get("code") || "").trim().toUpperCase();
+
+    if (!code) {
+      document.body.innerHTML = `
+        <div class="container">
+          <h1>Missing game code</h1>
+          <p>This page must be opened from a game.</p>
+          <a href="lobby.html" class="button-link">Back to Lobby</a>
+        </div>
+      `;
+      throw new Error("Missing game code in URL.");
+    }
+
+    let currentModalNpc = null;
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function parseNumberOrDefault(value, fallback = 0) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : fallback;
+    }
+
+    function normalizeTextBlock(value) {
+      const text = String(value ?? "").trim();
+      return text || "—";
+    }
+
+    async function loadCustomNpcs() {
+      const user = await requireAuth();
+
+      const npcRef = collection(
+        firestore,
+        "users",
+        user.uid,
+        "gameCustomNpcsDnd",
+        code,
+        "npcs"
+      );
+
+      const npcQuery = query(npcRef, orderBy("name"));
+      const snap = await getDocs(npcQuery);
+
+      return snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    }
+
+    async function addNpcToInitiative(npc) {
+      const initiativeInput = window.prompt(
+        `Enter initiative for ${npc.name}:`,
+        String(npc.initiative ?? 0)
+      );
+
+      if (initiativeInput === null) return;
+
+      const initiative = parseInt(initiativeInput, 10);
+
+      if (Number.isNaN(initiative)) {
+        alert("Initiative must be a number.");
+        return;
+      }
+
+      const hp = parseNumberOrDefault(npc.hp, 0);
+      const ac = parseNumberOrDefault(npc.ac, 0);
+
+      const entryPayload = {
+        name: npc.name || "Unnamed NPC",
+        playerName: npc.name || "Unnamed NPC",
+        number: initiative,
+        initiative,
+        health: hp,
+        currentHp: hp,
+        ac,
+        isCustom: true,
+        source: "custom-dnd-npc-library",
+        customNpcId: npc.id,
+        gameCode: code,
+        createdByUid: npc.ownerUid || "",
+        createdByName: npc.ownerName || "",
+        updatedAt: Date.now(),
+        customBuild: {
+          size: npc.size ?? "",
+          type: npc.type ?? "",
+          alignment: npc.alignment ?? "",
+          ac,
+          hp,
+          speed: npc.speed ?? "",
+          cr: npc.cr ?? "",
+          proficiencyBonus: npc.proficiencyBonus ?? "",
+          str: npc.str ?? "",
+          dex: npc.dex ?? "",
+          con: npc.con ?? "",
+          int: npc.int ?? "",
+          wis: npc.wis ?? "",
+          cha: npc.cha ?? "",
+          savingThrows: npc.savingThrows ?? "",
+          skills: npc.skills ?? "",
+          damageResistances: npc.damageResistances ?? "",
+          damageImmunities: npc.damageImmunities ?? "",
+          conditionImmunities: npc.conditionImmunities ?? "",
+          senses: npc.senses ?? "",
+          languages: npc.languages ?? "",
+          traits: npc.traits ?? "",
+          actions: npc.actions ?? "",
+          bonusActions: npc.bonusActions ?? "",
+          reactions: npc.reactions ?? "",
+          legendaryActions: npc.legendaryActions ?? "",
+          createdByUid: npc.ownerUid || "",
+          createdByName: npc.ownerName || ""
+        }
+      };
+
+      try {
+        await push(ref(db, `games/${code}/entries`), entryPayload);
+        alert(`${npc.name} added to initiative.`);
+      } catch (error) {
+        console.error("Failed to add custom DnD NPC:", error);
+        alert("Could not add custom DnD NPC.");
+      }
+    }
+
+    function openNpcModal(npc) {
+      currentModalNpc = npc;
+
+      document.getElementById("npc-details-title").textContent = npc.name || "NPC Details";
+      document.getElementById("npc-details-subtitle").textContent =
+        `${npc.size || "—"} ${npc.type || "—"}, ${npc.alignment || "—"}`;
+
+      document.getElementById("npc-details-ac").textContent = `AC: ${npc.ac ?? "—"}`;
+      document.getElementById("npc-details-hp").textContent = `HP: ${npc.hp ?? "—"}`;
+      document.getElementById("npc-details-speed").textContent = `Speed: ${npc.speed ?? "—"}`;
+      document.getElementById("npc-details-cr").textContent = `CR: ${npc.cr ?? "—"}`;
+      document.getElementById("npc-details-prof").textContent = `Proficiency Bonus: ${npc.proficiencyBonus ?? "—"}`;
+
+      document.getElementById("npc-details-str").textContent = `${npc.str ?? "—"}`;
+      document.getElementById("npc-details-dex").textContent = `${npc.dex ?? "—"}`;
+      document.getElementById("npc-details-con").textContent = `${npc.con ?? "—"}`;
+      document.getElementById("npc-details-int").textContent = `${npc.int ?? "—"}`;
+      document.getElementById("npc-details-wis").textContent = `${npc.wis ?? "—"}`;
+      document.getElementById("npc-details-cha").textContent = `${npc.cha ?? "—"}`;
+      document.getElementById("npc-details-initiative").textContent = `${npc.initiative ?? "—"}`;
+
+      document.getElementById("npc-details-saving-throws").textContent = normalizeTextBlock(npc.savingThrows);
+      document.getElementById("npc-details-skills").textContent = normalizeTextBlock(npc.skills);
+      document.getElementById("npc-details-damage-resistances").textContent = normalizeTextBlock(npc.damageResistances);
+      document.getElementById("npc-details-damage-immunities").textContent = normalizeTextBlock(npc.damageImmunities);
+      document.getElementById("npc-details-condition-immunities").textContent = normalizeTextBlock(npc.conditionImmunities);
+      document.getElementById("npc-details-senses").textContent = normalizeTextBlock(npc.senses);
+      document.getElementById("npc-details-languages").textContent = normalizeTextBlock(npc.languages);
+      document.getElementById("npc-details-traits").textContent = normalizeTextBlock(npc.traits);
+      document.getElementById("npc-details-actions").textContent = normalizeTextBlock(npc.actions);
+      document.getElementById("npc-details-bonus-actions").textContent = normalizeTextBlock(npc.bonusActions);
+      document.getElementById("npc-details-reactions").textContent = normalizeTextBlock(npc.reactions);
+      document.getElementById("npc-details-legendary-actions").textContent = normalizeTextBlock(npc.legendaryActions);
+
+      document.getElementById("npc-details-modal").setAttribute("aria-hidden", "false");
+    }
+
+    function closeNpcModal() {
+      document.getElementById("npc-details-modal")?.setAttribute("aria-hidden", "true");
+      currentModalNpc = null;
+    }
+
+    function createNpcCard(npc) {
+      const entry = document.createElement("div");
+      entry.className = "table-entry";
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "npc-summary-card";
+
+      const main = document.createElement("div");
+      main.className = "npc-summary-main";
+      main.innerHTML = `
+        <span class="npc-summary-name">${escapeHtml(npc.name || "Unnamed NPC")}</span>
+        <span class="npc-summary-level">CR: ${escapeHtml(npc.cr ?? "—")}</span>
+      `;
+
+      const addButton = document.createElement("button");
+      addButton.className = "add-to-list-button";
+      addButton.textContent = "Add to Initiative";
+      addButton.addEventListener("click", async () => {
+        await addNpcToInitiative(npc);
+      });
+
+      const viewButton = document.createElement("button");
+      viewButton.type = "button";
+      viewButton.textContent = "View";
+      viewButton.addEventListener("click", () => {
+        openNpcModal(npc);
+      });
+
+      wrapper.appendChild(main);
+      wrapper.appendChild(addButton);
+      wrapper.appendChild(viewButton);
+
+      entry.appendChild(wrapper);
+      return entry;
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const container = document.getElementById("npc-list");
+      const searchInput = document.getElementById("search");
+      const backLink = document.getElementById("back-link");
+      const modal = document.getElementById("npc-details-modal");
+      const modalClose = document.getElementById("npc-details-close");
+      const modalAddButton = document.getElementById("npc-details-add-button");
+
+      if (backLink) {
+        backLink.href = `group_dnd.html?code=${encodeURIComponent(code)}`;
+      }
+
+      modalClose?.addEventListener("click", closeNpcModal);
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) closeNpcModal();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal?.getAttribute("aria-hidden") === "false") {
+          closeNpcModal();
+        }
+      });
+
+      modalAddButton?.addEventListener("click", async () => {
+        if (!currentModalNpc) return;
+        await addNpcToInitiative(currentModalNpc);
+      });
+
+      let npcs = [];
+
+      try {
+        npcs = await loadCustomNpcs();
+      } catch (error) {
+        console.error("Could not load custom DnD NPCs:", error);
+        container.innerHTML = `
+          <div class="table-entry">
+            <div>
+              <span class="label">Error</span>
+              <span class="content">Could not load custom DnD NPCs.</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      function renderNpcs(filterText = "") {
+        const q = filterText.trim().toLowerCase();
+        container.innerHTML = "";
+
+        const filtered = npcs.filter((npc) => {
+          const haystack = [
+            npc.name,
+            npc.cr,
+            npc.type,
+            npc.alignment
+          ]
+            .map((v) => String(v ?? "").toLowerCase())
+            .join(" ");
+
+          return haystack.includes(q);
+        });
+
+        if (!filtered.length) {
+          const empty = document.createElement("div");
+          empty.className = "table-entry";
+          empty.innerHTML = `
+            <div>
+              <span class="label">Result</span>
+              <span class="content">No custom DnD NPCs found for this game.</span>
+            </div>
+          `;
+          container.appendChild(empty);
+          return;
+        }
+
+        filtered.forEach((npc) => {
+          container.appendChild(createNpcCard(npc));
+        });
+      }
+
+      searchInput.addEventListener("input", (event) => {
+        renderNpcs(event.target.value);
+      });
+
+      renderNpcs();
+    });
+  </script>
+</body>
+</html>

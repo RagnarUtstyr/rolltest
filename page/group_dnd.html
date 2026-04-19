@@ -17,6 +17,120 @@
     href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap"
     rel="stylesheet"
   />
+
+  <style>
+    .submit-entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .submit-entry-header h2 {
+      margin: 0;
+    }
+
+    .dnd-custom-build-subtitle {
+      margin: 0 0 12px 0;
+      opacity: 0.9;
+      font-style: italic;
+    }
+
+    .dnd-custom-build-info-box {
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dnd-custom-build-info-row {
+      line-height: 1.5;
+    }
+
+    .dnd-custom-build-info-row + .dnd-custom-build-info-row {
+      margin-top: 8px;
+    }
+
+    .dnd-custom-build-stat-row {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .dnd-custom-build-stat-box {
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dnd-custom-build-stat-label {
+      display: block;
+      font-size: 0.85rem;
+      color: #bdb382;
+      margin-bottom: 6px;
+    }
+
+    .dnd-custom-build-stat-value {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #e3cf95;
+    }
+
+    .dnd-custom-build-text-block {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dnd-custom-build-text-block h4 {
+      margin: 0 0 8px 0;
+      color: #e3cf95;
+    }
+
+    .dnd-custom-build-text-block p {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    #stat-custom-build {
+      display: none;
+    }
+
+    #custom-build-modal .ol-modal__dialog {
+      width: min(1020px, 96vw);
+      max-width: 96vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 900px) {
+      .dnd-custom-build-stat-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .submit-entry-header {
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .dnd-custom-build-stat-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
 </head>
 <body>
   <div class="container">
@@ -46,7 +160,10 @@
     <br /><br />
     <br /><br />
 
-    <h2>Submit a New Entry</h2>
+    <div class="submit-entry-header">
+      <h2>Submit a New Entry</h2>
+      <a id="custom-npc-link" href="custom_dnd.html" class="button-link">Custom NPC</a>
+    </div>
 
     <label for="name">Name:</label>
     <input type="text" id="name" required />
@@ -66,6 +183,7 @@
 
     <a id="save-link" href="save.html" class="button-link">Go to Lists</a>
     <a id="monster-link" href="monster.html" class="button-link">Go to Monster List</a>
+    <a id="npc-link" href="npc_dnd.html" class="button-link">Go to NPC List</a>
   </div>
 
   <script>
@@ -76,9 +194,13 @@
 
       const saveLink = document.getElementById("save-link");
       const monsterLink = document.getElementById("monster-link");
+      const customNpcLink = document.getElementById("custom-npc-link");
+      const npcLink = document.getElementById("npc-link");
 
       if (saveLink) saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
       if (monsterLink) monsterLink.href = `monster.html?code=${encodeURIComponent(code)}`;
+      if (customNpcLink) customNpcLink.href = `custom_dnd.html?code=${encodeURIComponent(code)}`;
+      if (npcLink) npcLink.href = `npc_dnd.html?code=${encodeURIComponent(code)}`;
     })();
   </script>
 
@@ -161,6 +283,7 @@
 
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="stat-add-effect" type="button">Effect</button>
+        <button id="stat-custom-build" type="button">Custom NPC</button>
         <button id="stat-delete" class="remove-button" style="margin-top:0;">
           Delete from list
         </button>
@@ -239,5 +362,120 @@
       <p id="effect-description-body" class="muted"></p>
     </div>
   </div>
+
+  <!-- Custom DnD NPC Modal -->
+  <div id="custom-build-modal" class="ol-modal" aria-hidden="true">
+    <div
+      class="ol-modal__dialog ol-modal__dialog--wide"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="custom-build-title"
+    >
+      <button class="ol-modal__close" id="custom-build-close" aria-label="Close">×</button>
+
+      <h3 id="custom-build-title">Custom DnD NPC</h3>
+      <p id="custom-build-subtitle" class="dnd-custom-build-subtitle">—</p>
+
+      <div class="dnd-custom-build-info-box">
+        <div class="dnd-custom-build-info-row"><span id="custom-build-ac">AC: —</span></div>
+        <div class="dnd-custom-build-info-row"><span id="custom-build-hp">HP: —</span></div>
+        <div class="dnd-custom-build-info-row"><span id="custom-build-speed">Speed: —</span></div>
+        <div class="dnd-custom-build-info-row"><span id="custom-build-cr">CR: —</span></div>
+        <div class="dnd-custom-build-info-row"><span id="custom-build-prof">Proficiency Bonus: —</span></div>
+      </div>
+
+      <div class="dnd-custom-build-stat-row">
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">STR</span>
+          <span id="custom-build-str" class="dnd-custom-build-stat-value">—</span>
+        </div>
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">DEX</span>
+          <span id="custom-build-dex" class="dnd-custom-build-stat-value">—</span>
+        </div>
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">CON</span>
+          <span id="custom-build-con" class="dnd-custom-build-stat-value">—</span>
+        </div>
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">INT</span>
+          <span id="custom-build-int" class="dnd-custom-build-stat-value">—</span>
+        </div>
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">WIS</span>
+          <span id="custom-build-wis" class="dnd-custom-build-stat-value">—</span>
+        </div>
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">CHA</span>
+          <span id="custom-build-cha" class="dnd-custom-build-stat-value">—</span>
+        </div>
+        <div class="dnd-custom-build-stat-box">
+          <span class="dnd-custom-build-stat-label">INIT</span>
+          <span id="custom-build-initiative" class="dnd-custom-build-stat-value">—</span>
+        </div>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Saving Throws</h4>
+        <p id="custom-build-saving-throws">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Skills</h4>
+        <p id="custom-build-skills">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Damage Resistances</h4>
+        <p id="custom-build-damage-resistances">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Damage Immunities</h4>
+        <p id="custom-build-damage-immunities">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Condition Immunities</h4>
+        <p id="custom-build-condition-immunities">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Senses</h4>
+        <p id="custom-build-senses">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Languages</h4>
+        <p id="custom-build-languages">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Traits</h4>
+        <p id="custom-build-traits">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Actions</h4>
+        <p id="custom-build-actions">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Bonus Actions</h4>
+        <p id="custom-build-bonus-actions">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Reactions</h4>
+        <p id="custom-build-reactions">—</p>
+      </div>
+
+      <div class="dnd-custom-build-text-block">
+        <h4>Legendary Actions</h4>
+        <p id="custom-build-legendary-actions">—</p>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
