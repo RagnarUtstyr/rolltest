@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
 import { EFFECTS } from "./effects.js";
+import { OPENLEGEND_FEATS } from "./openlegend_feats.js";
 import {
   ref,
   get,
@@ -73,6 +74,11 @@ const playerBanesPanel = document.getElementById("player-banes-panel");
 const playerBanesPreviewEl = document.getElementById("player-banes-preview");
 const playerEffectsPanel = document.getElementById("player-effects-panel");
 const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
+const playerFeatsPanel = document.getElementById("player-feats-panel");
+const playerFeatsPreviewEl = document.getElementById("player-feats-preview");
+const playerFeatModal = document.getElementById("player-feat-modal");
+const playerFeatModalContent = document.getElementById("player-feat-modal-content");
+const playerFeatModalClose = document.getElementById("player-feat-modal-close");
 
 const user = await requireAuth();
 
@@ -135,6 +141,7 @@ if (mode === "dnd") {
   }
 
   playerBanesPanel?.classList.remove("hidden");
+  playerFeatsPanel?.classList.remove("hidden");
 } else {
   statusEl.textContent = `Unsupported game mode: ${game.mode}`;
   throw new Error(`Unsupported game mode: ${game.mode}`);
@@ -193,6 +200,7 @@ function getCurrentSheetCache() {
 
 function setCurrentSheetCache(data) {
   window.__playerSheetCache = data || null;
+  renderPlayerFeats(Array.isArray(data?.feats) ? data.feats : []);
 }
 
 function getCurrentBanes() {
@@ -282,6 +290,72 @@ function renderPlayerEffects(effects = []) {
     playerEffectsPreviewEl.appendChild(more);
   }
 }
+
+function findFeatEntry(name) {
+  return OPENLEGEND_FEATS.find((feat) => feat.name === name) || null;
+}
+
+function renderPlayerFeats(feats = []) {
+  if (!playerFeatsPreviewEl) return;
+
+  const safeFeats = Array.isArray(feats) ? feats.filter(Boolean) : [];
+  if (!safeFeats.length) {
+    playerFeatsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No feats added.</span>';
+    return;
+  }
+
+  playerFeatsPreviewEl.innerHTML = "";
+  safeFeats.slice(0, 6).forEach((feat) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "player-bane-chip";
+    const entry = findFeatEntry(feat.key || feat.name);
+    const level = Number(feat.level || 1);
+    chip.title = feat.name || feat.key || "Feat";
+    chip.innerHTML = `<span>${feat.name || feat.key || "Feat"}${entry && entry.maxLevel > 1 ? ` Lv ${level}` : ""}</span>`;
+    chip.addEventListener("click", () => openPlayerFeatModal(feat));
+    playerFeatsPreviewEl.appendChild(chip);
+  });
+
+  if (safeFeats.length > 6) {
+    const more = document.createElement("span");
+    more.className = "muted";
+    more.textContent = `+${safeFeats.length - 6} more`;
+    playerFeatsPreviewEl.appendChild(more);
+  }
+}
+
+function openPlayerFeatModal(feat) {
+  if (!playerFeatModal || !playerFeatModalContent) return;
+  const entry = findFeatEntry(feat?.key || feat?.name);
+  if (!entry) return;
+
+  const level = Number(feat.level || 1);
+  const tiers = (entry.tiers || []).map((tier) => `
+    <div class="formula-row">
+      <span>Tier ${tier.level}</span>
+      <span>${tier.text || "None"}</span>
+    </div>
+  `).join("");
+
+  playerFeatModalContent.innerHTML = `
+    <h2>${entry.name}</h2>
+    <p><strong>Level:</strong> ${level}/${entry.maxLevel} &nbsp; <strong>Total Cost:</strong> ${entry.costPerLevel * level}</p>
+    <h3>Description</h3>
+    <div>${entry.descriptionHtml || entry.description || "—"}</div>
+    <h3>Prerequisites</h3>
+    <div class="formula-list">${tiers || '<div class="formula-row"><span>Tier 1</span><span>None</span></div>'}</div>
+    <h3>Effect</h3>
+    <div>${entry.effectHtml || "—"}</div>
+    ${entry.specialHtml ? `<h3>Special</h3><div>${entry.specialHtml}</div>` : ""}
+  `;
+  playerFeatModal.setAttribute("aria-hidden", "false");
+}
+
+function closePlayerFeatModal() {
+  if (playerFeatModal) playerFeatModal.setAttribute("aria-hidden", "true");
+}
+
 
 function closeBanePickerModal() {
   document.getElementById("bane-picker-modal")?.setAttribute("aria-hidden", "true");
@@ -1334,3 +1408,5 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 });
 
 await loadExistingCharacter();
+playerFeatModalClose?.addEventListener("click", closePlayerFeatModal);
+playerFeatModal?.addEventListener("click", (event) => { if (event.target === playerFeatModal) closePlayerFeatModal(); });

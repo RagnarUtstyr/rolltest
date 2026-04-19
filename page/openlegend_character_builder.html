@@ -297,13 +297,137 @@
 
     .tag-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 74px auto;
+      grid-template-columns: minmax(0, 1fr) 88px auto;
       gap: 8px;
       align-items: center;
       padding: 8px;
       border: 1px solid rgba(45,61,115,0.55);
       border-radius: 8px;
       background: rgba(255,255,255,0.04);
+    }
+
+    .tag-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .tag-subtitle {
+      color: #c9bf96;
+      font-size: 0.82rem;
+    }
+
+    .tag-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .tag-actions button {
+      padding: 8px 10px;
+      font-size: 0.92rem;
+    }
+
+    .feat-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10000;
+    }
+
+    .feat-modal[aria-hidden="true"] {
+      display: none;
+    }
+
+    .feat-modal__dialog {
+      width: min(760px, 100%);
+      max-height: 86vh;
+      overflow-y: auto;
+      background: rgba(31, 29, 26, 0.98);
+      border: 1px solid rgba(45,61,115,0.9);
+      border-radius: 14px;
+      box-shadow: 0 16px 42px rgba(0,0,0,0.48);
+      padding: 18px;
+    }
+
+    .feat-modal__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .feat-modal__title {
+      margin-bottom: 4px;
+    }
+
+    .feat-pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(45,61,115,0.8);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(255,255,255,0.05);
+      color: #fff4c2;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .feat-modal__section {
+      border: 1px solid rgba(45,61,115,0.55);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    .feat-modal__section h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .feat-tier-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .feat-tier-row {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .feat-modal__footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .feat-level-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .feat-modal__richtext ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    .feat-modal__richtext li + li {
+      margin-top: 4px;
     }
 
     .tag-row .tag-name {
@@ -451,6 +575,7 @@
 import { requireAuth } from "../js/auth.js";
     import { db } from "../js/firebase-config.js";
     import { watchOrLoadGame } from "../js/game-service.js";
+    import { OPENLEGEND_FEATS } from "../js/openlegend_feats.js";
     import {
       ref,
       get,
@@ -670,7 +795,7 @@ import { requireAuth } from "../js/auth.js";
       const xpAwards = getXpAwards(seed.xp);
 
       const modifiers = Object.assign({}, clone(RULES.defaults), seed.modifiers || {});
-      const feats = Array.isArray(seed.feats) ? clone(seed.feats) : [];
+      const feats = normalizeSavedFeats(seed.feats);
       const perks = Array.isArray(seed.perks) ? clone(seed.perks) : [];
       const flaws = Array.isArray(seed.flaws) ? clone(seed.flaws) : [];
       const weapons = Array.isArray(seed.weapons) ? clone(seed.weapons) : [];
@@ -695,254 +820,68 @@ import { requireAuth } from "../js/auth.js";
       return cleanInt(attributes[requirement.attribute]) >= cleanInt(requirement.min);
     }
 
-    function createDefaultFeatRegistry() {
-      return {
-        "Alternate Form I": { cost: 3, prerequisites: { oneOf: [] } },
-        "Alternate Form II": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Alternate Form I" }] } },
+    function normalizeSavedFeats(input) {
+      const featMap = new Map();
+      const romanMap = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10 };
 
-        "Armor Mastery": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Fortitude", min: 3 },
-              { type: "attribute", attribute: "Might", min: 3 }
-            ]
-          }
-        },
+      const pushFeat = (rawName, rawLevel = 1) => {
+        const trimmed = String(rawName || "").trim();
+        if (!trimmed) return;
 
-        "Attribute Substitution I": { cost: 2, prerequisites: { oneOf: [] } },
-        "Attribute Substitution II": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Attribute Substitution I" }] } },
+        let key = trimmed;
+        let level = cleanInt(rawLevel) || 1;
 
-        "Attack Specialization": {
-          cost: 2,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 3 },
-              { type: "attribute", attribute: "Might", min: 3 }
-            ]
-          }
-        },
-
-        "Battle Trance": {
-          cost: 2,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 5 },
-              { type: "attribute", attribute: "Might", min: 5 },
-              { type: "attribute", attribute: "Energy", min: 5 }
-            ]
-          }
-        },
-
-        "Boon Focus I": { cost: 3, prerequisites: { oneOf: [] } },
-        "Boon Focus II": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Boon Focus I" }] } },
-        "Boon Focus III": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Boon Focus II" }] } },
-
-        "Companion I": { cost: 5, prerequisites: { oneOf: [] } },
-        "Companion II": { cost: 5, prerequisites: { allOf: [{ type: "feat", name: "Companion I" }] } },
-        "Companion III": { cost: 5, prerequisites: { allOf: [{ type: "feat", name: "Companion II" }] } },
-
-        "Craft Extraordinary Item I": { cost: 2, prerequisites: { oneOf: [] } },
-        "Craft Extraordinary Item II": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Craft Extraordinary Item I" }] } },
-        "Craft Extraordinary Item III": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Craft Extraordinary Item II" }] } },
-
-        "Deathless Trance": {
-          cost: 3,
-          prerequisites: {
-            allOf: [
-              { type: "attribute", attribute: "Fortitude", min: 7 },
-              { type: "feat", name: "Battle Trance" }
-            ]
-          }
-        },
-
-        "Destructive Trance": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 7 },
-              { type: "attribute", attribute: "Might", min: 7 },
-              { type: "attribute", attribute: "Energy", min: 7 }
-            ]
-          }
-        },
-
-        "Evasive Footwork": {
-          cost: 2,
-          prerequisites: { allOf: [{ type: "attribute", attribute: "Agility", min: 4 }] }
-        },
-
-        "Fast Draw": {
-          cost: 1,
-          prerequisites: { allOf: [{ type: "attribute", attribute: "Agility", min: 1 }] }
-        },
-
-        "Ferocious Minions": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Alteration", min: 4 },
-              { type: "attribute", attribute: "Creation", min: 4 },
-              { type: "attribute", attribute: "Entropy", min: 4 },
-              { type: "attribute", attribute: "Energy", min: 4 },
-              { type: "attribute", attribute: "Influence", min: 4 }
-            ]
-          }
-        },
-
-        "Heightened Invocation I": { cost: 2, prerequisites: { oneOf: [] } },
-        "Heightened Invocation II": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Heightened Invocation I" }] } },
-        "Heightened Invocation III": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Heightened Invocation II" }] } },
-
-        "Hospitaler": {
-          cost: 2,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Creation", min: 4 },
-              { type: "attribute", attribute: "Presence", min: 4 },
-              { type: "attribute", attribute: "Protection", min: 4 }
-            ]
-          }
-        },
-
-        "Indomitable Resolve I": {
-          cost: 1,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Presence", min: 3 },
-              { type: "attribute", attribute: "Will", min: 3 }
-            ]
-          }
-        },
-        "Indomitable Resolve II": { cost: 1, prerequisites: { allOf: [{ type: "feat", name: "Indomitable Resolve I" }] } },
-        "Indomitable Resolve III": { cost: 1, prerequisites: { allOf: [{ type: "feat", name: "Indomitable Resolve II" }] } },
-
-        "Inspiring Champion I": {
-          cost: 2,
-          prerequisites: { allOf: [{ type: "attribute", attribute: "Presence", min: 4 }] }
-        },
-        "Inspiring Champion II": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Inspiring Champion I" }] } },
-        "Inspiring Champion III": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Inspiring Champion II" }] } },
-
-        "Keen Senses": {
-          cost: 1,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Perception", min: 2 },
-              { type: "attribute", attribute: "Prescience", min: 2 }
-            ]
-          }
-        },
-
-        "Lethal Strike I": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 3 },
-              { type: "attribute", attribute: "Might", min: 3 },
-              { type: "attribute", attribute: "Energy", min: 3 }
-            ]
-          }
-        },
-        "Lethal Strike II": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike I" }] } },
-        "Lethal Strike III": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike II" }] } },
-        "Lethal Strike IV": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike III" }] } },
-        "Lethal Strike V": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike IV" }] } },
-        "Lethal Strike VI": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike V" }] } },
-        "Lethal Strike VII": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike VI" }] } },
-        "Lethal Strike VIII": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike VII" }] } },
-        "Lethal Strike IX": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Lethal Strike VIII" }] } },
-
-        "Longshot": {
-          cost: 1,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 5 },
-              { type: "attribute", attribute: "Might", min: 5 }
-            ]
-          }
-        },
-
-        "Multi-Attack Specialist I": { cost: 3, prerequisites: { oneOf: [] } },
-        "Multi-Attack Specialist II": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Multi-Attack Specialist I" }] } },
-        "Multi-Attack Specialist III": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Multi-Attack Specialist II" }] } },
-        "Multi-Attack Specialist IV": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Multi-Attack Specialist III" }] } },
-        "Multi-Attack Specialist V": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Multi-Attack Specialist IV" }] } },
-        "Multi-Attack Specialist VI": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Multi-Attack Specialist V" }] } },
-
-        "Multi-Bane Specialist": {
-          cost: 3,
-          prerequisites: { oneOf: [] }
-        },
-
-        "Multi-Target Attack Specialist I": { cost: 2, prerequisites: { oneOf: [] } },
-        "Multi-Target Attack Specialist II": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Multi-Target Attack Specialist I" }] } },
-        "Multi-Target Attack Specialist III": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Multi-Target Attack Specialist II" }] } },
-        "Multi-Target Attack Specialist IV": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Multi-Target Attack Specialist III" }] } },
-        "Multi-Target Attack Specialist V": { cost: 2, prerequisites: { allOf: [{ type: "feat", name: "Multi-Target Attack Specialist IV" }] } },
-
-        "Resilient": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Fortitude", min: 3 },
-              { type: "attribute", attribute: "Presence", min: 3 },
-              { type: "attribute", attribute: "Will", min: 3 }
-            ]
-          }
-        },
-
-        "Sentinel I": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 5 },
-              { type: "attribute", attribute: "Might", min: 5 }
-            ]
-          }
-        },
-        "Sentinel II": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Sentinel I" }] } },
-        "Sentinel III": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Sentinel II" }] } },
-
-        "Skillful": { cost: 1, prerequisites: { oneOf: [] } },
-
-        "Superior Concentration I": { cost: 3, prerequisites: { oneOf: [] } },
-        "Superior Concentration II": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Superior Concentration I" }] } },
-        "Superior Concentration III": { cost: 3, prerequisites: { allOf: [{ type: "feat", name: "Superior Concentration II" }] } },
-
-        "Tough": {
-          cost: 1,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Fortitude", min: 2 },
-              { type: "attribute", attribute: "Will", min: 2 }
-            ]
-          }
-        },
-
-        "Two Weapon Brute": {
-          cost: 3,
-          prerequisites: {
-            allOf: [{ type: "feat", name: "Multi-Attack Specialist I" }],
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 4 },
-              { type: "attribute", attribute: "Might", min: 5 }
-            ]
-          }
-        },
-
-        "Vicious Strike": { cost: 2, prerequisites: { oneOf: [] } },
-
-        "Weapon Specialization": {
-          cost: 3,
-          prerequisites: {
-            oneOf: [
-              { type: "attribute", attribute: "Agility", min: 3 },
-              { type: "attribute", attribute: "Might", min: 3 }
-            ]
+        const romanMatch = trimmed.match(/^(.*)\s+([IVX]+)$/);
+        if (romanMatch) {
+          const maybeKey = romanMatch[1].trim();
+          const maybeEntry = OPENLEGEND_FEATS.find((feat) => feat.name === maybeKey);
+          if (maybeEntry && romanMap[romanMatch[2]]) {
+            key = maybeKey;
+            level = romanMap[romanMatch[2]];
           }
         }
+
+        const entry = OPENLEGEND_FEATS.find((feat) => feat.name === key);
+        const safeLevel = Math.max(1, Math.min(entry?.maxLevel || 1, level));
+        const existing = featMap.get(key);
+
+        if (!existing || safeLevel > existing.level) {
+          featMap.set(key, { key, name: key, level: safeLevel });
+        }
       };
+
+      if (Array.isArray(input)) {
+        input.forEach((item) => {
+          if (typeof item === "string") {
+            pushFeat(item, 1);
+            return;
+          }
+
+          if (item && typeof item === "object") {
+            pushFeat(item.key || item.name, item.level || 1);
+          }
+        });
+      }
+
+      return Array.from(featMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    function createDefaultFeatRegistry() {
+      const registry = {};
+      for (const feat of OPENLEGEND_FEATS) {
+        registry[feat.name] = feat;
+      }
+      return registry;
+    }
+
+    function getFeatEntryByKey(key) {
+      return featRegistry[String(key || "").trim()] || null;
+    }
+
+    function getFeatTotalCost(feat) {
+      const entry = getFeatEntryByKey(feat?.key || feat?.name);
+      if (!entry) return 0;
+      return entry.costPerLevel * Math.max(1, cleanInt(feat?.level) || 1);
     }
 
     function validateFeatSelection(character, featRegistry = {}) {
@@ -953,42 +892,18 @@ import { requireAuth } from "../js/auth.js";
       const chosenNames = new Set();
 
       for (const feat of character.feats) {
-        const name = typeof feat === "string" ? feat.trim() : (feat.name || "").trim();
+        const name = String(feat?.key || feat?.name || "").trim();
         if (!name) continue;
         chosenNames.add(name);
         const entry = featRegistry[name];
         if (!entry) {
-          warnings.push(`Feat "${name}" is not in the current dropdown registry, so cost and prerequisites were not validated.`);
+          warnings.push(`Feat "${name}" is not in the current feat library.`);
           continue;
         }
-        spent += cleanInt(entry.cost || 0);
 
-        if (Array.isArray(entry.prerequisites?.allOf)) {
-          for (const req of entry.prerequisites.allOf) {
-            if (req.type === "attribute" && !meetsThreshold(character.attributes, req)) {
-              errors.push(`Feat "${name}" requires ${req.attribute} ${req.min}+.`);
-            }
-            if (req.type === "feat" && !chosenNames.has(req.name)) {
-              errors.push(`Feat "${name}" requires feat "${req.name}".`);
-            }
-          }
-        }
-
-        if (Array.isArray(entry.prerequisites?.oneOf) && entry.prerequisites.oneOf.length) {
-          const passed = entry.prerequisites.oneOf.some((req) => {
-            if (req.type === "attribute") return meetsThreshold(character.attributes, req);
-            if (req.type === "feat") return chosenNames.has(req.name);
-            return false;
-          });
-          if (!passed) {
-            const readable = entry.prerequisites.oneOf.map((req) => {
-              if (req.type === "attribute") return `${req.attribute} ${req.min}+`;
-              if (req.type === "feat") return `feat "${req.name}"`;
-              return "an eligible prerequisite";
-            }).join(" or ");
-            errors.push(`Feat "${name}" requires ${readable}.`);
-          }
-        }
+        const level = Math.max(1, Math.min(entry.maxLevel || 1, cleanInt(feat.level) || 1));
+        feat.level = level;
+        spent += cleanInt(entry.costPerLevel || 0) * level;
       }
 
       if (spent > budgets.featPointsTotal) {
@@ -1082,6 +997,9 @@ import { requireAuth } from "../js/auth.js";
     let featPicker = null;
     let featCostPreview = null;
     let featHelper = null;
+    let featModal = null;
+    let featModalBody = null;
+    let activeFeatModalIndex = null;
 
     function builderPath() {
       return `games/${code}/builderSheets/${user.uid}`;
@@ -1223,17 +1141,104 @@ import { requireAuth } from "../js/auth.js";
 
     function renderFeatList() {
       featListWrap.innerHTML = character.feats.map((feat, index) => {
-        const name = typeof feat === "string" ? feat : feat.name;
-        const entry = featRegistry[name];
-        const cost = entry ? entry.cost : "?";
+        const entry = getFeatEntryByKey(feat.key || feat.name);
+        const level = cleanInt(feat.level) || 1;
+        const totalCost = getFeatTotalCost(feat);
+        const subtitle = entry
+          ? `Level ${level}/${entry.maxLevel} • ${entry.costPerLevel} pt per level`
+          : `Level ${level}`;
+
         return `
           <div class="tag-row">
-            <div class="tag-name">${escapeHtml(name)}</div>
-            <div class="tag-cost">${escapeHtml(String(cost))} pt</div>
-            <button type="button" class="remove-button" data-remove-feat="${index}">Remove</button>
+            <div class="tag-meta">
+              <div class="tag-name">${escapeHtml(feat.name || feat.key || "")}</div>
+              <div class="tag-subtitle">${escapeHtml(subtitle)}</div>
+            </div>
+            <div class="tag-cost">${escapeHtml(String(totalCost))} pt</div>
+            <div class="tag-actions">
+              <button type="button" data-open-feat="${index}">Details</button>
+              <button type="button" class="remove-button" data-remove-feat="${index}">Remove</button>
+            </div>
           </div>
         `;
       }).join("");
+    }
+
+    function openFeatModal(index) {
+      const feat = character.feats[index];
+      const entry = getFeatEntryByKey(feat?.key || feat?.name);
+      if (!featModal || !featModalBody || !entry) return;
+
+      activeFeatModalIndex = index;
+      const currentLevel = Math.max(1, cleanInt(feat.level) || 1);
+      const nextCost = currentLevel < entry.maxLevel ? entry.costPerLevel * (currentLevel + 1) : null;
+      const tierRows = (entry.tiers || []).map((tier) => `
+        <div class="feat-tier-row">
+          <strong>Tier ${tier.level}</strong>
+          <span>${escapeHtml(tier.text || "None")}</span>
+        </div>
+      `).join("");
+
+      featModalBody.innerHTML = `
+        <div class="feat-modal__top">
+          <div>
+            <h2 class="feat-modal__title">${escapeHtml(entry.name)}</h2>
+            <div class="tag-subtitle">${escapeHtml(entry.displayTitle || entry.name)}</div>
+          </div>
+          <div class="feat-pill">Level ${currentLevel}/${entry.maxLevel} • ${entry.costPerLevel} pt/level</div>
+        </div>
+
+        <div class="feat-modal__section">
+          <h3>Description</h3>
+          <div class="feat-modal__richtext">${entry.descriptionHtml || escapeHtml(entry.description || "—")}</div>
+        </div>
+
+        <div class="feat-modal__section">
+          <h3>Prerequisites</h3>
+          <div class="feat-tier-list">${tierRows || '<div class="feat-tier-row"><strong>Tier 1</strong><span>None</span></div>'}</div>
+        </div>
+
+        <div class="feat-modal__section">
+          <h3>Effect</h3>
+          <div class="feat-modal__richtext">${entry.effectHtml || "—"}</div>
+        </div>
+
+        ${entry.specialHtml ? `
+          <div class="feat-modal__section">
+            <h3>Special</h3>
+            <div class="feat-modal__richtext">${entry.specialHtml}</div>
+          </div>
+        ` : ""}
+
+        <div class="feat-modal__footer">
+          <div class="tag-subtitle">
+            Current total cost: ${currentLevel * entry.costPerLevel} pt${nextCost ? ` • Next level total: ${nextCost} pt` : ""}
+          </div>
+          <div class="feat-level-controls">
+            <button type="button" data-feat-level-down ${currentLevel <= 1 ? "disabled" : ""}>Level Down</button>
+            <button type="button" data-feat-level-up ${currentLevel >= entry.maxLevel ? "disabled" : ""}>Level Up</button>
+            <button type="button" data-close-feat-modal>Close</button>
+          </div>
+        </div>
+      `;
+      featModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeFeatModal() {
+      activeFeatModalIndex = null;
+      if (featModal) featModal.setAttribute("aria-hidden", "true");
+    }
+
+    function changeFeatLevel(delta) {
+      if (activeFeatModalIndex === null) return;
+      const feat = character.feats[activeFeatModalIndex];
+      const entry = getFeatEntryByKey(feat?.key || feat?.name);
+      if (!feat || !entry) return;
+
+      feat.level = Math.max(1, Math.min(entry.maxLevel || 1, (cleanInt(feat.level) || 1) + delta));
+      rerender();
+      openFeatModal(activeFeatModalIndex);
+      scheduleSave();
     }
 
     function renderWeapons() {
@@ -1310,9 +1315,9 @@ import { requireAuth } from "../js/auth.js";
     function refreshFeatPreview() {
       const value = featPicker.value.trim();
       const entry = featRegistry[value];
-      featCostPreview.value = entry ? String(entry.cost) : "-";
+      featCostPreview.value = entry ? `${entry.costPerLevel} / lvl` : "-";
       featHelper.textContent = entry
-        ? "Cost: " + entry.cost + (entry.prerequisites && (entry.prerequisites.oneOf || entry.prerequisites.allOf) ? " • prerequisites will be checked" : "")
+        ? `Max level ${entry.maxLevel} • total cost scales cumulatively (${entry.costPerLevel} pt per level)`
         : "Pick a feat from the dropdown or type the full name.";
     }
 
@@ -1494,6 +1499,12 @@ import { requireAuth } from "../js/auth.js";
             <div class="messages" data-messages></div>
           </div>
         </section>
+
+        <div class="feat-modal" data-feat-modal aria-hidden="true">
+          <div class="feat-modal__dialog" role="dialog" aria-modal="true" aria-label="Feat details">
+            <div data-feat-modal-body></div>
+          </div>
+        </div>
       `;
 
       attrWrap = root.querySelector("[data-attributes]");
@@ -1508,6 +1519,8 @@ import { requireAuth } from "../js/auth.js";
       featPicker = root.querySelector("[data-feat-picker]");
       featCostPreview = root.querySelector("[data-feat-cost-preview]");
       featHelper = root.querySelector("[data-feat-helper]");
+      featModal = root.querySelector("[data-feat-modal]");
+      featModalBody = root.querySelector("[data-feat-modal-body]");
 
       root.addEventListener("input", (event) => {
         if (event.target.matches("[data-feat-picker]")) {
@@ -1548,18 +1561,53 @@ import { requireAuth } from "../js/auth.js";
       });
 
       root.addEventListener("click", async (event) => {
+        if (event.target === featModal) {
+          closeFeatModal();
+          return;
+        }
+
         const button = event.target.closest("button");
         if (!button) return;
 
         if (button.matches("[data-add-feat]")) {
           const featName = featPicker.value.trim();
-          if (featName) {
-            character.feats.push({ name: featName });
-            featPicker.value = "";
-            refreshFeatPreview();
-            rerender();
-            scheduleSave();
+          const entry = getFeatEntryByKey(featName);
+
+          if (entry) {
+            const existingIndex = character.feats.findIndex((feat) => (feat.key || feat.name) === entry.name);
+
+            if (existingIndex === -1) {
+              character.feats.push({ key: entry.name, name: entry.name, level: 1 });
+              rerender();
+              openFeatModal(character.feats.findIndex((feat) => (feat.key || feat.name) === entry.name));
+              scheduleSave();
+            } else {
+              openFeatModal(existingIndex);
+            }
           }
+
+          featPicker.value = "";
+          refreshFeatPreview();
+          return;
+        }
+
+        if (button.matches("[data-open-feat]")) {
+          openFeatModal(Number(button.dataset.openFeat));
+          return;
+        }
+
+        if (button.matches("[data-close-feat-modal]")) {
+          closeFeatModal();
+          return;
+        }
+
+        if (button.matches("[data-feat-level-up]")) {
+          changeFeatLevel(1);
+          return;
+        }
+
+        if (button.matches("[data-feat-level-down]")) {
+          changeFeatLevel(-1);
           return;
         }
 
@@ -1669,6 +1717,7 @@ import { requireAuth } from "../js/auth.js";
           grd: Number(derived.guard.total) || 0,
           res: Number(derived.resolve.total) || 0,
           tgh: Number(derived.toughness.total) || 0,
+          feats: clone(character.feats),
           builderUpdatedAt: Date.now()
         };
 
