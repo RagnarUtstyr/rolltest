@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="../favicon.ico" />
+  <link rel="icon" href="../favicon-64x64.png" />
   <title>Custom DnD NPC Library</title>
 
   <link rel="stylesheet" href="../style/style.css" />
@@ -94,6 +94,17 @@
       font-weight: 700;
     }
 
+    .summary-box {
+      text-align: left;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 44px;
+      white-space: pre-wrap;
+    }
+
     .list-builder {
       margin-top: 8px;
       padding: 12px;
@@ -135,6 +146,52 @@
       opacity: 0.8;
     }
 
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .skill-group {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .skill-group h4 {
+      margin: 0 0 8px 0;
+      color: #e3cf95;
+    }
+
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .check-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 3px 0;
+    }
+
+    .check-item label {
+      display: inline-flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: center;
+      margin: 0;
+    }
+
+    .check-bonus {
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+
     @media (max-width: 900px) {
       .abilities-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -145,7 +202,8 @@
       .custom-form-grid,
       .list-builder-header,
       .list-builder-row,
-      .abilities-grid {
+      .abilities-grid,
+      .skill-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -160,7 +218,7 @@
     </div>
 
     <p class="meta-note">
-      Save a custom DnD NPC for the current game code. This stores the NPC in Firestore under your user and this game only.
+      Save a custom DnD NPC for the current game code. Saving throws and skills are auto-calculated from ability modifiers and proficiency bonus.
     </p>
 
     <form id="custom-npc-form">
@@ -212,7 +270,7 @@
 
         <div>
           <label for="npc-proficiency">Proficiency Bonus</label>
-          <input type="text" id="npc-proficiency" placeholder="+2" />
+          <input type="number" id="npc-proficiency" value="2" />
         </div>
 
         <div class="full-width">
@@ -220,39 +278,39 @@
           <div class="abilities-grid">
             <div class="ability-card">
               <label for="npc-str">STR</label>
-              <input type="number" id="npc-str" min="1" />
+              <input type="number" id="npc-str" min="1" value="10" />
             </div>
             <div class="ability-card">
               <label for="npc-dex">DEX</label>
-              <input type="number" id="npc-dex" min="1" />
+              <input type="number" id="npc-dex" min="1" value="10" />
             </div>
             <div class="ability-card">
               <label for="npc-con">CON</label>
-              <input type="number" id="npc-con" min="1" />
+              <input type="number" id="npc-con" min="1" value="10" />
             </div>
             <div class="ability-card">
               <label for="npc-int">INT</label>
-              <input type="number" id="npc-int" min="1" />
+              <input type="number" id="npc-int" min="1" value="10" />
             </div>
             <div class="ability-card">
               <label for="npc-wis">WIS</label>
-              <input type="number" id="npc-wis" min="1" />
+              <input type="number" id="npc-wis" min="1" value="10" />
             </div>
             <div class="ability-card">
               <label for="npc-cha">CHA</label>
-              <input type="number" id="npc-cha" min="1" />
+              <input type="number" id="npc-cha" min="1" value="10" />
             </div>
           </div>
         </div>
 
         <div class="full-width">
-          <label for="npc-saving-throws">Saving Throws</label>
-          <textarea id="npc-saving-throws" placeholder="Dex +5, Wis +3"></textarea>
+          <button id="open-saving-throws-modal" type="button">Saving Throw Proficiencies</button>
+          <div id="saving-throws-summary" class="summary-box">No saving throw proficiencies selected.</div>
         </div>
 
         <div class="full-width">
-          <label for="npc-skills">Skills</label>
-          <textarea id="npc-skills" placeholder="Perception +4, Stealth +6"></textarea>
+          <button id="open-skills-modal" type="button">Skills</button>
+          <div id="skills-summary" class="summary-box">No skill proficiencies selected.</div>
         </div>
 
         <div class="full-width">
@@ -320,6 +378,34 @@
     <div id="status-output" class="status-box">Waiting for save…</div>
   </div>
 
+  <div id="saving-throws-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="saving-throws-modal-title">
+      <button class="ol-modal__close" id="saving-throws-modal-close" aria-label="Close">×</button>
+      <h3 id="saving-throws-modal-title">Saving Throw Proficiencies</h3>
+      <div class="skill-grid">
+        <div class="skill-group">
+          <div class="check-list" id="saving-throws-list"></div>
+        </div>
+      </div>
+      <div class="button-row">
+        <button type="button" id="saving-throws-save-button">Save Saving Throws</button>
+        <button type="button" id="saving-throws-clear-button" class="remove-button">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="skills-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="skills-modal-title">
+      <button class="ol-modal__close" id="skills-modal-close" aria-label="Close">×</button>
+      <h3 id="skills-modal-title">Skill Proficiencies</h3>
+      <div class="skill-grid" id="skills-modal-grid"></div>
+      <div class="button-row">
+        <button type="button" id="skills-save-button">Save Skills</button>
+        <button type="button" id="skills-clear-button" class="remove-button">Clear</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { firestore } from "../js/firebase-config.js";
     import { requireAuth } from "../js/auth.js";
@@ -329,8 +415,44 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
+    const ABILITIES = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+    const ABILITY_SHORT = {
+      Strength: "Str",
+      Dexterity: "Dex",
+      Constitution: "Con",
+      Intelligence: "Int",
+      Wisdom: "Wis",
+      Charisma: "Cha"
+    };
+
+    const SKILL_DATA = {
+      "Athletics": "Strength",
+      "Acrobatics": "Dexterity",
+      "Sleight of Hand": "Dexterity",
+      "Stealth": "Dexterity",
+      "Arcana": "Intelligence",
+      "History": "Intelligence",
+      "Investigation": "Intelligence",
+      "Nature": "Intelligence",
+      "Religion": "Intelligence",
+      "Animal Handling": "Wisdom",
+      "Insight": "Wisdom",
+      "Medicine": "Wisdom",
+      "Perception": "Wisdom",
+      "Survival": "Wisdom",
+      "Deception": "Charisma",
+      "Intimidation": "Charisma",
+      "Performance": "Charisma",
+      "Persuasion": "Charisma"
+    };
+
+    const SKILL_GROUP_ORDER = ["Strength", "Dexterity", "Intelligence", "Wisdom", "Charisma"];
+
     const params = new URLSearchParams(window.location.search);
     const code = (params.get("code") || "").trim().toUpperCase();
+
+    let currentSaveProficiencies = [];
+    let currentSkillProficiencies = [];
 
     function getBackHref() {
       return code
@@ -348,6 +470,236 @@
     function setStatus(message) {
       const output = document.getElementById("status-output");
       if (output) output.textContent = message;
+    }
+
+    function abilityValueMap() {
+      return {
+        Strength: parseNumberOrEmpty(document.getElementById("npc-str")?.value) || 10,
+        Dexterity: parseNumberOrEmpty(document.getElementById("npc-dex")?.value) || 10,
+        Constitution: parseNumberOrEmpty(document.getElementById("npc-con")?.value) || 10,
+        Intelligence: parseNumberOrEmpty(document.getElementById("npc-int")?.value) || 10,
+        Wisdom: parseNumberOrEmpty(document.getElementById("npc-wis")?.value) || 10,
+        Charisma: parseNumberOrEmpty(document.getElementById("npc-cha")?.value) || 10
+      };
+    }
+
+    function proficiencyBonusValue() {
+      const value = parseNumberOrEmpty(document.getElementById("npc-proficiency")?.value);
+      return value === "" ? 2 : value;
+    }
+
+    function abilityMod(score) {
+      return Math.floor((Number(score || 10) - 10) / 2);
+    }
+
+    function formatSigned(value) {
+      return value >= 0 ? `+${value}` : `${value}`;
+    }
+
+    function buildSavingThrowPreview(selected) {
+      const abilities = abilityValueMap();
+      const prof = proficiencyBonusValue();
+
+      if (!selected.length) {
+        return "No saving throw proficiencies selected.";
+      }
+
+      return selected
+        .map((ability) => {
+          const total = abilityMod(abilities[ability]) + prof;
+          return `${ABILITY_SHORT[ability]} ${formatSigned(total)}`;
+        })
+        .join(", ");
+    }
+
+    function buildSkillsPreview(selected) {
+      const abilities = abilityValueMap();
+      const prof = proficiencyBonusValue();
+
+      if (!selected.length) {
+        return "No skill proficiencies selected.";
+      }
+
+      return selected
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((skill) => {
+          const ability = SKILL_DATA[skill];
+          const total = abilityMod(abilities[ability]) + prof;
+          return `${skill} ${formatSigned(total)}`;
+        })
+        .join(", ");
+    }
+
+    function renderSavingThrowsSummary() {
+      const summary = document.getElementById("saving-throws-summary");
+      if (summary) {
+        summary.textContent = buildSavingThrowPreview(currentSaveProficiencies);
+      }
+    }
+
+    function renderSkillsSummary() {
+      const summary = document.getElementById("skills-summary");
+      if (summary) {
+        summary.textContent = buildSkillsPreview(currentSkillProficiencies);
+      }
+    }
+
+    function buildSavingThrowsModal() {
+      const list = document.getElementById("saving-throws-list");
+      if (!list) return;
+
+      list.innerHTML = "";
+
+      ABILITIES.forEach((ability) => {
+        const row = document.createElement("div");
+        row.className = "check-item";
+
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = ability;
+        checkbox.dataset.saveAbility = ability;
+
+        const text = document.createElement("span");
+        text.textContent = ability;
+
+        const bonus = document.createElement("span");
+        bonus.className = "check-bonus";
+        bonus.dataset.saveBonus = ability;
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        row.appendChild(label);
+        row.appendChild(bonus);
+        list.appendChild(row);
+      });
+
+      refreshSavingThrowBonusDisplay();
+    }
+
+    function buildSkillsModal() {
+      const grid = document.getElementById("skills-modal-grid");
+      if (!grid) return;
+
+      grid.innerHTML = "";
+
+      SKILL_GROUP_ORDER.forEach((ability) => {
+        const group = document.createElement("div");
+        group.className = "skill-group";
+
+        const title = document.createElement("h4");
+        title.textContent = ability;
+
+        const list = document.createElement("div");
+        list.className = "check-list";
+
+        Object.entries(SKILL_DATA)
+          .filter(([, linkedAbility]) => linkedAbility === ability)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .forEach(([skill]) => {
+            const row = document.createElement("div");
+            row.className = "check-item";
+
+            const label = document.createElement("label");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = skill;
+            checkbox.dataset.skillName = skill;
+
+            const text = document.createElement("span");
+            text.textContent = skill;
+
+            const bonus = document.createElement("span");
+            bonus.className = "check-bonus";
+            bonus.dataset.skillBonus = skill;
+
+            label.appendChild(checkbox);
+            label.appendChild(text);
+            row.appendChild(label);
+            row.appendChild(bonus);
+            list.appendChild(row);
+          });
+
+        group.appendChild(title);
+        group.appendChild(list);
+        grid.appendChild(group);
+      });
+
+      refreshSkillBonusDisplay();
+    }
+
+    function refreshSavingThrowBonusDisplay() {
+      const abilities = abilityValueMap();
+      const prof = proficiencyBonusValue();
+
+      document.querySelectorAll("[data-save-bonus]").forEach((el) => {
+        const ability = el.dataset.saveBonus;
+        const checkbox = document.querySelector(`[data-save-ability="${ability}"]`);
+        const total = abilityMod(abilities[ability]) + (checkbox?.checked ? prof : 0);
+        el.textContent = formatSigned(total);
+      });
+    }
+
+    function refreshSkillBonusDisplay() {
+      const abilities = abilityValueMap();
+      const prof = proficiencyBonusValue();
+
+      document.querySelectorAll("[data-skill-bonus]").forEach((el) => {
+        const skill = el.dataset.skillBonus;
+        const ability = SKILL_DATA[skill];
+        const checkbox = document.querySelector(`[data-skill-name="${CSS.escape(skill)}"]`);
+        const total = abilityMod(abilities[ability]) + (checkbox?.checked ? prof : 0);
+        el.textContent = formatSigned(total);
+      });
+    }
+
+    function setSavingThrowsInModal(selected) {
+      document.querySelectorAll("[data-save-ability]").forEach((checkbox) => {
+        checkbox.checked = selected.includes(checkbox.value);
+      });
+      refreshSavingThrowBonusDisplay();
+    }
+
+    function setSkillsInModal(selected) {
+      document.querySelectorAll("[data-skill-name]").forEach((checkbox) => {
+        checkbox.checked = selected.includes(checkbox.value);
+      });
+      refreshSkillBonusDisplay();
+    }
+
+    function getSavingThrowsFromModal() {
+      return Array.from(document.querySelectorAll("[data-save-ability]:checked")).map((el) => el.value);
+    }
+
+    function getSkillsFromModal() {
+      return Array.from(document.querySelectorAll("[data-skill-name]:checked")).map((el) => el.value);
+    }
+
+    function openSavingThrowsModal() {
+      document.getElementById("saving-throws-modal")?.setAttribute("aria-hidden", "false");
+    }
+
+    function closeSavingThrowsModal() {
+      const modal = document.getElementById("saving-throws-modal");
+      if (!modal) return;
+      if (modal.contains(document.activeElement)) {
+        document.getElementById("open-saving-throws-modal")?.focus();
+      }
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function openSkillsModal() {
+      document.getElementById("skills-modal")?.setAttribute("aria-hidden", "false");
+    }
+
+    function closeSkillsModal() {
+      const modal = document.getElementById("skills-modal");
+      if (!modal) return;
+      if (modal.contains(document.activeElement)) {
+        document.getElementById("open-skills-modal")?.focus();
+      }
+      modal.setAttribute("aria-hidden", "true");
     }
 
     function makeListRow(sectionKey, index, item = {}) {
@@ -456,16 +808,94 @@
       }).join("\n");
     }
 
+    buildSavingThrowsModal();
+    buildSkillsModal();
+
     buildListSection("traits-list", "traits");
     buildListSection("actions-list", "actions");
     buildListSection("bonus-actions-list", "bonusActions");
     buildListSection("reactions-list", "reactions");
     buildListSection("legendary-actions-list", "legendaryActions");
 
+    renderSavingThrowsSummary();
+    renderSkillsSummary();
+
     const backLink = document.getElementById("back-link");
     const cancelLink = document.getElementById("cancel-link");
     if (backLink) backLink.href = getBackHref();
     if (cancelLink) cancelLink.href = getBackHref();
+
+    document.getElementById("open-saving-throws-modal")?.addEventListener("click", () => {
+      setSavingThrowsInModal(currentSaveProficiencies);
+      openSavingThrowsModal();
+    });
+
+    document.getElementById("open-skills-modal")?.addEventListener("click", () => {
+      setSkillsInModal(currentSkillProficiencies);
+      openSkillsModal();
+    });
+
+    document.getElementById("saving-throws-modal-close")?.addEventListener("click", closeSavingThrowsModal);
+    document.getElementById("skills-modal-close")?.addEventListener("click", closeSkillsModal);
+
+    document.getElementById("saving-throws-modal")?.addEventListener("click", (e) => {
+      if (e.target.id === "saving-throws-modal") closeSavingThrowsModal();
+    });
+
+    document.getElementById("skills-modal")?.addEventListener("click", (e) => {
+      if (e.target.id === "skills-modal") closeSkillsModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (document.getElementById("saving-throws-modal")?.getAttribute("aria-hidden") === "false") {
+        closeSavingThrowsModal();
+      }
+      if (document.getElementById("skills-modal")?.getAttribute("aria-hidden") === "false") {
+        closeSkillsModal();
+      }
+    });
+
+    document.querySelectorAll("#saving-throws-list input").forEach((checkbox) => {
+      checkbox.addEventListener("change", refreshSavingThrowBonusDisplay);
+    });
+
+    document.querySelectorAll("#skills-modal-grid input").forEach((checkbox) => {
+      checkbox.addEventListener("change", refreshSkillBonusDisplay);
+    });
+
+    ["npc-proficiency", "npc-str", "npc-dex", "npc-con", "npc-int", "npc-wis", "npc-cha"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("input", () => {
+        renderSavingThrowsSummary();
+        renderSkillsSummary();
+        refreshSavingThrowBonusDisplay();
+        refreshSkillBonusDisplay();
+      });
+    });
+
+    document.getElementById("saving-throws-save-button")?.addEventListener("click", () => {
+      currentSaveProficiencies = getSavingThrowsFromModal();
+      renderSavingThrowsSummary();
+      closeSavingThrowsModal();
+    });
+
+    document.getElementById("skills-save-button")?.addEventListener("click", () => {
+      currentSkillProficiencies = getSkillsFromModal();
+      renderSkillsSummary();
+      closeSkillsModal();
+    });
+
+    document.getElementById("saving-throws-clear-button")?.addEventListener("click", () => {
+      currentSaveProficiencies = [];
+      setSavingThrowsInModal(currentSaveProficiencies);
+      renderSavingThrowsSummary();
+    });
+
+    document.getElementById("skills-clear-button")?.addEventListener("click", () => {
+      currentSkillProficiencies = [];
+      setSkillsInModal(currentSkillProficiencies);
+      renderSkillsSummary();
+    });
 
     document.getElementById("custom-npc-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -486,7 +916,7 @@
       const hp = parseNumberOrEmpty(document.getElementById("npc-hp")?.value);
       const speed = document.getElementById("npc-speed")?.value?.trim() || "";
       const cr = document.getElementById("npc-cr")?.value?.trim() || "";
-      const proficiencyBonus = document.getElementById("npc-proficiency")?.value?.trim() || "";
+      const proficiencyBonus = parseNumberOrEmpty(document.getElementById("npc-proficiency")?.value);
 
       const str = parseNumberOrEmpty(document.getElementById("npc-str")?.value);
       const dex = parseNumberOrEmpty(document.getElementById("npc-dex")?.value);
@@ -495,8 +925,6 @@
       const wis = parseNumberOrEmpty(document.getElementById("npc-wis")?.value);
       const cha = parseNumberOrEmpty(document.getElementById("npc-cha")?.value);
 
-      const savingThrows = document.getElementById("npc-saving-throws")?.value?.trim() || "";
-      const skills = document.getElementById("npc-skills")?.value?.trim() || "";
       const damageResistances = document.getElementById("npc-damage-resistances")?.value?.trim() || "";
       const damageImmunities = document.getElementById("npc-damage-immunities")?.value?.trim() || "";
       const conditionImmunities = document.getElementById("npc-condition-immunities")?.value?.trim() || "";
@@ -514,6 +942,30 @@
         return;
       }
 
+      const abilities = {
+        Strength: str === "" ? 10 : str,
+        Dexterity: dex === "" ? 10 : dex,
+        Constitution: con === "" ? 10 : con,
+        Intelligence: intScore === "" ? 10 : intScore,
+        Wisdom: wis === "" ? 10 : wis,
+        Charisma: cha === "" ? 10 : cha
+      };
+
+      const prof = proficiencyBonus === "" ? 2 : proficiencyBonus;
+
+      const savingThrows = currentSaveProficiencies
+        .map((ability) => `${ABILITY_SHORT[ability]} ${formatSigned(abilityMod(abilities[ability]) + prof)}`)
+        .join(", ");
+
+      const skills = currentSkillProficiencies
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((skill) => {
+          const ability = SKILL_DATA[skill];
+          return `${skill} ${formatSigned(abilityMod(abilities[ability]) + prof)}`;
+        })
+        .join(", ");
+
       const ownerName = user.displayName || user.email || "Unknown";
 
       const payload = {
@@ -530,15 +982,20 @@
         hp,
         speed,
         cr,
-        proficiencyBonus,
-        str,
-        dex,
-        con,
-        int: intScore,
-        wis,
-        cha,
+        proficiencyBonus: prof,
+        str: abilities.Strength,
+        dex: abilities.Dexterity,
+        con: abilities.Constitution,
+        int: abilities.Intelligence,
+        wis: abilities.Wisdom,
+        cha: abilities.Charisma,
+
+        savingThrowProficiencies: currentSaveProficiencies,
+        skillProficiencies: currentSkillProficiencies,
+
         savingThrows,
         skills,
+
         damageResistances,
         damageImmunities,
         conditionImmunities,
