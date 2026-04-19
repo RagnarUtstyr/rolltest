@@ -247,7 +247,7 @@ onReady(() => {
 
   const baneDetailModal = document.getElementById('bane-detail-modal');
   if (baneDetailModal) {
-    document.getElementById('bane-detail-close')?.addEventListener('click', closeBaneDetailModal);
+    document.getElementById('bane-detail-modal-close')?.addEventListener('click', closeBaneDetailModal);
     baneDetailModal.addEventListener('click', (e) => { if (e.target === baneDetailModal) closeBaneDetailModal(); });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && baneDetailModal.getAttribute('aria-hidden') === 'false') {
@@ -302,60 +302,64 @@ function __normalizeBanes(banes) {
   return Object.values(banes).filter(Boolean);
 }
 
-
-function findBaneEntry(nameOrSlug) {
-  const key = String(nameOrSlug ?? '').trim().toLowerCase();
-  if (!key) return null;
-  return OPENLEGEND_BANES.find((bane) => {
-    return String(bane.name ?? '').trim().toLowerCase() === key
-      || String(bane.slug ?? '').trim().toLowerCase() === key
-      || String(bane.id ?? '').trim().toLowerCase() === key;
-  }) || null;
-}
-
-function buildBaneDetailHtml(bane) {
-  const entry = findBaneEntry(bane?.name || bane?.slug || bane?.id) || bane || {};
-  const title = entry.displayTitle || entry.name || bane?.name || 'Bane';
-  const description = entry.descriptionHtml || entry.description || entry.summary || 'No description available.';
-  const effect = entry.effectHtml || entry.effect || '';
-  const icon = entry.icon || bane?.icon || 'icons/banes/test.png';
-  const url = entry.url || bane?.url || '';
-
-  return `
-    <div class="bane-detail-header">
-      <img src="${icon}" alt="${title}">
-      <div>
-        <h3 id="bane-detail-title">${title}</h3>
-        <div class="muted">Open Legend bane reference</div>
-      </div>
-    </div>
-    <div class="bane-detail-section">
-      <h4>Description</h4>
-      <div>${description}</div>
-    </div>
-    ${effect ? `<div class="bane-detail-section"><h4>Effect</h4><div>${effect}</div></div>` : ''}
-    ${url ? `<div class="bane-detail-actions"><a class="button-link" href="${url}" target="_blank" rel="noopener">Official page</a></div>` : ''}
-  `;
-}
-
-function openBaneDetailModal(bane) {
-  const modal = document.getElementById('bane-detail-modal');
-  const content = document.getElementById('bane-detail-content');
-  if (!modal || !content || !bane) return;
-  content.innerHTML = buildBaneDetailHtml(bane);
-  modal.setAttribute('aria-hidden', 'false');
-}
-
-function closeBaneDetailModal() {
-  document.getElementById('bane-detail-modal')?.setAttribute('aria-hidden', 'true');
-}
-
 function closeBanePickerModal() {
   document.getElementById('bane-picker-modal')?.setAttribute('aria-hidden', 'true');
 }
 
 function closeBanesModal() {
   document.getElementById('banes-modal')?.setAttribute('aria-hidden', 'true');
+}
+
+function closeBaneDetailModal() {
+  document.getElementById('bane-detail-modal')?.setAttribute('aria-hidden', 'true');
+}
+
+function __sanitizeBaneLookup(value) {
+  return String(value ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function __findOpenLegendBaneEntry(bane) {
+  const rawName = typeof bane === 'string' ? bane : bane?.name;
+  const rawUrl = typeof bane === 'string' ? '' : bane?.url;
+  const rawSlug = String(rawUrl || '').split('/').filter(Boolean).pop() || '';
+  const key = __sanitizeBaneLookup(rawName);
+  const slugKey = __sanitizeBaneLookup(rawSlug);
+  return OPENLEGEND_BANES.find((entry) => (
+    __sanitizeBaneLookup(entry.name) === key
+    || __sanitizeBaneLookup(entry.id) === key
+    || __sanitizeBaneLookup(entry.slug) === key
+    || __sanitizeBaneLookup(entry.slug) === slugKey
+  )) || null;
+}
+
+function openBaneDetailModal(bane) {
+  const modal = document.getElementById('bane-detail-modal');
+  const title = document.getElementById('bane-detail-modal-title');
+  const content = document.getElementById('bane-detail-modal-content');
+  if (!modal || !content) return;
+
+  const entry = __findOpenLegendBaneEntry(bane);
+  const name = entry?.name || bane?.name || 'Bane';
+  const icon = entry?.icon || bane?.icon || 'icons/banes/test.png';
+  const summary = entry?.summary || '—';
+  const description = entry?.descriptionHtml || entry?.description || 'No local bane details available.';
+  const effect = entry?.effectHtml || '';
+  const url = entry?.url || bane?.url || '';
+
+  if (title) title.textContent = name;
+  content.innerHTML = `
+    <div class="bane-picker-row" style="display:block;">
+      <div class="bane-picker-left" style="margin-bottom:12px;">
+        <img class="bane-icon" src="${icon}" alt="${name}">
+        <strong>${name}</strong>
+      </div>
+      <p class="muted" style="margin:0 0 12px 0;">${summary}</p>
+      <div>${description}</div>
+      ${effect ? `<h4 style="margin:16px 0 8px;">Effect</h4><div>${effect}</div>` : ''}
+      ${url ? `<p style="margin-top:16px;"><a class="button-link" target="_blank" rel="noopener" href="${url}">Official page</a></p>` : ''}
+    </div>
+  `;
+  modal.setAttribute('aria-hidden', 'false');
 }
 
 function openBanesModal(entryId, banes, titleText = 'Banes') {
@@ -375,15 +379,8 @@ function openBanesModal(entryId, banes, titleText = 'Banes') {
     leftButton.type = 'button';
     leftButton.className = 'bane-picker-open';
 
-    const left = document.createElement('button');
-    left.type = 'button';
-    left.className = 'bane-picker-open';
-    left.addEventListener('click', () => {
-      openBaneDetailModal(bane);
-    });
-
-    const inner = document.createElement('div');
-    inner.className = 'bane-picker-left';
+    const left = document.createElement('div');
+    left.className = 'bane-picker-left';
 
     const icon = document.createElement('img');
     icon.className = 'bane-icon';
@@ -434,15 +431,8 @@ function openBanePickerModal() {
     const row = document.createElement('div');
     row.className = 'bane-picker-row';
 
-    const left = document.createElement('button');
-    left.type = 'button';
-    left.className = 'bane-picker-open';
-    left.addEventListener('click', () => {
-      openBaneDetailModal(bane);
-    });
-
-    const inner = document.createElement('div');
-    inner.className = 'bane-picker-left';
+    const left = document.createElement('div');
+    left.className = 'bane-picker-left';
 
     const icon = document.createElement('img');
     icon.className = 'bane-icon';
@@ -474,9 +464,8 @@ function openBanePickerModal() {
       }
     });
 
-    inner.appendChild(icon);
-    inner.appendChild(name);
-    left.appendChild(inner);
+    left.appendChild(icon);
+    left.appendChild(name);
     row.appendChild(left);
     row.appendChild(addBtn);
     list.appendChild(row);

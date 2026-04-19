@@ -4,8 +4,6 @@ import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
 import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
-import { OPENLEGEND_FEATS } from "./openlegend_feats.js";
-import { findOpenLegendWeaponPreset, getOpenLegendAttributeDie, composeOpenLegendWeaponDamage } from "./openlegend_weapons.js";
 import {
   ref,
   get,
@@ -76,19 +74,6 @@ const playerBanesPanel = document.getElementById("player-banes-panel");
 const playerBanesPreviewEl = document.getElementById("player-banes-preview");
 const playerEffectsPanel = document.getElementById("player-effects-panel");
 const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
-const playerFeatsPanel = document.getElementById("player-feats-panel");
-const playerFeatsPreviewEl = document.getElementById("player-feats-preview");
-const playerFeatModal = document.getElementById("player-feat-modal");
-const playerFeatModalContent = document.getElementById("player-feat-modal-content");
-const playerFeatModalClose = document.getElementById("player-feat-modal-close");
-const playerWeaponsPanel = document.getElementById("player-weapons-panel");
-const playerWeaponsPreviewEl = document.getElementById("player-weapons-preview");
-const playerWeaponModal = document.getElementById("player-weapon-modal");
-const playerWeaponModalContent = document.getElementById("player-weapon-modal-content");
-const playerWeaponModalClose = document.getElementById("player-weapon-modal-close");
-const baneDetailModal = document.getElementById("bane-detail-modal");
-const baneDetailContent = document.getElementById("bane-detail-content");
-const baneDetailClose = document.getElementById("bane-detail-close");
 
 const user = await requireAuth();
 
@@ -151,7 +136,6 @@ if (mode === "dnd") {
   }
 
   playerBanesPanel?.classList.remove("hidden");
-  playerFeatsPanel?.classList.remove("hidden");
 } else {
   statusEl.textContent = `Unsupported game mode: ${game.mode}`;
   throw new Error(`Unsupported game mode: ${game.mode}`);
@@ -210,8 +194,6 @@ function getCurrentSheetCache() {
 
 function setCurrentSheetCache(data) {
   window.__playerSheetCache = data || null;
-  renderPlayerFeats(Array.isArray(data?.feats) ? data.feats : []);
-  renderPlayerWeapons(Array.isArray(data?.weapons) ? data.weapons : []);
 }
 
 function getCurrentBanes() {
@@ -302,189 +284,64 @@ function renderPlayerEffects(effects = []) {
   }
 }
 
-function findFeatEntry(name) {
-  return OPENLEGEND_FEATS.find((feat) => feat.name === name) || null;
-}
-
-function getWeaponComputedDamage(weapon = {}) {
-  const score = getCurrentSheetCache()?.attributes?.[weapon.attribute] ?? 0;
-  return composeOpenLegendWeaponDamage({
-    attributeDie: getOpenLegendAttributeDie(score),
-    bonusDice: weapon.bonusDice,
-    flatBonus: weapon.flatBonus,
-    customDamage: weapon.customDamage || ""
-  });
-}
-
-function renderPlayerWeapons(weapons = []) {
-  if (!playerWeaponsPreviewEl) return;
-
-  const safeWeapons = Array.isArray(weapons) ? weapons.filter(Boolean) : [];
-  if (!safeWeapons.length) {
-    playerWeaponsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No weapons added.</span>';
-    return;
-  }
-
-  playerWeaponsPreviewEl.innerHTML = "";
-  safeWeapons.slice(0, 6).forEach((weapon) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "player-bane-chip";
-    chip.title = weapon.name || "Weapon";
-    chip.innerHTML = `<span>${weapon.name || "Weapon"}</span>`;
-    chip.addEventListener("click", () => openPlayerWeaponModal(weapon));
-    playerWeaponsPreviewEl.appendChild(chip);
-  });
-
-  if (safeWeapons.length > 6) {
-    const more = document.createElement("span");
-    more.className = "muted";
-    more.textContent = `+${safeWeapons.length - 6} more`;
-    playerWeaponsPreviewEl.appendChild(more);
-  }
-}
-
-function openPlayerWeaponModal(weapon) {
-  if (!playerWeaponModal || !playerWeaponModalContent || !weapon) return;
-  const preset = findOpenLegendWeaponPreset(weapon.presetKey || weapon.name);
-  const score = Number(getCurrentSheetCache()?.attributes?.[weapon.attribute] || 0);
-  const die = getOpenLegendAttributeDie(score);
-  const damage = getWeaponComputedDamage(weapon);
-
-  playerWeaponModalContent.innerHTML = `
-    <h2>${weapon.name || "Weapon"}</h2>
-    <p><strong>Damage:</strong> ${damage || '—'} &nbsp; <strong>Attack:</strong> ${weapon.attribute || '—'} (${die || '—'}) &nbsp; <strong>VS:</strong> ${weapon.vs || 'GRD'}</p>
-    <div class="formula-list">
-      <div class="formula-row"><span>Category</span><span>${preset?.category || 'Custom'}</span></div>
-      <div class="formula-row"><span>Range</span><span>${weapon.range || '—'}</span></div>
-      <div class="formula-row"><span>Boon</span><span>${Number(weapon.boon || 0)}</span></div>
-      <div class="formula-row"><span>Bane</span><span>${Number(weapon.bane || 0)}</span></div>
-      <div class="formula-row"><span>Tags</span><span>${weapon.tags || '—'}</span></div>
-    </div>
-    <h3>Notes</h3>
-    <div>${weapon.notes || '—'}</div>
-  `;
-  playerWeaponModal.setAttribute("aria-hidden", "false");
-}
-
-function closePlayerWeaponModal() {
-  if (playerWeaponModal) playerWeaponModal.setAttribute("aria-hidden", "true");
-}
-
-function renderPlayerFeats(feats = []) {
-  if (!playerFeatsPreviewEl) return;
-
-  const safeFeats = Array.isArray(feats) ? feats.filter(Boolean) : [];
-  if (!safeFeats.length) {
-    playerFeatsPreviewEl.innerHTML = '<span class="muted player-banes-empty">No feats added.</span>';
-    return;
-  }
-
-  playerFeatsPreviewEl.innerHTML = "";
-  safeFeats.slice(0, 6).forEach((feat) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "player-bane-chip";
-    const entry = findFeatEntry(feat.key || feat.name);
-    const level = Number(feat.level || 1);
-    chip.title = feat.name || feat.key || "Feat";
-    chip.innerHTML = `<span>${feat.name || feat.key || "Feat"}${entry && entry.maxLevel > 1 ? ` Lv ${level}` : ""}</span>`;
-    chip.addEventListener("click", () => openPlayerFeatModal(feat));
-    playerFeatsPreviewEl.appendChild(chip);
-  });
-
-  if (safeFeats.length > 6) {
-    const more = document.createElement("span");
-    more.className = "muted";
-    more.textContent = `+${safeFeats.length - 6} more`;
-    playerFeatsPreviewEl.appendChild(more);
-  }
-}
-
-function openPlayerFeatModal(feat) {
-  if (!playerFeatModal || !playerFeatModalContent) return;
-  const entry = findFeatEntry(feat?.key || feat?.name);
-  if (!entry) return;
-
-  const level = Number(feat.level || 1);
-  const tiers = (entry.tiers || []).map((tier) => `
-    <div class="formula-row">
-      <span>Tier ${tier.level}</span>
-      <span>${tier.text || "None"}</span>
-    </div>
-  `).join("");
-
-  playerFeatModalContent.innerHTML = `
-    <h2>${entry.name}</h2>
-    <p><strong>Level:</strong> ${level}/${entry.maxLevel} &nbsp; <strong>Total Cost:</strong> ${entry.costPerLevel * level}</p>
-    <h3>Description</h3>
-    <div>${entry.descriptionHtml || entry.description || "—"}</div>
-    <h3>Prerequisites</h3>
-    <div class="formula-list">${tiers || '<div class="formula-row"><span>Tier 1</span><span>None</span></div>'}</div>
-    <h3>Effect</h3>
-    <div>${entry.effectHtml || "—"}</div>
-    ${entry.specialHtml ? `<h3>Special</h3><div>${entry.specialHtml}</div>` : ""}
-  `;
-  playerFeatModal.setAttribute("aria-hidden", "false");
-}
-
-function closePlayerFeatModal() {
-  if (playerFeatModal) playerFeatModal.setAttribute("aria-hidden", "true");
-}
-
-
-
-function findBaneEntry(nameOrSlug) {
-  const key = String(nameOrSlug || "").trim().toLowerCase();
-  if (!key) return null;
-  return OPENLEGEND_BANES.find((bane) => {
-    return String(bane.name || "").trim().toLowerCase() === key
-      || String(bane.slug || "").trim().toLowerCase() === key
-      || String(bane.id || "").trim().toLowerCase() === key;
-  }) || null;
-}
-
-function buildBaneDetailHtml(bane) {
-  const entry = findBaneEntry(bane?.name || bane?.slug || bane?.id) || bane || {};
-  const title = entry.displayTitle || entry.name || bane?.name || "Bane";
-  const description = entry.descriptionHtml || entry.description || entry.summary || "No description available.";
-  const effect = entry.effectHtml || entry.effect || "";
-  const icon = entry.icon || bane?.icon || "../icons/banes/test.png";
-  const url = entry.url || bane?.url || "";
-
-  return `
-    <div class="bane-detail-header">
-      <img src="${icon}" alt="${title}">
-      <div>
-        <h3 id="bane-detail-title">${title}</h3>
-        <div class="muted">Open Legend bane reference</div>
-      </div>
-    </div>
-    <div class="bane-detail-section">
-      <h4>Description</h4>
-      <div>${description}</div>
-    </div>
-    ${effect ? `<div class="bane-detail-section"><h4>Effect</h4><div>${effect}</div></div>` : ""}
-    ${url ? `<div class="bane-detail-actions"><a class="button-link" href="${url}" target="_blank" rel="noopener">Official page</a></div>` : ""}
-  `;
-}
-
-function openBaneDetailModal(bane) {
-  if (!baneDetailModal || !baneDetailContent || !bane) return;
-  baneDetailContent.innerHTML = buildBaneDetailHtml(bane);
-  baneDetailModal.setAttribute("aria-hidden", "false");
-}
-
-function closeBaneDetailModal() {
-  baneDetailModal?.setAttribute("aria-hidden", "true");
-}
-
 function closeBanePickerModal() {
   document.getElementById("bane-picker-modal")?.setAttribute("aria-hidden", "true");
 }
 
 function closeBanesModal() {
   document.getElementById("banes-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeBaneDetailModal() {
+  document.getElementById("bane-detail-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function sanitizeBaneLookup(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function findOpenLegendBaneEntry(bane) {
+  const rawName = typeof bane === "string" ? bane : bane?.name;
+  const rawUrl = typeof bane === "string" ? "" : bane?.url;
+  const rawSlug = String(rawUrl || "").split("/").filter(Boolean).pop() || "";
+  const key = sanitizeBaneLookup(rawName);
+  const slugKey = sanitizeBaneLookup(rawSlug);
+  return OPENLEGEND_BANES.find((entry) => (
+    sanitizeBaneLookup(entry.name) === key
+    || sanitizeBaneLookup(entry.id) === key
+    || sanitizeBaneLookup(entry.slug) === key
+    || sanitizeBaneLookup(entry.slug) === slugKey
+  )) || null;
+}
+
+function openBaneDetailModal(bane) {
+  const modal = document.getElementById("bane-detail-modal");
+  const title = document.getElementById("bane-detail-modal-title");
+  const content = document.getElementById("bane-detail-modal-content");
+  if (!modal || !content) return;
+
+  const entry = findOpenLegendBaneEntry(bane);
+  const name = entry?.name || bane?.name || "Bane";
+  const icon = entry?.icon || bane?.icon || "../icons/banes/test.png";
+  const summary = entry?.summary || "—";
+  const description = entry?.descriptionHtml || entry?.description || "No local bane details available.";
+  const effect = entry?.effectHtml || "";
+  const url = entry?.url || bane?.url || "";
+
+  if (title) title.textContent = name;
+  content.innerHTML = `
+    <div class="bane-picker-row" style="display:block;">
+      <div class="bane-picker-left" style="margin-bottom:12px;">
+        <img class="bane-icon" src="${icon}" alt="${name}">
+        <strong>${name}</strong>
+      </div>
+      <p class="muted" style="margin:0 0 12px 0;">${summary}</p>
+      <div>${description}</div>
+      ${effect ? `<h4 style="margin:16px 0 8px;">Effect</h4><div>${effect}</div>` : ""}
+      ${url ? `<p style="margin-top:16px;"><a class="button-link" target="_blank" rel="noopener" href="${url}">Official page</a></p>` : ""}
+    </div>
+  `;
+  modal.setAttribute("aria-hidden", "false");
 }
 
 function closeEffectPickerModal() {
@@ -509,15 +366,8 @@ function openBanePickerModal() {
     const row = document.createElement("div");
     row.className = "bane-picker-row";
 
-    const left = document.createElement("button");
-    left.type = "button";
-    left.className = "bane-picker-open";
-    left.addEventListener("click", () => {
-      openBaneDetailModal(bane);
-    });
-
-    const inner = document.createElement("div");
-    inner.className = "bane-picker-left";
+    const left = document.createElement("div");
+    left.className = "bane-picker-left";
 
     const icon = document.createElement("img");
     icon.className = "bane-icon";
@@ -538,9 +388,8 @@ function openBanePickerModal() {
       openBanePickerModal();
     });
 
-    inner.appendChild(icon);
-    inner.appendChild(name);
-    left.appendChild(inner);
+    left.appendChild(icon);
+    left.appendChild(name);
     row.appendChild(left);
     row.appendChild(addBtn);
     list.appendChild(row);
@@ -687,9 +536,8 @@ function openEffectPickerModal() {
       openEffectPickerModal();
     });
 
-    inner.appendChild(icon);
-    inner.appendChild(name);
-    left.appendChild(inner);
+    left.appendChild(icon);
+    left.appendChild(name);
     row.appendChild(left);
     row.appendChild(addBtn);
     list.appendChild(row);
@@ -925,7 +773,6 @@ function setOpenLegendValues(data = {}) {
   document.getElementById("player-ol-res-view").textContent = data.res ?? "—";
   document.getElementById("player-ol-tgh-view").textContent = data.tgh ?? "—";
   setPlayerBanes(data.banes ?? []);
-  renderPlayerWeapons(data.weapons ?? []);
 }
 
 function getSelectedOlDefense() {
@@ -1248,9 +1095,7 @@ function buildSheetPayload(existing = {}) {
       grd: ol.grd,
       res: ol.res,
       tgh: ol.tgh,
-      banes: ol.banes,
-      feats: existing.feats || [],
-      weapons: existing.weapons || []
+      banes: ol.banes
     };
   }
 
@@ -1301,8 +1146,7 @@ async function loadExistingCharacter() {
         grd: data.grd ?? "—",
         res: data.res ?? "—",
         tgh: data.tgh ?? "—",
-        banes: data.banes ?? [],
-        weapons: data.weapons ?? []
+        banes: data.banes ?? []
       });
     }
 
@@ -1329,8 +1173,7 @@ async function loadExistingCharacter() {
         grd: "—",
         res: "—",
         tgh: "—",
-        banes: entry.banes ?? [],
-        weapons: entry.weapons ?? []
+        banes: entry.banes ?? []
       });
     }
 
@@ -1469,15 +1312,15 @@ document.getElementById("player-add-bane-btn")?.addEventListener("click", openBa
 document.getElementById("player-view-banes-btn")?.addEventListener("click", openBanesModal);
 document.getElementById("bane-picker-close")?.addEventListener("click", closeBanePickerModal);
 document.getElementById("banes-modal-close")?.addEventListener("click", closeBanesModal);
+document.getElementById("bane-detail-modal-close")?.addEventListener("click", closeBaneDetailModal);
 document.getElementById("bane-picker-modal")?.addEventListener("click", (e) => {
   if (e.target?.id === "bane-picker-modal") closeBanePickerModal();
 });
 document.getElementById("banes-modal")?.addEventListener("click", (e) => {
   if (e.target?.id === "banes-modal") closeBanesModal();
 });
-baneDetailClose?.addEventListener("click", closeBaneDetailModal);
-baneDetailModal?.addEventListener("click", (e) => {
-  if (e.target === baneDetailModal) closeBaneDetailModal();
+document.getElementById("bane-detail-modal")?.addEventListener("click", (e) => {
+  if (e.target?.id === "bane-detail-modal") closeBaneDetailModal();
 });
 
 document.getElementById("player-add-effect-btn")?.addEventListener("click", openEffectPickerModal);
@@ -1500,7 +1343,7 @@ document.addEventListener("keydown", (e) => {
   if (document.getElementById("banes-modal")?.getAttribute("aria-hidden") === "false") {
     closeBanesModal();
   }
-  if (baneDetailModal?.getAttribute("aria-hidden") === "false") {
+  if (document.getElementById("bane-detail-modal")?.getAttribute("aria-hidden") === "false") {
     closeBaneDetailModal();
   }
   if (document.getElementById("effect-picker-modal")?.getAttribute("aria-hidden") === "false") {
@@ -1551,11 +1394,3 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 });
 
 await loadExistingCharacter();
-playerFeatModalClose?.addEventListener("click", closePlayerFeatModal);
-playerWeaponModalClose?.addEventListener("click", closePlayerWeaponModal);
-playerFeatModal?.addEventListener("click", (event) => { if (event.target === playerFeatModal) closePlayerFeatModal(); });
-
-
-playerWeaponModal?.addEventListener("click", (event) => {
-  if (event.target === playerWeaponModal) closePlayerWeaponModal();
-});

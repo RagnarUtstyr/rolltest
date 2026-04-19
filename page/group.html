@@ -8,7 +8,7 @@
   <title>Initiative</title>
 
   <script type="module" src="../js/server.js?v=20260406e" defer></script>
-  <script type="module" src="../js/health.js?v=20260420a" defer></script>
+  <script type="module" src="../js/health.js?v=20260419b" defer></script>
   <script type="module" src="../js/turn.js?v=20260416a" defer></script>
 
   <link rel="stylesheet" href="../style/style.css" />
@@ -165,47 +165,6 @@
     .custom-build-stat-row {
       grid-template-columns: 1fr;
     }
-  }
-
-
-
-  .bane-detail-card {
-    display: grid;
-    gap: 14px;
-  }
-
-  .bane-detail-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-
-  .bane-detail-header img {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    border-radius: 50%;
-    flex: 0 0 auto;
-  }
-
-  .bane-detail-section {
-    padding: 10px 12px;
-    border: 1px solid #2d3d73;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .bane-detail-section h4 {
-    margin: 0 0 8px;
-    color: #e3cf95;
-  }
-
-  .bane-detail-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 4px;
   }
 
 </style>
@@ -402,6 +361,15 @@
     </div>
   </div>
 
+
+  <div id="bane-detail-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bane-detail-modal-title">
+      <button class="ol-modal__close" id="bane-detail-modal-close" aria-label="Close">×</button>
+      <h3 id="bane-detail-modal-title">Bane</h3>
+      <div id="bane-detail-modal-content" class="banes-modal-list"></div>
+    </div>
+  </div>
+
   <div id="custom-build-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="custom-build-title">
       <button class="ol-modal__close" id="custom-build-close" aria-label="Close">×</button>
@@ -474,15 +442,6 @@
     console.log("Code from URL:", code);
   })();
 </script>
-
-
-
-  <div id="bane-detail-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bane-detail-title">
-      <button class="ol-modal__close" id="bane-detail-close" aria-label="Close">×</button>
-      <div id="bane-detail-content" class="bane-detail-card"></div>
-    </div>
-  </div>
 
 </body>
 </html>

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=7" defer></script>
+  <script type="module" src="../js/player.js?v=8" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -175,10 +175,6 @@
     opacity: 0.8;
   }
 
-  .player-weapons-panel .muted {
-    margin-top: 6px;
-  }
-
   .ol-modal {
     position: fixed;
     inset: 0;
@@ -329,47 +325,6 @@
   #player-effects-panel .player-banes-empty {
     color: #E0D8B0;
     opacity: 0.85;
-  }
-
-  
-
-  .bane-detail-card {
-    display: grid;
-    gap: 14px;
-  }
-
-  .bane-detail-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-
-  .bane-detail-header img {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    border-radius: 50%;
-    flex: 0 0 auto;
-  }
-
-  .bane-detail-section {
-    padding: 10px 12px;
-    border: 1px solid #2d3d73;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .bane-detail-section h4 {
-    margin: 0 0 8px;
-    color: #e3cf95;
-  }
-
-  .bane-detail-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 4px;
   }
 
   @media (max-width: 760px) {
@@ -630,14 +585,6 @@
 
         <div id="ol-calc-result" class="calc-result muted"></div>
       </div>
-
-      <div id="player-weapons-panel" class="player-panel compact-panel player-weapons-panel hidden">
-        <h2>Weapons</h2>
-        <p class="muted">Open Legend weapon presets, computed damage, and VS targets.</p>
-        <div id="player-weapons-preview" class="player-banes-preview">
-          <span class="muted player-banes-empty">No weapons added.</span>
-        </div>
-      </div>
     </section>
 
     <div class="player-panel">
@@ -675,6 +622,15 @@
       </div>
     </div>
 
+
+    <div id="bane-detail-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bane-detail-modal-title">
+        <button class="ol-modal__close" id="bane-detail-modal-close" aria-label="Close">×</button>
+        <h3 id="bane-detail-modal-title">Bane</h3>
+        <div id="bane-detail-modal-content" class="banes-modal-list"></div>
+      </div>
+    </div>
+
     <div id="effect-picker-modal" class="ol-modal" aria-hidden="true">
       <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="effect-picker-title">
         <button class="ol-modal__close" id="effect-picker-close" aria-label="Close">×</button>
@@ -693,28 +649,5 @@
 
     <p id="player-status" class="muted"></p>
   </div>
-
-  <div id="player-feat-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-label="Feat details">
-      <button type="button" class="ol-modal__close" id="player-feat-modal-close" aria-label="Close">×</button>
-      <div id="player-feat-modal-content"></div>
-    </div>
-  </div>
-
-  <div id="player-weapon-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-label="Weapon details">
-      <button type="button" class="ol-modal__close" id="player-weapon-modal-close" aria-label="Close">×</button>
-      <div id="player-weapon-modal-content"></div>
-    </div>
-  </div>
-
-
-  <div id="bane-detail-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bane-detail-title">
-      <button class="ol-modal__close" id="bane-detail-close" aria-label="Close">×</button>
-      <div id="bane-detail-content" class="bane-detail-card"></div>
-    </div>
-  </div>
-
 </body>
 </html>
