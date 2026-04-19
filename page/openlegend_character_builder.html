@@ -663,6 +663,14 @@ import { requireAuth } from "../js/auth.js";
       ...RULES.categories.extraordinary
     ];
 
+
+    function createEmptyAttributes() {
+      return ATTRIBUTE_ORDER.reduce((acc, key) => {
+        acc[key] = 0;
+        return acc;
+      }, {});
+    }
+
     function createEmptyWeapon() {
       return createOpenLegendWeapon();
     }
