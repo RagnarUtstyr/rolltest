@@ -120,7 +120,7 @@
     </div>
 
     <p class="meta-note">
-      This page saves permanent custom NPCs to your Firestore library. These are not added to the live initiative tracker until you explicitly add them to a game later.
+      Save a custom NPC for the current game code. This stores the NPC in Firestore under your user and this game only.
     </p>
 
     <form id="custom-npc-form">
@@ -215,9 +215,13 @@
   </div>
 
   <script type="module">
-    import { firestore } from "./firebase-config.js";
+    import { firestore } from "./firebase-config.js?v=20260419b";
     import { requireAuth } from "./auth.js";
-    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+    import {
+      collection,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
     const ATTRIBUTE_NAMES = [
       "Agility",
@@ -318,7 +322,7 @@
       summary.textContent = entries
         .sort((a, b) => a[0].localeCompare(b[0]))
         .map(([name, value]) => `${name}: ${value}`)
-        .join("\\n");
+        .join("\n");
     }
 
     function openAttributesModal() {
@@ -377,6 +381,11 @@
     document.getElementById("custom-npc-form")?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
+      if (!code) {
+        setStatus("Missing game code in URL.");
+        return;
+      }
+
       const user = await requireAuth();
 
       const name = document.getElementById("npc-name")?.value?.trim() || "";
@@ -402,6 +411,7 @@
       const payload = {
         ownerUid: user.uid,
         ownerName,
+        gameCode: code,
         name,
         level,
         size,
@@ -419,15 +429,51 @@
         updatedAt: serverTimestamp()
       };
 
-      setStatus("Saving custom NPC...");
+      const writePath = `users/${user.uid}/gameCustomNpcs/${code}/npcs`;
+
+      console.log("AUTH UID:", user.uid);
+      console.log("GAME CODE:", code);
+      console.log("WRITE PATH:", writePath);
+      console.log("PAYLOAD:", payload);
+
+      setStatus(
+        "Preparing save...\n\n" +
+        "Auth UID: " + user.uid + "\n" +
+        "Game code: " + code + "\n" +
+        "Write path: " + writePath + "\n\n" +
+        "Payload:\n" + JSON.stringify({
+          ...payload,
+          createdAt: "[serverTimestamp()]",
+          updatedAt: "[serverTimestamp()]"
+        }, null, 2)
+      );
 
       try {
-        const colRef = collection(firestore, "users", user.uid, "customNpcs");
+        const colRef = collection(
+          firestore,
+          "users",
+          user.uid,
+          "gameCustomNpcs",
+          code,
+          "npcs"
+        );
+
         const docRef = await addDoc(colRef, payload);
-        setStatus(`Saved custom NPC: ${name}\\nDocument ID: ${docRef.id}`);
+
+        setStatus(
+          "Saved custom NPC successfully.\n\n" +
+          "Document ID: " + docRef.id + "\n" +
+          "Path: " + writePath + "/" + docRef.id
+        );
       } catch (error) {
         console.error("Error saving custom NPC:", error);
-        setStatus(`Could not save custom NPC. ${error?.message || ""}`);
+        setStatus(
+          "Could not save custom NPC.\n\n" +
+          "Error: " + (error?.message || String(error)) + "\n\n" +
+          "Auth UID: " + user.uid + "\n" +
+          "Game code: " + code + "\n" +
+          "Write path: " + writePath
+        );
       }
     });
   </script>
