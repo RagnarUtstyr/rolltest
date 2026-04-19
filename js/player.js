@@ -233,7 +233,7 @@ function renderPlayerBanes(banes = []) {
     chip.className = "player-bane-chip";
     chip.title = bane.name || "Bane";
     chip.innerHTML = `
-      <img src="${bane.icon || "icons/banes/test.png"}" alt="${bane.name || "Bane"}">
+      <img src="${bane.icon || "../icons/banes/test.png"}" alt="${bane.name || "Bane"}">
       <span>${bane.name || "Unknown"}</span>
     `;
     chip.addEventListener("click", () => {
@@ -318,7 +318,7 @@ function openBanePickerModal() {
 
     const icon = document.createElement("img");
     icon.className = "bane-icon";
-    icon.src = bane.icon || "icons/banes/test.png";
+    icon.src = bane.icon || "../icons/banes/test.png";
     icon.alt = bane.name || "Bane";
 
     const name = document.createElement("span");
@@ -372,7 +372,7 @@ function openBanesModal() {
 
       const icon = document.createElement("img");
       icon.className = "bane-icon";
-      icon.src = bane.icon || "icons/banes/test.png";
+      icon.src = bane.icon || "../icons/banes/test.png";
       icon.alt = bane.name || "Bane";
 
       const name = document.createElement("span");
@@ -590,7 +590,7 @@ async function addPlayerBane(bane) {
     {
       name: bane.name,
       url: bane.url,
-      icon: bane.icon || "icons/banes/test.png",
+      icon: bane.icon || "../icons/banes/test.png",
       key: sanitizeBaneKey(bane.name)
     }
   ], `${bane.name} added.`);
