@@ -1,13 +1,13 @@
 // health_dnd.js
-import { EFFECTS } from "./js/feffects.js";
+import { EFFECTS } from "./effects.js";
 import {
   ref,
   update,
   onValue,
   remove
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-import { db } from "./js/ffirebase-config.js";
-import { requireAuth } from "./js/fauth.js";
+import { db } from "./firebase-config.js";
+import { requireAuth } from "./auth.js";
 
 function getGameCode() {
   const params = new URLSearchParams(window.location.search);

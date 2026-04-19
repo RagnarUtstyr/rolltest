@@ -1,4 +1,4 @@
-import { db } from "./js/ffirebase-config.js";
+import { db } from "./firebase-config.js";
 import { ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
