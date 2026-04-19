@@ -8,7 +8,7 @@
   <title>Initiative</title>
 
   <script type="module" src="server.js?v=20260406e" defer></script>
-  <script type="module" src="health.js?v=20260419modalstyle" defer></script>
+  <script type="module" src="health.js?v=20260420a" defer></script>
   <script type="module" src="turn.js?v=20260416a" defer></script>
 
   <link rel="stylesheet" href="style.css" />
@@ -46,37 +46,6 @@
     margin: 0;
   }
 
-  .custom-build-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    margin-top: 12px;
-  }
-
-  .custom-build-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .custom-build-card h4 {
-    margin: 0 0 10px 0;
-    color: #e3cf95;
-  }
-
-  .custom-build-detail-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .custom-build-detail-row:last-child {
-    border-bottom: none;
-  }
-
   .custom-build-text-block {
     margin-top: 12px;
     padding: 10px 12px;
@@ -97,6 +66,13 @@
 
   #stat-custom-build {
     display: none;
+  }
+
+  #custom-build-modal .ol-modal__dialog {
+    width: min(960px, 96vw);
+    max-width: 96vw;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
   .custom-build-header-row {
@@ -123,19 +99,30 @@
     white-space: nowrap;
   }
 
-  .custom-build-inline-row {
+  .custom-build-inline-top {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
     padding: 10px 12px;
     border-radius: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .custom-build-inline-row span {
+  .custom-build-inline-top span {
     line-height: 1.4;
+  }
+
+  .custom-build-attributes-row {
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow-x: auto;
   }
 
   .custom-build-stat-row {
@@ -167,20 +154,9 @@
     color: #e3cf95;
   }
 
-  #custom-build-modal .ol-modal__dialog {
-    width: min(960px, 96vw);
-    max-width: 96vw;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
   @media (max-width: 600px) {
     .submit-entry-header {
       align-items: stretch;
-    }
-
-    .custom-build-grid {
-      grid-template-columns: 1fr;
     }
 
     .custom-build-header-row {
@@ -400,13 +376,12 @@
         <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
       </div>
 
-      <div class="custom-build-inline-row">
+      <div class="custom-build-inline-top">
         <span id="custom-build-hp-inline">HP: —</span>
-        <br>
         <span id="custom-build-speed-inline">Speed: —</span>
-        <br>
-        <span id="custom-build-attributes-inline">Attributes: —</span>
       </div>
+
+      <div id="custom-build-attributes-inline" class="custom-build-attributes-row">Attributes: —</div>
 
       <div class="custom-build-stat-row">
         <div class="custom-build-stat-box">
