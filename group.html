@@ -208,6 +208,30 @@
     })();
   </script>
 
+  <script>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get("code") || "").trim().toUpperCase();
+    if (!code) return;
+
+    const saveLink = document.getElementById("save-link");
+    const monsterLink = document.getElementById("monster-link");
+    const npcLink = document.getElementById("npc-link");
+
+    if (saveLink) {
+      saveLink.href = `save.html?code=${encodeURIComponent(code)}`;
+    }
+
+    if (monsterLink) {
+      monsterLink.href = `openmonsterlist.html?code=${encodeURIComponent(code)}`;
+    }
+
+    if (npcLink) {
+      npcLink.href = `npc.html?code=${encodeURIComponent(code)}`;
+    }
+  })();
+</script>
+
   <!-- Stats Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">
     <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">

@@ -35,6 +35,17 @@
     const params = new URLSearchParams(window.location.search);
     const code = (params.get("code") || "").trim().toUpperCase();
 
+    if (!code) {
+      document.body.innerHTML = `
+        <div class="container">
+          <h1>Missing game code</h1>
+          <p>This page must be opened from a game.</p>
+          <a href="lobby.html" class="button-link">Back to Lobby</a>
+        </div>
+      `;
+      throw new Error("Missing game code in URL.");
+    }
+
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -51,7 +62,14 @@
 
     async function loadCustomNpcs() {
       const user = await requireAuth();
-      const npcRef = collection(firestore, "users", user.uid, "customNpcs");
+      const npcRef = collection(
+        firestore,
+        "users",
+        user.uid,
+        "gameCustomNpcs",
+        code,
+        "npcs"
+      );
       const npcQuery = query(npcRef, orderBy("name"));
       const snap = await getDocs(npcQuery);
 
@@ -62,19 +80,12 @@
     }
 
     async function addNpcToInitiative(npc) {
-      if (!code) {
-        alert("Missing game code in URL.");
-        return;
-      }
-
       const initiativeInput = window.prompt(
         `Enter initiative for ${npc.name}:`,
         "0"
       );
 
-      if (initiativeInput === null) {
-        return;
-      }
+      if (initiativeInput === null) return;
 
       const initiative = parseInt(initiativeInput, 10);
 
@@ -101,6 +112,7 @@
         isCustom: true,
         source: "custom-npc-library",
         customNpcId: npc.id,
+        gameCode: code,
         createdByUid: npc.ownerUid || "",
         createdByName: npc.ownerName || "",
         updatedAt: Date.now(),
@@ -115,7 +127,8 @@
           feats: npc.feats ?? "",
           weapons: npc.weapons ?? "",
           ownerUid: npc.ownerUid || "",
-          ownerName: npc.ownerName || ""
+          ownerName: npc.ownerName || "",
+          gameCode: npc.gameCode ?? code
         }
       };
 
@@ -176,7 +189,7 @@
       const searchInput = document.getElementById("search");
       const backLink = document.getElementById("back-link");
 
-      if (backLink && code) {
+      if (backLink) {
         backLink.href = `group.html?code=${encodeURIComponent(code)}`;
       }
 
@@ -209,7 +222,8 @@
             npc.favoredActions,
             npc.specialActions,
             npc.feats,
-            npc.weapons
+            npc.weapons,
+            npc.speed
           ]
             .map((v) => String(v ?? "").toLowerCase())
             .join(" ");
@@ -223,7 +237,7 @@
           empty.innerHTML = `
             <div>
               <span class="label">Result</span>
-              <span class="content">No custom NPCs found.</span>
+              <span class="content">No custom NPCs found for this game.</span>
             </div>
           `;
           container.appendChild(empty);
