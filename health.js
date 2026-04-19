@@ -58,11 +58,14 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   document.getElementById('stat-tgh').textContent = (tgh ?? 'N/A');
 
   __currentCustomBuild = customBuild ?? null;
+  console.log("openStatModal customBuild:", customBuild);
+console.log("stat-custom-build button:", document.getElementById("stat-custom-build"));
 
-  const customBuildBtn = document.getElementById('stat-custom-build');
-  if (customBuildBtn) {
-    customBuildBtn.style.display = customBuild ? '' : 'none';
-  }
+const customBuildBtn = document.getElementById('stat-custom-build');
+if (customBuildBtn) {
+  customBuildBtn.style.display = customBuild ? '' : 'none';
+  console.log("stat-custom-build display:", customBuildBtn.style.display);
+}
 
   const link = document.getElementById('stat-url');
   if (url) {
@@ -456,16 +459,46 @@ function fetchRankings() {
       nameCol.style.cursor = 'pointer';
       nameCol.title = customBuild ? 'Show defenses and custom build' : 'Show defenses (GRD / RES / TGH)';
       nameCol.addEventListener('click', () => {
-        __currentEntryId = id;
-        const s = __getCountdownState(id);
-        openStatModal({
-          name: displayName, grd, res, tgh, url, initiative: displayInitiative,
-          countdownRemaining: s.remaining,
-          countdownActive: s.active,
-          countdownEnded: s.ended,
-          customBuild
-        });
-      });
+  __currentEntryId = id;
+  const s = __getCountdownState(id);
+
+  console.log("ENTRY CLICKED", {
+    id,
+    displayName,
+    customBuild,
+    entry: {
+      id,
+      name,
+      playerName,
+      grd,
+      res,
+      tgh,
+      health,
+      currentHp,
+      url,
+      number,
+      initiative,
+      countdownRemaining,
+      countdownActive,
+      countdownEnded,
+      banes,
+      customBuild
+    }
+  });
+
+  openStatModal({
+    name: displayName,
+    grd,
+    res,
+    tgh,
+    url,
+    initiative: displayInitiative,
+    countdownRemaining: s.remaining,
+    countdownActive: s.active,
+    countdownEnded: s.ended,
+    customBuild
+  });
+});
 
       const baneArray = __normalizeBanes(banes);
 
