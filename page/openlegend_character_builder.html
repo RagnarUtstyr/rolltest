@@ -574,7 +574,39 @@
       .feat-controls { grid-template-columns: 1fr; }
       .tag-row { grid-template-columns: minmax(0, 1fr) 64px auto; }
     }
-  </style>
+  
+    .bane-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .bane-overview-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(45,61,115,0.55);
+      background: rgba(255,255,255,0.04);
+      color: #e0d8b7;
+      text-decoration: none;
+    }
+
+    .bane-overview-card:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff4c2;
+    }
+
+    .bane-overview-card img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+
+</style>
 </head>
 <body>
   <div class="container">
@@ -1318,6 +1350,23 @@ import { requireAuth } from "../js/auth.js";
           </div>
         `;
       }).join("");
+    }
+
+    function renderBanesOverviewHtml() {
+      if (!Array.isArray(BANES) || !BANES.length) {
+        return '<div class="message-box">No bane data available.</div>';
+      }
+
+      return `
+        <div class="bane-overview-grid">
+          ${BANES.map((bane) => `
+            <a class="bane-overview-card" href="${escapeHtml(bane.url || '#')}" target="_blank" rel="noopener noreferrer">
+              ${bane.icon ? `<img src="${escapeHtml(bane.icon)}" alt="${escapeHtml(bane.name || 'Bane')} icon">` : ''}
+              <span>${escapeHtml(bane.name || 'Bane')}</span>
+            </a>
+          `).join('')}
+        </div>
+      `;
     }
 
     function openWeaponModal(index) {
