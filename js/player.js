@@ -1256,10 +1256,12 @@ function buildSheetPayload(existing = {}) {
     payload = {
       ...payload,
       currentHp: ol.currentHp,
+      lethal: ol.lethal,
       grd: ol.grd,
       res: ol.res,
       tgh: ol.tgh,
-      banes: ol.banes
+      banes: ol.banes,
+      fatigue: ol.fatigue
     };
   }
 
@@ -1307,6 +1309,7 @@ async function loadExistingCharacter() {
     } else {
       setOpenLegendValues({
         currentHp: data.currentHp ?? "",
+        lethal: data.lethal ?? "",
         grd: data.grd ?? "—",
         res: data.res ?? "—",
         tgh: data.tgh ?? "—",
@@ -1334,10 +1337,11 @@ async function loadExistingCharacter() {
       setDndValues(entry);
     } else {
       setOpenLegendValues({
-        currentHp: "",
-        grd: "—",
-        res: "—",
-        tgh: "—",
+        currentHp: entry.currentHp ?? "",
+        lethal: entry.lethal ?? "",
+        grd: entry.grd ?? "—",
+        res: entry.res ?? "—",
+        tgh: entry.tgh ?? "—",
         banes: entry.banes ?? [],
         fatigue: entry.fatigue ?? { points: 0 }
       });
@@ -1385,6 +1389,15 @@ async function saveInitiativeToGame() {
     banes: mode === "dnd" ? [] : normalizeBanes(sheetPayload.banes),
     effects: mode === "dnd" ? normalizeEffects(sheetPayload.effects) : []
   };
+
+  if (mode !== "dnd") {
+    entryPayload.currentHp = sheetPayload.currentHp ?? "";
+    entryPayload.lethal = sheetPayload.lethal ?? 0;
+    entryPayload.grd = sheetPayload.grd ?? 0;
+    entryPayload.res = sheetPayload.res ?? 0;
+    entryPayload.tgh = sheetPayload.tgh ?? 0;
+    entryPayload.fatigue = sheetPayload.fatigue ?? { points: 0 };
+  }
 
   try {
     await set(ref(db, playerSheetPath()), sheetPayload);
