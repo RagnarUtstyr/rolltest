@@ -75,6 +75,9 @@ const playerBanesPanel = document.getElementById("player-banes-panel");
 const playerBanesPreviewEl = document.getElementById("player-banes-preview");
 const playerFatiguePanel = document.getElementById("player-fatigue-panel");
 const playerFatigueViewEl = document.getElementById("player-fatigue-view");
+const playerFatigueLevelDisplayEl = document.getElementById("player-fatigue-level-display");
+const playerFatigueSummaryTextEl = document.getElementById("player-fatigue-summary-text");
+const playerFatigueSpecialTextEl = document.getElementById("player-fatigue-special-text");
 const playerEffectsPanel = document.getElementById("player-effects-panel");
 const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
 
@@ -309,9 +312,22 @@ function renderPlayerFatigue(points = 0) {
   const safePoints = clampFatigueLevel(points);
   const input = document.getElementById("player-fatigue-value");
   if (input) input.value = String(safePoints);
-  if (!playerFatigueViewEl) return;
+  if (playerFatigueLevelDisplayEl) {
+    playerFatigueLevelDisplayEl.textContent = String(safePoints);
+  }
+  if (playerFatigueSpecialTextEl) {
+    playerFatigueSpecialTextEl.textContent = FATIGUE_DATA.special || "";
+  }
 
   const activeLevels = getFatigueLevels(safePoints);
+  if (playerFatigueSummaryTextEl) {
+    playerFatigueSummaryTextEl.textContent = activeLevels.length
+      ? `Active: ${activeLevels.map((_, index) => `Level ${index + 1}`).join(", ")}`
+      : "No fatigue levels active.";
+  }
+
+  if (!playerFatigueViewEl) return;
+
   if (!activeLevels.length) {
     playerFatigueViewEl.innerHTML = '<span class="muted fatigue-empty">No fatigue levels active.</span>';
     return;
@@ -339,6 +355,15 @@ function closeBanesModal() {
 
 function closeBaneDetailModal() {
   document.getElementById("bane-detail-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function closeFatigueModal() {
+  document.getElementById("fatigue-modal")?.setAttribute("aria-hidden", "true");
+}
+
+function openFatigueModal() {
+  renderPlayerFatigue(getCurrentFatigue());
+  document.getElementById("fatigue-modal")?.setAttribute("aria-hidden", "false");
 }
 
 function sanitizeBaneLookup(value) {
@@ -1464,6 +1489,12 @@ document.getElementById("effects-modal")?.addEventListener("click", (e) => {
   if (e.target?.id === "effects-modal") closeEffectsModal();
 });
 
+document.getElementById("player-view-fatigue-btn")?.addEventListener("click", openFatigueModal);
+document.getElementById("fatigue-modal-close")?.addEventListener("click", closeFatigueModal);
+document.getElementById("fatigue-modal")?.addEventListener("click", (e) => {
+  if (e.target?.id === "fatigue-modal") closeFatigueModal();
+});
+
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
 
@@ -1481,6 +1512,9 @@ document.addEventListener("keydown", (e) => {
   }
   if (document.getElementById("effects-modal")?.getAttribute("aria-hidden") === "false") {
     closeEffectsModal();
+  }
+  if (document.getElementById("fatigue-modal")?.getAttribute("aria-hidden") === "false") {
+    closeFatigueModal();
   }
 });
 
