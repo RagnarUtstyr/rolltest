@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=8" defer></script>
+  <script type="module" src="../js/player.js?v=9" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -132,6 +132,61 @@
   .player-banes-panel {
     min-width: 0;
   }
+
+  .player-fatigue-panel {
+    min-width: 0;
+  }
+
+  .fatigue-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(64px, 84px) auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .fatigue-toolbar button {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #player-fatigue-value {
+    margin: 0;
+    text-align: center;
+    min-height: 42px;
+    max-width: none;
+  }
+
+  .fatigue-view {
+    margin-top: 12px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .fatigue-empty {
+    opacity: 0.8;
+    text-align: center;
+  }
+
+  .fatigue-level-card {
+    border: 1px solid #2d3d73;
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(11, 38, 33, 0.35);
+    text-align: left;
+  }
+
+  .fatigue-level-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 0.95rem;
+  }
+
+  .fatigue-level-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
 
   .bane-toolbar {
     display: flex;
@@ -345,6 +400,7 @@
     .top-character-row > .name-panel,
     .top-character-row > .initiative-panel,
     .top-character-row > #player-banes-panel,
+    .top-character-row > #player-fatigue-panel,
     .top-character-row > #player-effects-panel {
       width: 100% !important;
       min-width: 0 !important;
@@ -362,6 +418,7 @@
     }
 
     .top-character-row > #player-banes-panel,
+    .top-character-row > #player-fatigue-panel,
     .top-character-row > #player-effects-panel {
       grid-column: 1 / -1 !important;
     }
@@ -418,6 +475,20 @@
         </div>
         <div id="player-banes-preview" class="player-banes-preview">
           <span class="muted player-banes-empty">No banes added.</span>
+        </div>
+      </div>
+
+
+      <div id="player-fatigue-panel" class="player-panel compact-panel player-fatigue-panel hidden">
+        <h2>Fatigue</h2>
+        <p class="muted">Open Legend only.</p>
+        <div class="fatigue-toolbar">
+          <button id="player-fatigue-down-btn" type="button" aria-label="Decrease fatigue">-</button>
+          <input type="number" id="player-fatigue-value" min="0" max="6" value="0" />
+          <button id="player-fatigue-up-btn" type="button" aria-label="Increase fatigue">+</button>
+        </div>
+        <div id="player-fatigue-view" class="fatigue-view">
+          <span class="muted fatigue-empty">No fatigue levels active.</span>
         </div>
       </div>
     </div>
