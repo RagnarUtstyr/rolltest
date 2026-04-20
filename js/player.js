@@ -899,9 +899,20 @@ function setOlCurrentHp(value) {
   el.textContent = value === null || value === undefined || value === "" ? "—" : String(value);
 }
 
+function getOlLethalValue() {
+  return parseNumber(document.getElementById("player-ol-lethal")?.value, 0);
+}
+
+function setOlLethalValue(value) {
+  const el = document.getElementById("player-ol-lethal");
+  if (!el) return;
+  el.value = value === null || value === undefined || value === "" ? "" : String(value);
+}
+
 function getOpenLegendValues() {
   return {
     currentHp: getOlCurrentHp(),
+    lethal: getOlLethalValue(),
     grd: parseNumber(document.getElementById("player-ol-grd-view")?.textContent, 0),
     res: parseNumber(document.getElementById("player-ol-res-view")?.textContent, 0),
     tgh: parseNumber(document.getElementById("player-ol-tgh-view")?.textContent, 0),
@@ -916,6 +927,7 @@ function getOpenLegendValues() {
 
 function setOpenLegendValues(data = {}) {
   setOlCurrentHp(data.currentHp ?? "");
+  setOlLethalValue(data.lethal ?? "");
   document.getElementById("player-ol-grd-view").textContent = data.grd ?? "—";
   document.getElementById("player-ol-res-view").textContent = data.res ?? "—";
   document.getElementById("player-ol-tgh-view").textContent = data.tgh ?? "—";
@@ -1118,8 +1130,10 @@ function applyOpenLegendDamage() {
 async function resetOpenLegendHp() {
   const existing = await getCurrentSheet();
   const baseHp = getOlBaseHpFromSheet(existing);
-  setOlCurrentHp(baseHp);
-  setOlResult("HP reset to base HP.");
+  const lethal = Math.max(0, getOlLethalValue());
+  const nextHp = Math.max(0, baseHp - lethal);
+  setOlCurrentHp(nextHp);
+  setOlResult(lethal > 0 ? `HP reset to ${nextHp} (${baseHp} - ${lethal} lethal).` : "HP reset to base HP.");
   scheduleAutoSave("HP reset.");
 }
 
@@ -1537,6 +1551,9 @@ document.getElementById("dnd-reset-hp-btn")?.addEventListener("click", resetDndF
 document.getElementById("ol-apply-damage-btn")?.addEventListener("click", applyOpenLegendDamage);
 document.getElementById("ol-reset-hp-btn")?.addEventListener("click", resetOpenLegendHp);
 document.getElementById("ol-heal-btn")?.addEventListener("click", healOpenLegendHp);
+document.getElementById("player-ol-lethal")?.addEventListener("input", () => {
+  scheduleAutoSave("Open Legend lethal updated.");
+});
 
 document.getElementById("create-tracker-btn")?.addEventListener("click", createTracker);
 

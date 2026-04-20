@@ -649,9 +649,16 @@
         </div>
 
         <div class="ol-summary-wrap">
-          <div class="summary-card hp-card hp-card-large">
-            <div class="summary-label">Current HP</div>
-            <div id="player-ol-current-hp" class="summary-value hp-display">—</div>
+          <div class="ol-summary-top-row">
+            <div class="summary-card hp-card hp-card-large ol-current-hp-card">
+              <div class="summary-label">Current HP</div>
+              <div id="player-ol-current-hp" class="summary-value hp-display">—</div>
+            </div>
+
+            <div class="summary-card ol-lethal-card">
+              <label class="summary-label" for="player-ol-lethal">Lethal</label>
+              <input type="number" id="player-ol-lethal" class="summary-input ol-lethal-input" min="0" placeholder="0" />
+            </div>
           </div>
 
           <div class="ol-defense-grid">

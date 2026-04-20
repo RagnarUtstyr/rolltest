@@ -123,6 +123,31 @@ body {
   margin-bottom: 16px;
 }
 
+.player-page .ol-summary-top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.player-page .ol-current-hp-card,
+.player-page .ol-lethal-card {
+  min-width: 0;
+}
+
+.player-page .ol-lethal-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.player-page .ol-lethal-input {
+  width: 100%;
+  max-width: 100%;
+  min-height: 52px;
+  text-align: center;
+}
+
 .player-page .ol-defense-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -200,6 +225,15 @@ body {
     display: flex;
     flex-direction: column;
     gap: 14px;
+  }
+
+  .player-page .ol-summary-top-row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .player-page .ol-lethal-input {
+    min-height: 46px;
   }
 
   .player-page .ol-defense-grid {
