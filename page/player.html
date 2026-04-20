@@ -156,22 +156,28 @@
   }
 
   .fatigue-special-note {
-    font-size: 0.82rem;
-    line-height: 1.35;
-    text-align: center;
-    opacity: 0.9;
+    display: none;
   }
 
   .fatigue-toolbar {
     display: grid;
-    grid-template-columns: auto minmax(64px, 84px) auto;
-    gap: 8px;
-    align-items: center;
+    gap: 10px;
+    align-items: start;
+    justify-items: center;
     margin-top: 10px;
   }
 
-  .fatigue-toolbar button {
-    min-width: 0;
+  .fatigue-toolbar .field-stack {
+    max-width: 120px;
+  }
+
+  .fatigue-action-buttons {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .fatigue-action-buttons button {
     width: 100%;
   }
 
@@ -180,6 +186,14 @@
     text-align: center;
     min-height: 42px;
     max-width: none;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  #player-fatigue-value::-webkit-outer-spin-button,
+  #player-fatigue-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .fatigue-view {
@@ -527,8 +541,7 @@
         <div class="fatigue-summary">
           <div id="player-fatigue-level-display" class="fatigue-level-display">0</div>
           <button id="player-view-fatigue-btn" type="button">Manage fatigue</button>
-          <div id="player-fatigue-summary-text" class="muted fatigue-special-note">No fatigue levels active.</div>
-        </div>
+                  </div>
       </div>
     </div>
 
@@ -762,9 +775,14 @@
         <button class="ol-modal__close" id="fatigue-modal-close" aria-label="Close">×</button>
         <h3 id="fatigue-modal-title">Manage fatigue</h3>
         <div class="fatigue-toolbar">
-          <button id="player-fatigue-down-btn" type="button" aria-label="Decrease fatigue">-</button>
-          <input type="number" id="player-fatigue-value" min="0" max="6" value="0" />
-          <button id="player-fatigue-up-btn" type="button" aria-label="Increase fatigue">+</button>
+          <div class="field-stack">
+            <label for="player-fatigue-value">Level</label>
+            <input type="number" id="player-fatigue-value" min="0" max="6" value="0" />
+          </div>
+          <div class="fatigue-action-buttons">
+            <button id="player-fatigue-up-btn" type="button" aria-label="Increase fatigue">Add</button>
+            <button id="player-fatigue-down-btn" type="button" aria-label="Decrease fatigue">Remove</button>
+          </div>
         </div>
         <div id="player-fatigue-view" class="fatigue-view">
           <span class="muted fatigue-empty">No fatigue levels active.</span>

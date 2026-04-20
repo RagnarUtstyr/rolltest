@@ -321,9 +321,7 @@ function renderPlayerFatigue(points = 0) {
 
   const activeLevels = getFatigueLevels(safePoints);
   if (playerFatigueSummaryTextEl) {
-    playerFatigueSummaryTextEl.textContent = activeLevels.length
-      ? `Active: ${activeLevels.map((_, index) => `Level ${index + 1}`).join(", ")}`
-      : "No fatigue levels active.";
+    playerFatigueSummaryTextEl.textContent = "";
   }
 
   if (!playerFatigueViewEl) return;
