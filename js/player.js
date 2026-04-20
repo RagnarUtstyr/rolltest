@@ -1146,8 +1146,10 @@ function healOpenLegendHp() {
 
   getCurrentSheet().then((existing) => {
     const baseHp = getOlBaseHpFromSheet(existing);
-    const currentHp = parseNumber(getOlCurrentHp(), baseHp);
-    const nextHp = Math.min(baseHp, currentHp + healAmount);
+    const lethal = Math.max(0, getOlLethalValue());
+    const maxHp = Math.max(0, baseHp - lethal);
+    const currentHp = parseNumber(getOlCurrentHp(), maxHp);
+    const nextHp = Math.min(maxHp, currentHp + healAmount);
 
     setOlCurrentHp(nextHp);
     setOlResult(`Healed ${healAmount}. Current HP is now ${nextHp}.`);
