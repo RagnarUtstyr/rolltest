@@ -215,14 +215,19 @@ body {
     font-size: 1.3rem;
   }
 }
-
-.player-page input[type="number"]::-webkit-inner-spin-button,
-.player-page input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+#fatigue-modal .fatigue-action-buttons {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: auto !important;
+  max-width: 180px;
+  margin: 0 auto;
 }
 
-.player-page input[type="number"] {
-  appearance: textfield;
-  -moz-appearance: textfield;
+#fatigue-modal .fatigue-action-buttons button {
+  width: auto !important;
+  min-width: 78px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
 }
