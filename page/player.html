@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=8" defer></script>
+  <script type="module" src="../js/player.js?v=9" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -140,59 +140,60 @@
   .fatigue-summary {
     display: grid;
     gap: 10px;
+    margin-top: 12px;
+  }
+
+  .fatigue-level-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    border: 1px solid #2d3d73;
+    border-radius: 10px;
+    background: rgba(11, 38, 33, 0.35);
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .fatigue-special-note {
+    display: none;
+  }
+
+  .fatigue-toolbar {
+    display: grid;
+    gap: 10px;
+    align-items: start;
     justify-items: center;
     margin-top: 10px;
   }
 
-  .fatigue-number {
-    width: 88px;
-    min-height: 88px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #2d3d73;
-    border-radius: 12px;
-    background: rgba(20, 22, 30, 0.72);
-    color: #e3cf95;
-    font-size: 2.4rem;
-    font-weight: 700;
-    line-height: 1;
+  .fatigue-toolbar .field-stack {
+    max-width: 120px;
   }
 
-  .fatigue-modal-controls {
+  .fatigue-action-buttons {
     display: grid;
-    gap: 10px;
-    justify-items: center;
-    margin: 14px 0 18px 0;
+    gap: 8px;
+    width: 100%;
   }
 
-  #fatigue-modal-input {
-    width: 84px;
+  .fatigue-action-buttons button {
+    width: 100%;
+  }
+
+  #player-fatigue-value {
     margin: 0;
     text-align: center;
-    min-height: 44px;
-    padding-right: 10px;
-  }
-
-  #fatigue-modal-input::-webkit-outer-spin-button,
-  #fatigue-modal-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  #fatigue-modal-input {
+    min-height: 42px;
+    max-width: none;
     appearance: textfield;
     -moz-appearance: textfield;
   }
 
-  .fatigue-modal-buttons {
-    display: grid;
-    gap: 8px;
-    width: min(180px, 100%);
-  }
-
-  .fatigue-modal-buttons button {
-    width: 100%;
+  #player-fatigue-value::-webkit-outer-spin-button,
+  #player-fatigue-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .fatigue-view {
@@ -201,11 +202,16 @@
     gap: 8px;
   }
 
+  .fatigue-empty {
+    opacity: 0.8;
+    text-align: center;
+  }
+
   .fatigue-level-card {
     border: 1px solid #2d3d73;
     border-radius: 10px;
     padding: 10px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(11, 38, 33, 0.35);
     text-align: left;
   }
 
@@ -214,16 +220,29 @@
     font-size: 0.95rem;
   }
 
-  .fatigue-level-card p,
-  .fatigue-special {
+  .fatigue-level-card p {
     margin: 0;
     font-size: 0.88rem;
     line-height: 1.35;
   }
 
-  .fatigue-special-card {
-    margin-top: 8px;
+  .fatigue-modal__special {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
+
+  .fatigue-modal__special h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.95rem;
+  }
+
+  .fatigue-modal__special p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
 
   .bane-toolbar {
     display: flex;
@@ -514,13 +533,15 @@
           <span class="muted player-banes-empty">No banes added.</span>
         </div>
       </div>
+
+
       <div id="player-fatigue-panel" class="player-panel compact-panel player-fatigue-panel hidden">
         <h2>Fatigue</h2>
         <p class="muted">Open Legend only.</p>
         <div class="fatigue-summary">
-          <div id="player-fatigue-number" class="fatigue-number">0</div>
+          <div id="player-fatigue-level-display" class="fatigue-level-display">0</div>
           <button id="player-view-fatigue-btn" type="button">Manage fatigue</button>
-        </div>
+                  </div>
       </div>
     </div>
 
@@ -753,14 +774,23 @@
       <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="fatigue-modal-title">
         <button class="ol-modal__close" id="fatigue-modal-close" aria-label="Close">×</button>
         <h3 id="fatigue-modal-title">Manage fatigue</h3>
-        <div class="fatigue-modal-controls">
-          <input type="number" id="fatigue-modal-input" min="0" max="6" value="0" />
-          <div class="fatigue-modal-buttons">
-            <button id="fatigue-add-btn" type="button">Add</button>
-            <button id="fatigue-remove-btn" type="button">Remove</button>
+        <div class="fatigue-toolbar">
+          <div class="field-stack">
+            <label for="player-fatigue-value">Level</label>
+            <input type="number" id="player-fatigue-value" min="0" max="6" value="0" />
+          </div>
+          <div class="fatigue-action-buttons">
+            <button id="player-fatigue-up-btn" type="button" aria-label="Increase fatigue">Add</button>
+            <button id="player-fatigue-down-btn" type="button" aria-label="Decrease fatigue">Remove</button>
           </div>
         </div>
-        <div id="fatigue-modal-view" class="fatigue-view"></div>
+        <div id="player-fatigue-view" class="fatigue-view">
+          <span class="muted fatigue-empty">No fatigue levels active.</span>
+        </div>
+        <div class="fatigue-modal__special">
+          <h4>Special</h4>
+          <p id="player-fatigue-special-text"></p>
+        </div>
       </div>
     </div>
 
