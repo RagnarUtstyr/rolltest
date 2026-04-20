@@ -4,6 +4,7 @@ import { watchOrLoadGame } from "./game-service.js";
 import { BANES } from "./banes.js";
 import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
+import { FATIGUE_DATA, clampFatigueLevel, getFatigueLevels, hasFatigueSlowedLink } from "./fatigue.js";
 import {
   ref,
   get,
@@ -72,6 +73,8 @@ const trackerListEl = document.getElementById("tracker-list");
 const trackerEmptyEl = document.getElementById("tracker-empty");
 const playerBanesPanel = document.getElementById("player-banes-panel");
 const playerBanesPreviewEl = document.getElementById("player-banes-preview");
+const playerFatiguePanel = document.getElementById("player-fatigue-panel");
+const playerFatigueViewEl = document.getElementById("player-fatigue-view");
 const playerEffectsPanel = document.getElementById("player-effects-panel");
 const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
 
@@ -136,6 +139,7 @@ if (mode === "dnd") {
   }
 
   playerBanesPanel?.classList.remove("hidden");
+  playerFatiguePanel?.classList.remove("hidden");
 } else {
   statusEl.textContent = `Unsupported game mode: ${game.mode}`;
   throw new Error(`Unsupported game mode: ${game.mode}`);
@@ -204,6 +208,10 @@ function getCurrentEffects() {
   return normalizeEffects(getCurrentSheetCache()?.effects);
 }
 
+function getCurrentFatigue() {
+  return clampFatigueLevel(getCurrentSheetCache()?.fatigue?.points ?? 0);
+}
+
 function setPlayerBanes(banes) {
   const safeBanes = normalizeBanes(banes);
   const existing = getCurrentSheetCache() || {};
@@ -216,6 +224,19 @@ function setPlayerEffects(effects) {
   const existing = getCurrentSheetCache() || {};
   setCurrentSheetCache({ ...existing, effects: safeEffects });
   renderPlayerEffects(safeEffects);
+}
+
+function setPlayerFatigue(points) {
+  const safePoints = clampFatigueLevel(points);
+  const existing = getCurrentSheetCache() || {};
+  setCurrentSheetCache({
+    ...existing,
+    fatigue: {
+      ...(existing.fatigue || {}),
+      points: safePoints
+    }
+  });
+  renderPlayerFatigue(safePoints);
 }
 
 function renderPlayerBanes(banes = []) {
@@ -284,13 +305,28 @@ function renderPlayerEffects(effects = []) {
   }
 }
 
-function closeFatigueModal() {
-  document.getElementById("fatigue-modal")?.setAttribute("aria-hidden", "true");
-}
+function renderPlayerFatigue(points = 0) {
+  const safePoints = clampFatigueLevel(points);
+  const input = document.getElementById("player-fatigue-value");
+  if (input) input.value = String(safePoints);
+  if (!playerFatigueViewEl) return;
 
-function openFatigueModal() {
-  renderPlayerFatigue(getCurrentFatigue());
-  document.getElementById("fatigue-modal")?.setAttribute("aria-hidden", "false");
+  const activeLevels = getFatigueLevels(safePoints);
+  if (!activeLevels.length) {
+    playerFatigueViewEl.innerHTML = '<span class="muted fatigue-empty">No fatigue levels active.</span>';
+    return;
+  }
+
+  playerFatigueViewEl.innerHTML = "";
+  activeLevels.forEach((description, index) => {
+    const card = document.createElement("div");
+    card.className = "fatigue-level-card";
+    card.innerHTML = `
+      <h3>Level ${index + 1}</h3>
+      <p>${description}</p>
+    `;
+    playerFatigueViewEl.appendChild(card);
+  });
 }
 
 function closeBanePickerModal() {
@@ -638,15 +674,50 @@ function openEffectsModal() {
   modal.setAttribute("aria-hidden", "false");
 }
 
+function getSlowedBaneTemplate() {
+  return BANES.find((bane) => String(bane?.name || "").toLowerCase() === "slowed") || {
+    name: "Slowed",
+    url: "https://openlegendrpg.com/bane/slowed",
+    icon: "../icons/banes/slowed.png"
+  };
+}
+
+function syncFatigueLinkedBanes(banes, fatiguePoints) {
+  const safeBanes = normalizeBanes(banes);
+  const needsSlowed = hasFatigueSlowedLink(fatiguePoints);
+  const slowedName = "slowed";
+  const manualOrNormalSlowed = safeBanes.find((bane) => (
+    String(bane?.name || "").toLowerCase() === slowedName && !bane?.autoFromFatigue
+  ));
+  let next = safeBanes.filter((bane) => !(bane?.autoFromFatigue && String(bane?.name || "").toLowerCase() === slowedName));
+
+  if (needsSlowed && !manualOrNormalSlowed) {
+    const slowed = getSlowedBaneTemplate();
+    next = [
+      ...next,
+      {
+        name: slowed.name,
+        url: slowed.url,
+        icon: slowed.icon || "../icons/banes/slowed.png",
+        key: sanitizeBaneKey(`${slowed.name}-fatigue-auto`),
+        autoFromFatigue: true
+      }
+    ];
+  }
+
+  return next;
+}
+
 async function persistPlayerBanes(banes, statusMessage = "Banes updated.") {
   const existing = (await getCurrentSheet()) || {};
   const payload = buildSheetPayload(existing);
-  payload.banes = normalizeBanes(banes);
+  payload.banes = syncFatigueLinkedBanes(banes, payload.fatigue?.points ?? getCurrentFatigue());
   payload.updatedAt = Date.now();
 
   await set(ref(db, playerSheetPath()), payload);
   setCurrentSheetCache(payload);
   renderPlayerBanes(payload.banes);
+  renderPlayerFatigue(payload.fatigue?.points ?? 0);
   statusEl.textContent = statusMessage;
 }
 
@@ -681,6 +752,26 @@ async function removePlayerBane(baneName) {
   const current = getCurrentBanes();
   const next = current.filter((bane) => bane?.name !== baneName);
   await persistPlayerBanes(next, `${baneName} removed.`);
+}
+
+async function persistPlayerFatigue(points, statusMessage = "Fatigue updated.") {
+  const safePoints = clampFatigueLevel(points);
+  const existing = (await getCurrentSheet()) || {};
+  const payload = buildSheetPayload(existing);
+  payload.fatigue = {
+    ...(payload.fatigue || {}),
+    name: FATIGUE_DATA.name,
+    points: safePoints,
+    levels: getFatigueLevels(safePoints)
+  };
+  payload.banes = syncFatigueLinkedBanes(payload.banes, safePoints);
+  payload.updatedAt = Date.now();
+
+  await set(ref(db, playerSheetPath()), payload);
+  setCurrentSheetCache(payload);
+  renderPlayerFatigue(safePoints);
+  renderPlayerBanes(payload.banes);
+  statusEl.textContent = statusMessage;
 }
 
 async function addPlayerEffect(effect) {
@@ -791,7 +882,12 @@ function getOpenLegendValues() {
     grd: parseNumber(document.getElementById("player-ol-grd-view")?.textContent, 0),
     res: parseNumber(document.getElementById("player-ol-res-view")?.textContent, 0),
     tgh: parseNumber(document.getElementById("player-ol-tgh-view")?.textContent, 0),
-    banes: getCurrentBanes()
+    banes: getCurrentBanes(),
+    fatigue: {
+      name: FATIGUE_DATA.name,
+      points: getCurrentFatigue(),
+      levels: getFatigueLevels(getCurrentFatigue())
+    }
   };
 }
 
@@ -800,7 +896,8 @@ function setOpenLegendValues(data = {}) {
   document.getElementById("player-ol-grd-view").textContent = data.grd ?? "—";
   document.getElementById("player-ol-res-view").textContent = data.res ?? "—";
   document.getElementById("player-ol-tgh-view").textContent = data.tgh ?? "—";
-  setPlayerBanes(data.banes ?? []);
+  setPlayerBanes(syncFatigueLinkedBanes(data.banes ?? [], data?.fatigue?.points ?? 0));
+  setPlayerFatigue(data?.fatigue?.points ?? 0);
 }
 
 function getSelectedOlDefense() {
@@ -1174,7 +1271,8 @@ async function loadExistingCharacter() {
         grd: data.grd ?? "—",
         res: data.res ?? "—",
         tgh: data.tgh ?? "—",
-        banes: data.banes ?? []
+        banes: data.banes ?? [],
+        fatigue: data.fatigue ?? { points: 0 }
       });
     }
 
@@ -1201,7 +1299,8 @@ async function loadExistingCharacter() {
         grd: "—",
         res: "—",
         tgh: "—",
-        banes: entry.banes ?? []
+        banes: entry.banes ?? [],
+        fatigue: entry.fatigue ?? { points: 0 }
       });
     }
 
@@ -1210,10 +1309,13 @@ async function loadExistingCharacter() {
     return;
   }
 
-  setCurrentSheetCache({ name: user.displayName ?? "", banes: [], effects: [] });
+  setCurrentSheetCache({ name: user.displayName ?? "", banes: [], effects: [], fatigue: { points: 0 } });
   setSharedValues({ name: user.displayName ?? "" });
   if (mode === "dnd") setPlayerEffects([]);
-  else setPlayerBanes([]);
+  else {
+    setPlayerBanes([]);
+    setPlayerFatigue(0);
+  }
   renderTrackerList([]);
 }
 
@@ -1380,9 +1482,18 @@ document.addEventListener("keydown", (e) => {
   if (document.getElementById("effects-modal")?.getAttribute("aria-hidden") === "false") {
     closeEffectsModal();
   }
-  if (document.getElementById("fatigue-modal")?.getAttribute("aria-hidden") === "false") {
-    closeFatigueModal();
-  }
+});
+
+document.getElementById("player-fatigue-up-btn")?.addEventListener("click", async () => {
+  await persistPlayerFatigue(getCurrentFatigue() + 1, "Fatigue increased.");
+});
+
+document.getElementById("player-fatigue-down-btn")?.addEventListener("click", async () => {
+  await persistPlayerFatigue(getCurrentFatigue() - 1, "Fatigue decreased.");
+});
+
+document.getElementById("player-fatigue-value")?.addEventListener("input", async (e) => {
+  await persistPlayerFatigue(e.target?.value ?? 0, "Fatigue updated.");
 });
 
 saveInitiativeBtn?.addEventListener("click", saveInitiativeToGame);
