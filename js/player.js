@@ -823,6 +823,25 @@ async function removePlayerEffect(effectName) {
   await persistPlayerEffects(next, `${effectName} removed.`);
 }
 
+function getInitiativeFormulaDisplay(data = {}) {
+  if (data.initiativeFormula) return String(data.initiativeFormula);
+
+  const die = data.initiativeDie;
+  const bonus = Number(data.initiativeBonus);
+
+  if (die) {
+    return `${String(die).toLowerCase()}${Number.isFinite(bonus) ? (bonus >= 0 ? `+${bonus}` : `${bonus}`) : ""}`;
+  }
+
+  return "—";
+}
+
+function setInitiativeFormulaDisplay(data = {}) {
+  const el = document.getElementById("player-initiative-formula");
+  if (!el) return;
+  el.textContent = getInitiativeFormulaDisplay(data);
+}
+
 function getSharedValues() {
   return {
     name: document.getElementById("player-name").value.trim(),
@@ -835,7 +854,9 @@ function setSharedValues(data = {}) {
     data.name ?? data.playerName ?? user.displayName ?? "";
 
   document.getElementById("player-initiative").value =
-    data.initiative ?? data.initiativeBonus ?? data.number ?? "";
+    data.initiative ?? data.number ?? data.initiativeBonus ?? "";
+
+  setInitiativeFormulaDisplay(data);
 }
 
 function getDndValues() {
@@ -1229,7 +1250,6 @@ function buildSheetPayload(existing = {}) {
     mode,
     name: shared.name,
     initiative: shared.initiative,
-    initiativeBonus: shared.initiative,
     trackers: existing.trackers || [],
     updatedAt: Date.now()
   };
@@ -1329,6 +1349,7 @@ async function loadExistingCharacter() {
     setCurrentSheetCache(entry);
 
     setSharedValues({
+      ...entry,
       name: entry.name ?? entry.playerName ?? user.displayName ?? "",
       initiative: entry.number ?? entry.initiative ?? entry.initiativeBonus ?? ""
     });
@@ -1382,13 +1403,17 @@ async function saveInitiativeToGame() {
     uid: user.uid,
     playerName: shared.name,
     initiative: shared.initiative,
-    initiativeBonus: shared.initiative,
     name: shared.name,
     number: shared.initiative,
     updatedAt: Date.now(),
     banes: mode === "dnd" ? [] : normalizeBanes(sheetPayload.banes),
     effects: mode === "dnd" ? normalizeEffects(sheetPayload.effects) : []
   };
+
+  if (sheetPayload.initiativeDie != null) entryPayload.initiativeDie = sheetPayload.initiativeDie;
+  if (sheetPayload.initiativeBonus != null) entryPayload.initiativeBonus = sheetPayload.initiativeBonus;
+  if (sheetPayload.initiativeAttribute != null) entryPayload.initiativeAttribute = sheetPayload.initiativeAttribute;
+  if (sheetPayload.initiativeFormula != null) entryPayload.initiativeFormula = sheetPayload.initiativeFormula;
 
   if (mode !== "dnd") {
     entryPayload.currentHp = sheetPayload.currentHp ?? "";

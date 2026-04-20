@@ -1971,6 +1971,13 @@ import { requireAuth } from "../js/auth.js";
           updatedAt: Date.now()
         };
 
+        const initiativeAttribute = character.modifiers?.initiativeAttribute || "Agility";
+        const initiativeBonus = Number(character.modifiers?.initiativeBonus) || 0;
+        const initiativeDie = getAttributeDie(character.attributes?.[initiativeAttribute] || 0);
+        const initiativeFormula = initiativeDie
+          ? `${initiativeDie.toLowerCase()}${initiativeBonus >= 0 ? `+${initiativeBonus}` : initiativeBonus}`
+          : `${initiativeBonus}`;
+
         const playerPayload = {
           ...(existingPlayer || {}),
           uid: user.uid,
@@ -1984,6 +1991,10 @@ import { requireAuth } from "../js/auth.js";
           grd: Number(derived.guard.total) || 0,
           res: Number(derived.resolve.total) || 0,
           tgh: Number(derived.toughness.total) || 0,
+          initiativeAttribute,
+          initiativeBonus,
+          initiativeDie,
+          initiativeFormula,
           feats: clone(character.feats),
           weapons: clone(character.weapons).map((weapon) => ({ ...weapon, computedDamage: getWeaponComputedDamage(weapon) })),
           builderUpdatedAt: Date.now()
