@@ -215,3 +215,14 @@ body {
     font-size: 1.3rem;
   }
 }
+
+.player-page input[type="number"]::-webkit-inner-spin-button,
+.player-page input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.player-page input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
