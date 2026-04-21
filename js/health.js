@@ -375,7 +375,6 @@ function openBaneDetailModal(bane) {
       <div>${description}</div>
       ${effect ? `<h4 style="margin:16px 0 8px;">Effect</h4><div>${effect}</div>` : ''}
       ${special ? `<h4 style="margin:16px 0 8px;">Special</h4><div>${special}</div>` : ''}
-      ${url ? `<p style="margin-top:16px;"><a class="button-link" target="_blank" rel="noopener" href="${url}">Official page</a></p>` : ''}
     </div>
   `;
   modal.setAttribute('aria-hidden', 'false');
