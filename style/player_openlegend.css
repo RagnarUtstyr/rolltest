@@ -1,167 +1,160 @@
-body.player-theme-ol {
+body {
   background: url('../background.jpg') no-repeat center center fixed;
   background-size: cover;
-  color: #e3cf95;
 }
 
-body.player-theme-ol .player-page.container {
+.player-page.container {
   background-color: rgba(31, 29, 26, 0.9);
   box-shadow: 0 0 14px rgba(0, 0, 0, 0.5);
 }
 
-body.player-theme-ol .player-panel {
+.player-panel {
   background: rgba(11, 41, 36, 0.55);
   border: 1px solid #2d3d73;
 }
 
-body.player-theme-ol .player-page h1,
-body.player-theme-ol .player-page h2,
-body.player-theme-ol .player-page .tracker-name,
-body.player-theme-ol .player-page .stat-value,
-body.player-theme-ol .calc-result {
+.player-page h1,
+.player-page h2,
+.player-page .tracker-name,
+.player-page .stat-value {
   color: #e3cf95;
 }
 
-body.player-theme-ol .player-page .muted,
-body.player-theme-ol .player-page .tracker-progress,
-body.player-theme-ol .player-page .stat-label,
-body.player-theme-ol .player-page .field-stack label,
-body.player-theme-ol .summary-label {
+.player-page .muted,
+.player-page .tracker-progress,
+.player-page .stat-label,
+.player-page .field-stack label {
   color: #bdb382;
 }
 
-body.player-theme-ol .player-page .field-stack input,
-body.player-theme-ol .player-page input[type="text"],
-body.player-theme-ol .player-page input[type="number"] {
+.player-page .field-stack input,
+.player-page input[type="text"],
+.player-page input[type="number"] {
   background: rgba(255, 255, 255, 0.15);
   color: #e3cf95;
   border: 2px solid #2d3d73;
 }
 
-body.player-theme-ol .player-page .field-stack input:focus,
-body.player-theme-ol .player-page input[type="text"]:focus,
-body.player-theme-ol .player-page input[type="number"]:focus {
+.player-page .field-stack input:focus,
+.player-page input[type="text"]:focus,
+.player-page input[type="number"]:focus {
   background: rgba(255, 255, 255, 0.2);
   border-color: #4b63b3;
 }
 
-body.player-theme-ol .player-page button,
-body.player-theme-ol .player-page .button-link,
-body.player-theme-ol #ol-apply-damage-btn,
-body.player-theme-ol #ol-heal-btn,
-body.player-theme-ol #ol-reset-hp-btn,
-body.player-theme-ol #player-add-bane-btn,
-body.player-theme-ol #player-view-banes-btn,
-body.player-theme-ol .bane-picker-add-btn,
-body.player-theme-ol .player-bane-remove-btn {
+.player-page button,
+.player-page .button-link {
   background-color: #0b2621;
   color: #bdb382;
   border: 2px solid #2d3d73;
-  border-radius: 5px;
-  font-family: 'MedievalSharp', cursive;
-  transition: background-color 0.3s, color 0.3s;
 }
 
-body.player-theme-ol .player-page button:hover,
-body.player-theme-ol .player-page .button-link:hover,
-body.player-theme-ol #ol-apply-damage-btn:hover,
-body.player-theme-ol #ol-heal-btn:hover,
-body.player-theme-ol #ol-reset-hp-btn:hover,
-body.player-theme-ol #player-add-bane-btn:hover,
-body.player-theme-ol #player-view-banes-btn:hover,
-body.player-theme-ol .bane-picker-add-btn:hover,
-body.player-theme-ol .player-bane-remove-btn:hover {
+.player-page button:hover,
+.player-page .button-link:hover {
   background-color: #1a3b4a;
   color: #ffffff;
 }
 
-body.player-theme-ol .player-page .remove-button {
+.player-page .remove-button {
   background-color: #a8342d;
   border-color: transparent;
   color: #fff;
 }
 
-body.player-theme-ol .player-page .remove-button:hover {
+.player-page .remove-button:hover {
   background-color: #851f1a;
 }
 
-body.player-theme-ol .player-page .tracker-card {
+.player-page .stat-card {
+  background: rgba(20, 22, 30, 0.92);
+  border: 1px solid #2d3d73;
+}
+
+.player-page .hp-card {
+  border-color: #8b0000;
+}
+
+.player-page .tracker-card {
   background: rgba(11, 41, 36, 0.88);
   border: 1px solid #1a3b4a;
 }
 
-body.player-theme-ol .player-page .tracker-boxes input[type="checkbox"] {
+.player-page .tracker-boxes input[type="checkbox"] {
   background: #1b1b1b;
   border: 2px solid #2d3d73;
 }
 
-body.player-theme-ol .player-page .tracker-boxes input[type="checkbox"]:checked {
+.player-page .tracker-boxes input[type="checkbox"]:checked {
   background: #8b0000;
   border-color: #8b0000;
 }
 
-body.player-theme-ol .player-page .empty-state {
+.player-page .empty-state {
   border: 1px dashed #2d3d73;
   color: #bdb382;
 }
 
-body.player-theme-ol .player-page .initiative-panel {
+.player-page .initiative-panel {
   background: rgba(20, 22, 30, 0.75);
   border: 1px solid #2d3d73;
 }
 
-body.player-theme-ol .damage-panel {
+.player-page .damage-panel {
   background: rgba(20, 22, 30, 0.45);
   border: 1px solid #2d3d73;
   border-radius: 8px;
   padding: 12px;
 }
 
-body.player-theme-ol .damage-options {
+.player-page .damage-options {
   background: rgba(11, 41, 36, 0.45);
   border-radius: 8px;
   padding: 8px 10px;
 }
 
-body.player-theme-ol .ol-summary-wrap {
+.player-page .calc-result {
+  color: #e3cf95;
+}
+
+.player-page .ol-summary-wrap {
   display: flex;
   flex-direction: column;
   gap: 14px;
   margin-bottom: 16px;
 }
 
-body.player-theme-ol .ol-summary-top-row {
+.player-page .ol-summary-top-row {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 12px;
   align-items: stretch;
 }
 
-body.player-theme-ol .ol-current-hp-card,
-body.player-theme-ol .ol-lethal-card {
+.player-page .ol-current-hp-card,
+.player-page .ol-lethal-card {
   min-width: 0;
 }
 
-body.player-theme-ol .ol-lethal-card {
+.player-page .ol-lethal-card {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-body.player-theme-ol .ol-lethal-input {
+.player-page .ol-lethal-input {
   width: 100%;
   max-width: 100%;
   min-height: 52px;
   text-align: center;
 }
 
-body.player-theme-ol .ol-defense-grid {
+.player-page .ol-defense-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
-body.player-theme-ol .summary-card {
+.player-page .summary-card {
   background: rgba(20, 22, 30, 0.72);
   border: 1px solid #2d3d73;
   border-radius: 10px;
@@ -170,22 +163,28 @@ body.player-theme-ol .summary-card {
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.18);
 }
 
-body.player-theme-ol .summary-value {
+.player-page .summary-label {
+  color: #bdb382;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.player-page .summary-value {
   color: #e3cf95;
   font-size: 1.6rem;
   line-height: 1.1;
 }
 
-body.player-theme-ol .hp-card-large {
+.player-page .hp-card-large {
   padding: 18px 16px;
 }
 
-body.player-theme-ol .hp-card-large .summary-label {
+.player-page .hp-card-large .summary-label {
   font-size: 1.05rem;
   margin-bottom: 10px;
 }
 
-body.player-theme-ol .hp-display {
+.player-page .hp-display {
   font-size: 2.8rem;
   font-weight: 700;
   color: #e3cf95;
@@ -193,109 +192,76 @@ body.player-theme-ol .hp-display {
   min-height: 2.8rem;
 }
 
-body.player-theme-ol .defense-card .summary-value {
+.player-page .defense-card .summary-value {
   font-size: 1.45rem;
   font-weight: 700;
 }
 
-body.player-theme-ol .defense-card {
+.player-page .defense-card {
   min-height: 92px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-body.player-theme-ol .fatigue-level-display,
-body.player-theme-ol .fatigue-level-card {
-  border: 1px solid #2d3d73;
-  background: rgba(11, 38, 33, 0.35);
-}
-
-body.player-theme-ol .fatigue-level-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 54px;
-  border-radius: 10px;
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-body.player-theme-ol .fatigue-level-card {
-  border-radius: 10px;
-  padding: 10px;
-  text-align: left;
-}
-
-body.player-theme-ol .fatigue-level-card h3 {
-  margin: 0 0 6px 0;
-  font-size: 0.95rem;
-}
-
-body.player-theme-ol .fatigue-level-card p {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.35;
-}
-
-body.player-theme-ol .fatigue-modal__special {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-body.player-theme-ol .fatigue-modal__special h4 {
-  margin: 0 0 8px 0;
-  font-size: 0.95rem;
-}
-
-body.player-theme-ol .fatigue-modal__special p {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-body.player-theme-ol .player-bane-chip {
-  border: 1px solid #2d3d73;
-  background: rgba(11, 38, 33, 0.45);
+.player-page #ol-apply-damage-btn,
+.player-page #ol-heal-btn,
+.player-page #ol-reset-hp-btn {
+  background-color: #0b2621;
   color: #bdb382;
-}
-
-body.player-theme-ol .ol-modal__dialog {
   border: 2px solid #2d3d73;
-  background: #10201f;
-  color: #d9d2ad;
+  font-family: 'MedievalSharp', cursive;
 }
 
-body.player-theme-ol .ol-modal__close {
-  color: #d9d2ad;
-}
-
-body.player-theme-ol .bane-picker-row {
-  border: 1px solid #2d3d73;
-  background: rgba(255, 255, 255, 0.04);
+.player-page #ol-apply-damage-btn:hover,
+.player-page #ol-heal-btn:hover,
+.player-page #ol-reset-hp-btn:hover {
+  background-color: #1a3b4a;
+  color: #237768;
 }
 
 @media (max-width: 600px) {
-  body.player-theme-ol .ol-summary-top-row {
+  .player-page .ol-summary-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .player-page .ol-summary-top-row {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 10px;
   }
 
-  body.player-theme-ol .ol-lethal-input {
+  .player-page .ol-lethal-input {
     min-height: 46px;
   }
 
-  body.player-theme-ol .ol-defense-grid {
+  .player-page .ol-defense-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
   }
 
-  body.player-theme-ol .hp-display {
+  .player-page .hp-display {
     font-size: 2.2rem;
   }
 
-  body.player-theme-ol .defense-card .summary-value {
+  .player-page .defense-card .summary-value {
     font-size: 1.3rem;
   }
+}
+#fatigue-modal .fatigue-action-buttons {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: auto !important;
+  max-width: 180px;
+  margin: 0 auto;
+}
+
+#fatigue-modal .fatigue-action-buttons button {
+  width: auto !important;
+  min-width: 78px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
 }
