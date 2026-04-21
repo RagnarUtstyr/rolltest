@@ -1,10 +1,11 @@
-body {
+body.player-theme-dnd {
   background: url('background_dnd.jpg') no-repeat center center fixed;
   background-size: cover;
   position: relative;
+  color: #e3cf95;
 }
 
-body::before {
+body.player-theme-dnd::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -12,98 +13,200 @@ body::before {
   z-index: -1;
 }
 
-.player-page.container {
+body.player-theme-dnd .player-page.container {
   background-color: rgba(46, 27, 24, 0.82);
   box-shadow: 0 0 14px rgba(0, 0, 0, 0.55);
 }
 
-.player-panel {
+body.player-theme-dnd .player-panel {
   background: rgba(78, 48, 38, 0.55);
   border: 1px solid #8c5a4a;
 }
 
-.player-page h1,
-.player-page h2,
-.player-page .tracker-name,
-.player-page .stat-value {
+body.player-theme-dnd .player-page h1,
+body.player-theme-dnd .player-page h2,
+body.player-theme-dnd .player-page .tracker-name,
+body.player-theme-dnd .player-page .stat-value {
   color: #d4af37;
 }
 
-.player-page .muted,
-.player-page .tracker-progress,
-.player-page .stat-label,
-.player-page .field-stack label {
+body.player-theme-dnd .player-page .muted,
+body.player-theme-dnd .player-page .tracker-progress,
+body.player-theme-dnd .player-page .stat-label,
+body.player-theme-dnd .player-page .field-stack label,
+body.player-theme-dnd .initiative-formula {
   color: #e0d8b0;
 }
 
-.player-page .field-stack input,
-.player-page input[type="text"],
-.player-page input[type="number"] {
+body.player-theme-dnd .player-page .field-stack input,
+body.player-theme-dnd .player-page input[type="text"],
+body.player-theme-dnd .player-page input[type="number"] {
   background-color: rgba(255, 255, 255, 0.12);
   color: #f3e7c2;
   border: 2px solid #d4af37;
 }
 
-.player-page .field-stack input:focus,
-.player-page input[type="text"]:focus,
-.player-page input[type="number"]:focus {
+body.player-theme-dnd .player-page .field-stack input:focus,
+body.player-theme-dnd .player-page input[type="text"]:focus,
+body.player-theme-dnd .player-page input[type="number"]:focus {
   border-color: #8c5a4a;
   background-color: rgba(255, 255, 255, 0.18);
 }
 
-.player-page button,
-.player-page .button-link {
+body.player-theme-dnd .player-page button,
+body.player-theme-dnd .player-page .button-link,
+body.player-theme-dnd .dnd-action-btn,
+body.player-theme-dnd #save-initiative-button,
+body.player-theme-dnd #create-tracker-btn,
+body.player-theme-dnd #player-effects-panel #player-add-effect-btn,
+body.player-theme-dnd #player-effects-panel #player-view-effects-btn {
   background-color: #3a241d;
   color: #f0dfb0;
   border: 2px solid #d4af37;
+  border-radius: 5px;
+  font-family: 'MedievalSharp', serif;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.player-page button:hover,
-.player-page .button-link:hover {
+body.player-theme-dnd .player-page button:hover,
+body.player-theme-dnd .player-page .button-link:hover,
+body.player-theme-dnd .dnd-action-btn:hover,
+body.player-theme-dnd #save-initiative-button:hover,
+body.player-theme-dnd #create-tracker-btn:hover,
+body.player-theme-dnd #player-effects-panel #player-add-effect-btn:hover,
+body.player-theme-dnd #player-effects-panel #player-view-effects-btn:hover {
   background-color: #5a382d;
   color: #ffffff;
 }
 
-.player-page .remove-button {
+body.player-theme-dnd .player-page .remove-button {
   background-color: #a8342d;
   border-color: transparent;
   color: #fff;
 }
 
-.player-page .remove-button:hover {
+body.player-theme-dnd .player-page .remove-button:hover {
   background-color: #851f1a;
 }
 
-.player-page .stat-card {
-  background: rgba(58, 36, 29, 0.95);
-  border: 1px solid #d4af37;
-}
-
-.player-page .hp-card {
-  border-color: #b22222;
-}
-
-.player-page .tracker-card {
+body.player-theme-dnd .player-page .tracker-card {
   background: rgba(58, 36, 29, 0.92);
   border: 1px solid #8c5a4a;
 }
 
-.player-page .tracker-boxes input[type="checkbox"] {
+body.player-theme-dnd .player-page .tracker-boxes input[type="checkbox"] {
   background: #221613;
   border: 2px solid #d4af37;
 }
 
-.player-page .tracker-boxes input[type="checkbox"]:checked {
+body.player-theme-dnd .player-page .tracker-boxes input[type="checkbox"]:checked {
   background: #b22222;
   border-color: #b22222;
 }
 
-.player-page .empty-state {
+body.player-theme-dnd .player-page .empty-state {
   border: 1px dashed #8c5a4a;
   color: #e0d8b0;
 }
 
-.player-page .initiative-panel {
+body.player-theme-dnd .player-page .initiative-panel {
   background: rgba(58, 36, 29, 0.92);
   border: 1px solid #d4af37;
+}
+
+/* D&D-only cards */
+body.player-theme-dnd .dnd-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+  align-items: stretch;
+}
+
+body.player-theme-dnd .dnd-action-card {
+  border: 1px solid #8c5a4a;
+  border-radius: 8px;
+  background: rgba(165, 123, 91, 0.12);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body.player-theme-dnd .dnd-action-card .field-stack {
+  margin: 0;
+}
+
+body.player-theme-dnd .dnd-action-card input[type="number"],
+body.player-theme-dnd .dnd-action-card input[type="text"] {
+  width: 100%;
+  margin-bottom: 0;
+  padding: 10px;
+  border: 2px solid #d4af37;
+  border-radius: 5px;
+  box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #e0d8b0;
+  font-family: 'MedievalSharp', serif;
+  font-size: 1em;
+  outline: none;
+}
+
+body.player-theme-dnd .dnd-action-card input[type="number"]:focus,
+body.player-theme-dnd .dnd-action-card input[type="text"]:focus {
+  border: 2px solid #8c5a4a;
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+body.player-theme-dnd .dnd-temp-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: #e0d8b0;
+  font-size: 0.95rem;
+}
+
+body.player-theme-dnd .dnd-temp-toggle input {
+  margin: 0;
+  width: auto;
+}
+
+body.player-theme-dnd #player-effects-panel {
+  border: 2px solid #8c5a4a;
+  background: rgba(46, 27, 24, 0.92);
+  color: #e0d8b0;
+}
+
+body.player-theme-dnd #player-effects-panel h2,
+body.player-theme-dnd #player-effects-panel p,
+body.player-theme-dnd #player-effects-panel label,
+body.player-theme-dnd #player-effects-panel span,
+body.player-theme-dnd #player-effects-panel .muted {
+  color: #e0d8b0;
+}
+
+body.player-theme-dnd #player-effects-panel .player-bane-chip {
+  border: 1px solid #d4af37;
+  background: rgba(140, 90, 74, 0.22);
+  color: #e0d8b0;
+  font-family: 'MedievalSharp', serif;
+}
+
+body.player-theme-dnd #player-effects-panel .player-bane-chip:hover {
+  background: rgba(212, 175, 55, 0.18);
+  color: #fff2c4;
+}
+
+body.player-theme-dnd #player-effects-panel .player-banes-empty {
+  color: #e0d8b0;
+  opacity: 0.85;
+}
+
+@media (max-width: 760px) {
+  body.player-theme-dnd .dnd-action-grid {
+    grid-template-columns: 1fr;
+  }
 }
