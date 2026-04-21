@@ -5,14 +5,481 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Player Sheet</title>
 
-  <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css" />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css" disabled />
   <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
   <script type="module" src="../js/player.js?v=9" defer></script>
+
+<style>
+  .dnd-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+    align-items: stretch;
+  }
+
+  .dnd-action-card {
+    border: 1px solid #8C5A4A;
+    border-radius: 8px;
+    background: rgba(165, 123, 91, 0.12);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .dnd-action-card .field-stack {
+    margin: 0;
+  }
+
+  .dnd-action-card input[type="number"],
+  .dnd-action-card input[type="text"] {
+    width: 100%;
+    margin-bottom: 0;
+    padding: 10px;
+    border: 2px solid #D4AF37;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #E0D8B0;
+    font-family: 'MedievalSharp', serif;
+    font-size: 1em;
+    outline: none;
+  }
+
+  .dnd-action-card input[type="number"]:focus,
+  .dnd-action-card input[type="text"]:focus {
+    border: 2px solid #8C5A4A;
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .dnd-action-btn,
+  #save-initiative-button,
+  #create-tracker-btn {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'MedievalSharp', serif;
+    transition: background-color 0.3s, color 0.3s;
+    width: 100%;
+  }
+
+  .dnd-action-btn:hover,
+  #save-initiative-button:hover,
+  #create-tracker-btn:hover {
+    background-color: #8C5A4A;
+    color: #2E1B18;
+  }
+
+  #ol-apply-damage-btn,
+  #ol-heal-btn,
+  #ol-reset-hp-btn,
+  #player-add-bane-btn,
+  #player-view-banes-btn,
+  .bane-picker-add-btn,
+  .player-bane-remove-btn {
+    background-color: #0b2621;
+    color: #bdb382;
+    border: 2px solid #2d3d73;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'MedievalSharp', cursive;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  #ol-apply-damage-btn:hover,
+  #ol-heal-btn:hover,
+  #ol-reset-hp-btn:hover,
+  #player-add-bane-btn:hover,
+  #player-view-banes-btn:hover,
+  .bane-picker-add-btn:hover,
+  .player-bane-remove-btn:hover {
+    background-color: #1a3b4a;
+    color: #237768;
+  }
+
+  .dnd-temp-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    color: #E0D8B0;
+    font-size: 0.95rem;
+  }
+
+  .dnd-temp-toggle input {
+    margin: 0;
+    width: auto;
+  }
+
+  .calc-result {
+    margin-top: 14px;
+    text-align: center;
+  }
+
+  .player-banes-panel {
+    min-width: 0;
+  }
+
+  .player-fatigue-panel {
+    min-width: 0;
+  }
+
+  .fatigue-summary {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .fatigue-level-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    border: 1px solid #2d3d73;
+    border-radius: 10px;
+    background: rgba(11, 38, 33, 0.35);
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .fatigue-special-note {
+    display: none;
+  }
+
+  .fatigue-toolbar {
+    display: grid;
+    gap: 10px;
+    align-items: start;
+    justify-items: center;
+    margin-top: 10px;
+  }
+
+  .fatigue-toolbar .field-stack {
+    max-width: 120px;
+  }
+
+  .fatigue-action-buttons {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .fatigue-action-buttons button {
+    width: 100%;
+  }
+
+  #player-fatigue-value {
+    margin: 0;
+    text-align: center;
+    min-height: 42px;
+    max-width: none;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  #player-fatigue-value::-webkit-outer-spin-button,
+  #player-fatigue-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .fatigue-view {
+    margin-top: 12px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .fatigue-empty {
+    opacity: 0.8;
+    text-align: center;
+  }
+
+  .fatigue-level-card {
+    border: 1px solid #2d3d73;
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(11, 38, 33, 0.35);
+    text-align: left;
+  }
+
+  .fatigue-level-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 0.95rem;
+  }
+
+  .fatigue-level-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
+  .fatigue-modal__special {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .fatigue-modal__special h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.95rem;
+  }
+
+  .fatigue-modal__special p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+
+  .bane-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .player-banes-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  .player-bane-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid #2d3d73;
+    border-radius: 999px;
+    background: rgba(11, 38, 33, 0.45);
+    color: #bdb382;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .player-bane-chip img,
+  .bane-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+
+  .player-banes-empty {
+    opacity: 0.8;
+  }
+
+  .ol-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10000;
+  }
+
+  .ol-modal[aria-hidden="true"] {
+    display: none;
+  }
+
+  .ol-modal__dialog {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 2px solid #2d3d73;
+    border-radius: 12px;
+    background: #10201f;
+    color: #d9d2ad;
+    padding: 22px;
+    box-sizing: border-box;
+  }
+
+  .ol-modal__dialog--wide {
+    width: min(760px, 100%);
+  }
+
+  .ol-modal__close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: 0;
+    color: #d9d2ad;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .bane-picker-list,
+  .banes-modal-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .bane-picker-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #2d3d73;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .bane-picker-left,
+  .bane-picker-open {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: inherit;
+  }
+
+  .bane-picker-open {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  /* D&D Effects panel styling */
+  #player-effects-panel {
+    border: 2px solid #8C5A4A;
+    background: rgba(46, 27, 24, 0.92);
+    color: #E0D8B0;
+  }
+
+  #player-effects-panel h2,
+  #player-effects-panel p,
+  #player-effects-panel label,
+  #player-effects-panel span,
+  #player-effects-panel .muted {
+    color: #E0D8B0;
+  }
+
+  #player-effects-panel .bane-toolbar {
+    margin-top: 10px;
+  }
+
+  #player-effects-panel #player-add-effect-btn,
+  #player-effects-panel #player-view-effects-btn {
+    background-color: #2E1B18;
+    color: #E0D8B0;
+    border: 2px solid #D4AF37;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    font-family: 'MedievalSharp', serif;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  #player-effects-panel #player-add-effect-btn:hover,
+  #player-effects-panel #player-view-effects-btn:hover {
+    background-color: #8C5A4A;
+    color: #2E1B18;
+  }
+
+  #player-effects-panel .player-banes-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  #player-effects-panel .player-bane-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid #D4AF37;
+    border-radius: 999px;
+    background: rgba(140, 90, 74, 0.22);
+    color: #E0D8B0;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: 'MedievalSharp', serif;
+  }
+
+  #player-effects-panel .player-bane-chip:hover {
+    background: rgba(212, 175, 55, 0.18);
+    color: #fff2c4;
+  }
+
+  #player-effects-panel .player-banes-empty {
+    color: #E0D8B0;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 760px) {
+    .dnd-action-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .top-character-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 12px !important;
+      width: 100% !important;
+      align-items: stretch !important;
+    }
+
+    .top-character-row > .player-panel,
+    .top-character-row > .compact-panel,
+    .top-character-row > .name-panel,
+    .top-character-row > .initiative-panel,
+    .top-character-row > #player-banes-panel,
+    .top-character-row > #player-fatigue-panel,
+    .top-character-row > #player-effects-panel {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
+    }
+
+    .top-character-row > .name-panel {
+      grid-column: 1 / 2 !important;
+    }
+
+    .top-character-row > .initiative-panel {
+      grid-column: 2 / 3 !important;
+    }
+
+    .top-character-row > #player-banes-panel,
+    .top-character-row > #player-fatigue-panel,
+    .top-character-row > #player-effects-panel {
+      grid-column: 1 / -1 !important;
+    }
+  }
+</style>
 </head>
 <body>
   <div class="container auth-shell player-shell player-page">
@@ -35,12 +502,9 @@
       </div>
 
       <div class="player-panel compact-panel initiative-panel">
-        <div class="initiative-header-row">
-          <h2>Initiative</h2>
-          <div id="player-initiative-formula" class="initiative-formula">—</div>
-        </div>
+        <h2>Initiative</h2>
         <div class="field-stack">
-          <label for="player-initiative">Rolled Initiative</label>
+          <label for="player-initiative">Initiative</label>
           <input type="number" id="player-initiative" placeholder="17" />
         </div>
         <button id="save-initiative-button" type="button">Initiative</button>
