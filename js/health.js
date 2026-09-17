@@ -88,7 +88,43 @@ function __formatAttributesInline(attributes) {
     .join(', ');
 }
 
-let __currentCustomBuild = null;
+function renderCustomBuildDetails(customBuild) {
+  const section = document.getElementById('stat-custom-build-details');
+  const dialog = document.getElementById('stat-modal-dialog');
+  const hasCustomBuild = !!customBuild;
+
+  if (section) section.hidden = !hasCustomBuild;
+  if (dialog) dialog.classList.toggle('has-custom-build', hasCustomBuild);
+  if (!hasCustomBuild) return;
+
+  const levelEl = document.getElementById('custom-build-level-badge');
+  const sizeEl = document.getElementById('custom-build-size-pill');
+  const hpInlineEl = document.getElementById('custom-build-hp-inline');
+  const speedInlineEl = document.getElementById('custom-build-speed-inline');
+  const attributesInlineEl = document.getElementById('custom-build-attributes-inline');
+  const grdEl = document.getElementById('custom-build-grd-inline');
+  const tghEl = document.getElementById('custom-build-tgh-inline');
+  const resEl = document.getElementById('custom-build-res-inline');
+  const favoredEl = document.getElementById('custom-build-favored-actions');
+  const specialEl = document.getElementById('custom-build-special-actions');
+  const featsEl = document.getElementById('custom-build-feats');
+  const weaponsEl = document.getElementById('custom-build-weapons');
+
+  if (levelEl) levelEl.textContent = `LVL ${customBuild.level ?? '—'}`;
+  if (sizeEl) sizeEl.textContent = customBuild.size ?? '—';
+  if (hpInlineEl) hpInlineEl.textContent = `HP: ${customBuild.hp ?? '—'}`;
+  if (speedInlineEl) speedInlineEl.textContent = `Speed: ${customBuild.speed ?? '—'}`;
+  if (attributesInlineEl) {
+    attributesInlineEl.textContent = __formatAttributesInline(customBuild.attributes);
+  }
+  if (grdEl) grdEl.textContent = `${customBuild.grd ?? '—'}`;
+  if (tghEl) tghEl.textContent = `${customBuild.tgh ?? '—'}`;
+  if (resEl) resEl.textContent = `${customBuild.res ?? '—'}`;
+  if (favoredEl) favoredEl.innerHTML = __normalizeTextBlock(customBuild.favoredActions);
+  if (specialEl) specialEl.innerHTML = __normalizeTextBlock(customBuild.specialActions);
+  if (featsEl) featsEl.innerHTML = __normalizeTextBlock(customBuild.feats);
+  if (weaponsEl) weaponsEl.innerHTML = __normalizeTextBlock(customBuild.weapons);
+}
 
 function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild }) {
   const modal = document.getElementById('stat-modal');
@@ -100,12 +136,7 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   document.getElementById('stat-res').textContent = (res ?? 'N/A');
   document.getElementById('stat-tgh').textContent = (tgh ?? 'N/A');
 
-  __currentCustomBuild = customBuild ?? null;
-
-  const customBuildBtn = document.getElementById('stat-custom-build');
-  if (customBuildBtn) {
-    customBuildBtn.style.display = customBuild ? 'inline-block' : 'none';
-  }
+  renderCustomBuildDetails(customBuild);
 
   const link = document.getElementById('stat-url');
   if (url) {
@@ -127,53 +158,6 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   if (inputEl) inputEl.value = '';
 
   modal.setAttribute('aria-hidden', 'false');
-}
-
-function openCustomBuildModal(name, customBuild) {
-  const modal = document.getElementById('custom-build-modal');
-  if (!modal || !customBuild) return;
-
-  const titleEl = document.getElementById('custom-build-title');
-  const levelEl = document.getElementById('custom-build-level-badge');
-  const sizeEl = document.getElementById('custom-build-size-pill');
-
-  const hpInlineEl = document.getElementById('custom-build-hp-inline');
-  const speedInlineEl = document.getElementById('custom-build-speed-inline');
-  const attributesInlineEl = document.getElementById('custom-build-attributes-inline');
-
-  const grdEl = document.getElementById('custom-build-grd-inline');
-  const tghEl = document.getElementById('custom-build-tgh-inline');
-  const resEl = document.getElementById('custom-build-res-inline');
-
-  const favoredEl = document.getElementById('custom-build-favored-actions');
-  const specialEl = document.getElementById('custom-build-special-actions');
-  const featsEl = document.getElementById('custom-build-feats');
-  const weaponsEl = document.getElementById('custom-build-weapons');
-
-  if (titleEl) titleEl.textContent = name ?? 'Custom NPC';
-  if (levelEl) levelEl.textContent = `LVL ${customBuild.level ?? '—'}`;
-  if (sizeEl) sizeEl.textContent = customBuild.size ?? '—';
-
-  if (hpInlineEl) hpInlineEl.textContent = `HP: ${customBuild.hp ?? '—'}`;
-  if (speedInlineEl) speedInlineEl.textContent = `Speed: ${customBuild.speed ?? '—'}`;
-  if (attributesInlineEl) {
-    attributesInlineEl.textContent = __formatAttributesInline(customBuild.attributes);
-  }
-
-  if (grdEl) grdEl.textContent = `${customBuild.grd ?? '—'}`;
-  if (tghEl) tghEl.textContent = `${customBuild.tgh ?? '—'}`;
-  if (resEl) resEl.textContent = `${customBuild.res ?? '—'}`;
-
-if (favoredEl) favoredEl.innerHTML = __normalizeTextBlock(customBuild.favoredActions);
-if (specialEl) specialEl.innerHTML = __normalizeTextBlock(customBuild.specialActions);
-if (featsEl) featsEl.innerHTML = __normalizeTextBlock(customBuild.feats);
-if (weaponsEl) weaponsEl.innerHTML = __normalizeTextBlock(customBuild.weapons);
-
-  modal.setAttribute('aria-hidden', 'false');
-}
-
-function closeCustomBuildModal() {
-  document.getElementById('custom-build-modal')?.setAttribute('aria-hidden', 'true');
 }
 
 function closeStatModal() {
@@ -256,23 +240,7 @@ onReady(() => {
     });
   }
 
-  const customBuildModal = document.getElementById('custom-build-modal');
-  if (customBuildModal) {
-    document.getElementById('custom-build-close')?.addEventListener('click', closeCustomBuildModal);
-    customBuildModal.addEventListener('click', (e) => { if (e.target === customBuildModal) closeCustomBuildModal(); });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && customBuildModal.getAttribute('aria-hidden') === 'false') {
-        closeCustomBuildModal();
-      }
-    });
-  }
-
   document.getElementById('stat-add-bane')?.addEventListener('click', openBanePickerModal);
-  document.getElementById('stat-custom-build')?.addEventListener('click', () => {
-    if (!__currentEntryId || !__currentCustomBuild) return;
-    const title = document.getElementById('stat-modal-title')?.textContent || 'Custom NPC';
-    openCustomBuildModal(title, __currentCustomBuild);
-  });
 
 });
 
@@ -762,7 +730,6 @@ onReady(() => {
 
       document.getElementById('stat-modal')?.setAttribute('aria-hidden', 'true');
       __currentEntryId = null;
-      __currentCustomBuild = null;
     });
   }
 

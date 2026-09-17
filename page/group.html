@@ -8,7 +8,7 @@
   <title>Initiative</title>
   <link rel="preload" as="image" href="../background.jpg">
   <script type="module" src="../js/server.js?v=20260406e" defer></script>
-  <script type="module" src="../js/health.js?v=20260419b" defer></script>
+  <script type="module" src="../js/health.js?v=20260917a" defer></script>
   <script type="module" src="../js/turn.js?v=20260416a" defer></script>
 
   <link rel="stylesheet" href="../style/style.css" />
@@ -64,15 +64,23 @@
     white-space: pre-wrap;
   }
 
-  #stat-custom-build {
-    display: none;
-  }
-
-  #custom-build-modal .ol-modal__dialog {
+  #stat-modal .ol-modal__dialog.has-custom-build {
     width: min(960px, 96vw);
     max-width: 96vw;
     max-height: 90vh;
     overflow-y: auto;
+  }
+
+  #stat-custom-build-details {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .custom-build-section-title {
+    margin: 0;
+    text-align: center;
+    color: #e3cf95;
   }
 
   .custom-build-header-row {
@@ -292,7 +300,7 @@
 
   <!-- Stats Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
+    <div id="stat-modal-dialog" class="ol-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stat-modal-title">
       <button class="ol-modal__close" id="stat-modal-close" aria-label="Close">×</button>
       <h3 id="stat-modal-title"></h3>
 
@@ -306,6 +314,61 @@
         <div><span class="label">RES:</span><span class="value" id="stat-res"></span></div>
         <div><span class="label">TGH:</span><span class="value" id="stat-tgh"></span></div>
       </div>
+
+      <section id="stat-custom-build-details" hidden>
+        <div class="custom-build-header-row">
+          <div id="custom-build-level-badge" class="custom-build-level-badge">LVL —</div>
+          <h4 class="custom-build-section-title">Custom NPC Details</h4>
+          <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
+        </div>
+
+        <div class="custom-build-info-box">
+          <div class="custom-build-info-row">
+            <span id="custom-build-hp-inline">HP: —</span>
+          </div>
+          <div class="custom-build-info-row">
+            <span id="custom-build-speed-inline">Speed: —</span>
+          </div>
+          <div class="custom-build-info-row custom-build-info-attributes-row">
+            <span id="custom-build-attributes-inline">Attributes: —</span>
+          </div>
+        </div>
+
+        <div class="custom-build-stat-row">
+          <div class="custom-build-stat-box">
+            <span class="custom-build-stat-label">GRD</span>
+            <span id="custom-build-grd-inline" class="custom-build-stat-value">—</span>
+          </div>
+          <div class="custom-build-stat-box">
+            <span class="custom-build-stat-label">TGH</span>
+            <span id="custom-build-tgh-inline" class="custom-build-stat-value">—</span>
+          </div>
+          <div class="custom-build-stat-box">
+            <span class="custom-build-stat-label">RES</span>
+            <span id="custom-build-res-inline" class="custom-build-stat-value">—</span>
+          </div>
+        </div>
+
+        <div class="custom-build-text-block">
+          <h4>Favored Actions</h4>
+          <p id="custom-build-favored-actions">—</p>
+        </div>
+
+        <div class="custom-build-text-block">
+          <h4>Special Actions</h4>
+          <p id="custom-build-special-actions">—</p>
+        </div>
+
+        <div class="custom-build-text-block">
+          <h4>Feats</h4>
+          <p id="custom-build-feats">—</p>
+        </div>
+
+        <div class="custom-build-text-block">
+          <h4>Weapons</h4>
+          <p id="custom-build-weapons">—</p>
+        </div>
+      </section>
 
       <a id="stat-url" class="button-link" target="_blank" rel="noopener" style="display:none; margin-top:12px;">Open details</a>
 
@@ -327,7 +390,6 @@
 
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="stat-add-bane" type="button">Bane</button>
-        <button id="stat-custom-build" type="button">Custom Build</button>
         <button id="stat-delete" class="remove-button" style="margin-top:0;">Delete from list</button>
       </div>
     </div>
@@ -370,64 +432,6 @@
     </div>
   </div>
 
-  <div id="custom-build-modal" class="ol-modal" aria-hidden="true">
-    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="custom-build-title">
-      <button class="ol-modal__close" id="custom-build-close" aria-label="Close">×</button>
-
-      <div class="custom-build-header-row">
-        <div id="custom-build-level-badge" class="custom-build-level-badge">LVL —</div>
-        <h3 id="custom-build-title">Custom NPC</h3>
-        <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
-      </div>
-
-      <div class="custom-build-info-box">
-        <div class="custom-build-info-row">
-          <span id="custom-build-hp-inline">HP: —</span>
-        </div>
-        <div class="custom-build-info-row">
-          <span id="custom-build-speed-inline">Speed: —</span>
-        </div>
-        <div class="custom-build-info-row custom-build-info-attributes-row">
-          <span id="custom-build-attributes-inline">Attributes: —</span>
-        </div>
-      </div>
-
-      <div class="custom-build-stat-row">
-        <div class="custom-build-stat-box">
-          <span class="custom-build-stat-label">GRD</span>
-          <span id="custom-build-grd-inline" class="custom-build-stat-value">—</span>
-        </div>
-        <div class="custom-build-stat-box">
-          <span class="custom-build-stat-label">TGH</span>
-          <span id="custom-build-tgh-inline" class="custom-build-stat-value">—</span>
-        </div>
-        <div class="custom-build-stat-box">
-          <span class="custom-build-stat-label">RES</span>
-          <span id="custom-build-res-inline" class="custom-build-stat-value">—</span>
-        </div>
-      </div>
-
-      <div class="custom-build-text-block">
-        <h4>Favored Actions</h4>
-        <p id="custom-build-favored-actions">—</p>
-      </div>
-
-      <div class="custom-build-text-block">
-        <h4>Special Actions</h4>
-        <p id="custom-build-special-actions">—</p>
-      </div>
-
-      <div class="custom-build-text-block">
-        <h4>Feats</h4>
-        <p id="custom-build-feats">—</p>
-      </div>
-
-      <div class="custom-build-text-block">
-        <h4>Weapons</h4>
-        <p id="custom-build-weapons">—</p>
-      </div>
-    </div>
-  </div>
 
   <script>
   (function () {
