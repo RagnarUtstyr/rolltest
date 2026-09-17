@@ -15,6 +15,10 @@ function getEntriesPath() {
   return `games/${code}/entries`;
 }
 
+function __isPlayerEntry(id, entry) {
+  return !!entry?.uid && String(entry.uid) === String(id);
+}
+
 function onReady(fn) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', fn);
@@ -126,7 +130,7 @@ function renderCustomBuildDetails(customBuild) {
   if (weaponsEl) weaponsEl.innerHTML = __normalizeTextBlock(customBuild.weapons);
 }
 
-function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild, banes }) {
+function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild, banes, isPlayerEntry = false }) {
   const modal = document.getElementById('stat-modal');
   if (!modal) return;
 
@@ -135,6 +139,12 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   document.getElementById('stat-grd').textContent = (grd ?? 'N/A');
   document.getElementById('stat-res').textContent = (res ?? 'N/A');
   document.getElementById('stat-tgh').textContent = (tgh ?? 'N/A');
+
+  const defenseSummary = document.getElementById('stat-defense-summary');
+  if (defenseSummary) defenseSummary.hidden = !!customBuild;
+
+  const hpActions = document.getElementById('stat-hp-actions');
+  if (hpActions) hpActions.hidden = !!isPlayerEntry;
 
   renderCustomBuildDetails(customBuild);
   __renderStatBanes(banes);
@@ -150,6 +160,8 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
 
   const remainingEl = document.getElementById('stat-countdown-remaining');
   const inputEl = document.getElementById('stat-countdown-amount');
+  const healInputEl = document.getElementById('stat-heal-amount');
+  const damageInputEl = document.getElementById('stat-damage-amount');
   if (remainingEl) {
     if (countdownEnded) remainingEl.textContent = 'ENDED (0)';
     else if (countdownActive) remainingEl.textContent = `${countdownRemaining ?? '—'}`;
@@ -157,6 +169,8 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
     else remainingEl.textContent = '—';
   }
   if (inputEl) inputEl.value = '';
+  if (healInputEl) healInputEl.value = '';
+  if (damageInputEl) damageInputEl.value = '';
 
   modal.setAttribute('aria-hidden', 'false');
 }
@@ -649,8 +663,9 @@ function fetchRankings() {
     Object.keys(__latestEntries).forEach((key) => delete __latestEntries[key]);
     rankings.forEach((entry) => { __latestEntries[entry.id] = entry; });
 
-    rankings.forEach(({ id, name, playerName, grd, res, tgh, health, currentHp, maxHealth, baseHp, url, number, initiative, countdownRemaining, countdownActive, countdownEnded, banes, customBuild }) => {
+    rankings.forEach(({ id, uid, name, playerName, grd, res, tgh, health, currentHp, maxHealth, baseHp, url, number, initiative, countdownRemaining, countdownActive, countdownEnded, banes, customBuild }) => {
       const displayName = name ?? playerName ?? 'Unknown';
+      const isPlayerEntry = !!uid && String(uid) === String(id);
       const displayInitiative = number ?? initiative ?? 0;
       const displayHealth = (health ?? currentHp);
       const displayMaxHealth = __resolveMaxHealth({ maxHealth, baseHp, customBuild }, displayHealth);
@@ -664,8 +679,9 @@ function fetchRankings() {
       const listItem = document.createElement('li');
       listItem.className = 'list-item';
       listItem.dataset.entryId = id;
+      if (isPlayerEntry) listItem.classList.add('player-entry');
 
-      if (displayHealth === 0) listItem.classList.add('defeated');
+      if (!isPlayerEntry && displayHealth === 0) listItem.classList.add('defeated');
 
       const nameCol = document.createElement('div');
       nameCol.className = 'column name';
@@ -681,45 +697,48 @@ function fetchRankings() {
           countdownActive: s.active,
           countdownEnded: s.ended,
           customBuild,
-          banes
+          banes,
+          isPlayerEntry
         });
       });
 
       const baneArray = __normalizeBanes(banes);
 
-      const hpCol = document.createElement('div');
-      hpCol.className = 'column hp';
-      __renderHpMeter(hpCol, displayHealth, displayMaxHealth);
-      hpCol.style.cursor = 'pointer';
-      hpCol.title = 'Set HP';
-      hpCol.addEventListener('click', () => {
-        __currentEntryId = id;
-        openHpModal(displayHealth);
-      });
-
-      const dmgCol = document.createElement('div');
-      dmgCol.className = 'column dmg';
-      const dmgInput = document.createElement('input');
-      dmgInput.type = 'number';
-      dmgInput.placeholder = 'DMG';
-      dmgInput.className = 'damage-input';
-      dmgInput.dataset.entryId = id;
-      dmgInput.dataset.grd = grd ?? 0;
-      dmgInput.dataset.res = res ?? 0;
-      dmgInput.dataset.tgh = tgh ?? 0;
-
-      if (displayHealth !== null && displayHealth !== undefined) {
-        dmgInput.dataset.health = displayHealth;
-      }
-      if (displayMaxHealth !== null && displayMaxHealth !== undefined) {
-        dmgInput.dataset.maxHealth = displayMaxHealth;
-      }
-
-      dmgCol.appendChild(dmgInput);
-
       listItem.appendChild(nameCol);
-      listItem.appendChild(hpCol);
-      listItem.appendChild(dmgCol);
+
+      if (!isPlayerEntry) {
+        const hpCol = document.createElement('div');
+        hpCol.className = 'column hp';
+        __renderHpMeter(hpCol, displayHealth, displayMaxHealth);
+        hpCol.style.cursor = 'pointer';
+        hpCol.title = 'Set HP';
+        hpCol.addEventListener('click', () => {
+          __currentEntryId = id;
+          openHpModal(displayHealth);
+        });
+
+        const dmgCol = document.createElement('div');
+        dmgCol.className = 'column dmg';
+        const dmgInput = document.createElement('input');
+        dmgInput.type = 'number';
+        dmgInput.placeholder = 'DMG';
+        dmgInput.className = 'damage-input';
+        dmgInput.dataset.entryId = id;
+        dmgInput.dataset.grd = grd ?? 0;
+        dmgInput.dataset.res = res ?? 0;
+        dmgInput.dataset.tgh = tgh ?? 0;
+
+        if (displayHealth !== null && displayHealth !== undefined) {
+          dmgInput.dataset.health = displayHealth;
+        }
+        if (displayMaxHealth !== null && displayMaxHealth !== undefined) {
+          dmgInput.dataset.maxHealth = displayMaxHealth;
+        }
+
+        dmgCol.appendChild(dmgInput);
+        listItem.appendChild(hpCol);
+        listItem.appendChild(dmgCol);
+      }
 
       if (baneArray.length > 0) {
         const baneWrap = document.createElement('div');
@@ -749,7 +768,7 @@ function fetchRankings() {
         listItem.appendChild(baneWrap);
       }
 
-      if (displayHealth === 0) {
+      if (!isPlayerEntry && displayHealth === 0) {
         const removeButton = document.createElement('button');
         removeButton.textContent = 'Remove';
         removeButton.className = 'remove-button';
@@ -899,6 +918,48 @@ onReady(() => {
       updateHealth(__currentEntryId, newHealth, dmgInput);
 
       healAmtInput.value = '';
+    });
+  }
+
+
+  const damageBtn = document.getElementById('stat-damage');
+  const damageAmtInput = document.getElementById('stat-damage-amount');
+
+  if (damageBtn && damageAmtInput) {
+    damageBtn.addEventListener('click', () => {
+      if (!__currentEntryId) return;
+
+      const entry = __latestEntries[__currentEntryId];
+      if (!entry || __isPlayerEntry(__currentEntryId, entry)) return;
+
+      const rawDamage = parseInt(damageAmtInput.value, 10);
+      if (isNaN(rawDamage) || rawDamage <= 0) return;
+
+      const selectedStat = document.querySelector('input[name="statDamageStat"]:checked')?.value ?? 'grd';
+      const statValue = parseInt(entry[selectedStat], 10);
+      if (isNaN(statValue)) {
+        alert(`This entry has no ${selectedStat.toUpperCase()} value.`);
+        return;
+      }
+
+      const dmgInput = document.querySelector(`.damage-input[data-entry-id="${__currentEntryId}"]`);
+      if (!dmgInput || !('health' in dmgInput.dataset)) {
+        alert('This entry has no HP set yet.');
+        return;
+      }
+
+      const current = parseInt(dmgInput.dataset.health, 10);
+      if (isNaN(current)) return;
+
+      let effective = rawDamage - statValue;
+      if (rawDamage >= statValue && effective < 3) effective = 3;
+      const finalDamage = Math.max(effective, 0);
+
+      if (finalDamage > 0) {
+        updateHealth(__currentEntryId, Math.max(current - finalDamage, 0), dmgInput);
+      }
+
+      damageAmtInput.value = '';
     });
   }
 });

@@ -20,6 +20,10 @@ function getEntriesPath() {
   return `games/${code}/entries`;
 }
 
+function isPlayerEntry(id, entry) {
+  return !!entry?.uid && String(entry.uid) === String(id);
+}
+
 function onReady(fn) {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", fn);
@@ -220,10 +224,19 @@ function openStatModal(entryId) {
 
   const state = getCountdownState(entryId);
 
-  document.getElementById("stat-modal-title").textContent = entry.name ?? "";
+  const playerEntry = isPlayerEntry(entryId, entry);
+
+  document.getElementById("stat-modal-title").textContent = entry.name ?? entry.playerName ?? "";
   document.getElementById("stat-init").textContent = entry.initiative ?? entry.number ?? "N/A";
   document.getElementById("stat-ac").textContent = entry.ac ?? "N/A";
   document.getElementById("stat-hp").textContent = entry.health ?? entry.currentHp ?? "N/A";
+
+  const hpField = document.getElementById("stat-hp-field");
+  if (hpField) hpField.hidden = playerEntry;
+
+  const healControls = document.getElementById("stat-heal-controls");
+  if (healControls) healControls.hidden = playerEntry;
+
   renderStatEffects(entry.effects);
 
   const link = document.getElementById("stat-url");
@@ -557,6 +570,8 @@ function fetchRankings() {
       const listItem = document.createElement("li");
       listItem.className = "list-item";
       listItem.dataset.entryId = id;
+      const playerEntry = isPlayerEntry(id, entry);
+      if (playerEntry) listItem.classList.add("player-entry");
 
       const nameButton = document.createElement("button");
       nameButton.type = "button";
@@ -571,42 +586,45 @@ function fetchRankings() {
       acDiv.textContent = `AC: ${entry.ac ?? "N/A"}`;
       listItem.appendChild(acDiv);
 
-      const healthDiv = document.createElement("div");
-      healthDiv.className = "health";
       const currentHealth = entry.health ?? entry.currentHp;
-      const maxHealth = resolveMaxHealth(entry, currentHealth);
-      renderHpMeter(healthDiv, currentHealth, maxHealth);
-      listItem.appendChild(healthDiv);
 
-      const healthInput = document.createElement("input");
-      healthInput.type = "number";
-      healthInput.placeholder = "Damage";
-      healthInput.className = "damage-input";
-      healthInput.dataset.entryId = id;
-      healthInput.dataset.currentHealth =
-        typeof currentHealth === "number" ? String(currentHealth) : (currentHealth !== null && currentHealth !== undefined ? String(currentHealth) : "");
-      if (maxHealth !== null && maxHealth !== undefined) healthInput.dataset.maxHealth = String(maxHealth);
+      if (!playerEntry) {
+        const healthDiv = document.createElement("div");
+        healthDiv.className = "health";
+        const maxHealth = resolveMaxHealth(entry, currentHealth);
+        renderHpMeter(healthDiv, currentHealth, maxHealth);
+        listItem.appendChild(healthDiv);
 
-      healthInput.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter") return;
+        const healthInput = document.createElement("input");
+        healthInput.type = "number";
+        healthInput.placeholder = "Damage";
+        healthInput.className = "damage-input";
+        healthInput.dataset.entryId = id;
+        healthInput.dataset.currentHealth =
+          typeof currentHealth === "number" ? String(currentHealth) : (currentHealth !== null && currentHealth !== undefined ? String(currentHealth) : "");
+        if (maxHealth !== null && maxHealth !== undefined) healthInput.dataset.maxHealth = String(maxHealth);
 
-        const damage = parseInt(healthInput.value, 10);
-        if (isNaN(damage)) return;
+        healthInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
 
-        const currentHealth = parseInt(healthInput.dataset.currentHealth, 10);
-        if (Number.isNaN(currentHealth)) return;
+          const damage = parseInt(healthInput.value, 10);
+          if (isNaN(damage)) return;
 
-        const updatedHealth = Math.max(currentHealth - damage, 0);
-        updateHealth(id, updatedHealth, healthInput);
-        healthInput.value = "";
-      });
+          const currentHealthValue = parseInt(healthInput.dataset.currentHealth, 10);
+          if (Number.isNaN(currentHealthValue)) return;
 
-      listItem.appendChild(healthInput);
+          const updatedHealth = Math.max(currentHealthValue - damage, 0);
+          updateHealth(id, updatedHealth, healthInput);
+          healthInput.value = "";
+        });
+
+        listItem.appendChild(healthInput);
+      }
 
       const effectRow = buildEffectsRow(id, entry);
       listItem.appendChild(effectRow);
 
-      if (Number.isFinite(Number(currentHealth)) && Number(currentHealth) <= 0) {
+      if (!playerEntry && Number.isFinite(Number(currentHealth)) && Number(currentHealth) <= 0) {
         listItem.classList.add("defeated");
         const removeButton = document.createElement("button");
         removeButton.type = "button";
