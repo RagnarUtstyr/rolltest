@@ -1187,3 +1187,925 @@ body.dm-dnd {
     font-size: 0.78rem !important;
   }
 }
+
+/* ========================================================================== */
+/* Dashboard visual refresh — fantasy VTT treatment                           */
+/* Keeps the initiative information architecture and interaction model intact. */
+/* ========================================================================== */
+
+body.dm-openlegend,
+body.dm-dnd {
+  --dm-ui-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --dm-display-font: "Cinzel", "MedievalSharp", Georgia, serif;
+  --dm-radius-xl: 20px;
+  --dm-radius-lg: 15px;
+  --dm-radius-md: 11px;
+  --dm-radius-sm: 8px;
+  --dm-shadow-deep: 0 26px 70px rgba(0, 0, 0, 0.46);
+  --dm-shadow-card: 0 10px 28px rgba(0, 0, 0, 0.22);
+  --dm-ease: 160ms ease;
+  min-height: 100vh;
+  font-family: var(--dm-ui-font) !important;
+  color: var(--dm-text);
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+body.dm-openlegend {
+  --dm-bg: #071416;
+  --dm-panel: rgba(8, 24, 25, 0.91);
+  --dm-panel-soft: rgba(10, 34, 34, 0.72);
+  --dm-panel-strong: rgba(6, 18, 19, 0.96);
+  --dm-surface: rgba(19, 52, 50, 0.62);
+  --dm-surface-hover: rgba(27, 70, 65, 0.78);
+  --dm-border: rgba(117, 188, 174, 0.28);
+  --dm-border-strong: rgba(150, 209, 192, 0.5);
+  --dm-accent: #64c2ad;
+  --dm-accent-strong: #3d9e91;
+  --dm-accent-soft: rgba(100, 194, 173, 0.16);
+  --dm-gold: #dfca91;
+  --dm-text: #efe9d8;
+  --dm-muted: #9eb7b0;
+  --dm-danger: #c6544e;
+  --dm-danger-hover: #dd6a62;
+  background-image:
+    linear-gradient(180deg, rgba(3, 12, 14, 0.62), rgba(4, 17, 18, 0.8)),
+    radial-gradient(circle at 28% 4%, rgba(64, 142, 131, 0.2), transparent 42%),
+    url('../background.jpg') !important;
+}
+
+body.dm-dnd {
+  --dm-bg: #17120d;
+  --dm-panel: rgba(25, 19, 14, 0.92);
+  --dm-panel-soft: rgba(44, 31, 20, 0.74);
+  --dm-panel-strong: rgba(20, 15, 11, 0.97);
+  --dm-surface: rgba(64, 44, 28, 0.62);
+  --dm-surface-hover: rgba(84, 57, 34, 0.78);
+  --dm-border: rgba(205, 166, 105, 0.26);
+  --dm-border-strong: rgba(218, 180, 116, 0.48);
+  --dm-accent: #caa469;
+  --dm-accent-strong: #9d7446;
+  --dm-accent-soft: rgba(202, 164, 105, 0.14);
+  --dm-gold: #e4c98e;
+  --dm-text: #f0e4cf;
+  --dm-muted: #b9aa91;
+  --dm-danger: #a94d43;
+  --dm-danger-hover: #c46154;
+  background-image:
+    linear-gradient(180deg, rgba(17, 11, 7, 0.58), rgba(23, 15, 9, 0.82)),
+    radial-gradient(circle at 24% 3%, rgba(155, 111, 58, 0.18), transparent 40%),
+    url('../background_dnd.jpg') !important;
+}
+
+body.dm-openlegend *,
+body.dm-dnd * {
+  box-sizing: border-box;
+}
+
+body.dm-openlegend button,
+body.dm-openlegend input,
+body.dm-openlegend select,
+body.dm-openlegend textarea,
+body.dm-dnd button,
+body.dm-dnd input,
+body.dm-dnd select,
+body.dm-dnd textarea {
+  font-family: var(--dm-ui-font) !important;
+}
+
+body.dm-openlegend h1,
+body.dm-openlegend h2,
+body.dm-openlegend h3,
+body.dm-openlegend h4,
+body.dm-dnd h1,
+body.dm-dnd h2,
+body.dm-dnd h3,
+body.dm-dnd h4 {
+  font-family: var(--dm-display-font) !important;
+  letter-spacing: 0.02em;
+}
+
+.dm-tracker-page {
+  width: min(1180px, calc(100vw - 32px)) !important;
+  max-width: 1180px !important;
+  margin: 22px auto 34px !important;
+  padding: 20px !important;
+  border: 1px solid var(--dm-border-strong) !important;
+  border-radius: var(--dm-radius-xl) !important;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--dm-panel) 94%, transparent), var(--dm-panel)) !important;
+  box-shadow: var(--dm-shadow-deep) !important;
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+}
+
+.dm-header {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) auto !important;
+  align-items: center !important;
+  gap: 22px !important;
+  margin: 0 0 16px !important;
+  padding: 13px 15px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius-lg) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(0,0,0,0.12)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.035), var(--dm-shadow-card) !important;
+}
+
+.dm-title-block h1 {
+  margin: 0 !important;
+  color: var(--dm-gold) !important;
+  font-size: clamp(1.8rem, 3vw, 2.55rem) !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 18px rgba(0,0,0,0.35);
+}
+
+.dm-mode-label {
+  margin-top: 6px !important;
+  color: var(--dm-muted) !important;
+  font: 700 0.72rem/1 var(--dm-ui-font) !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase;
+}
+
+.dm-session-bar {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.dm-session-chip {
+  min-width: 92px !important;
+  min-height: 44px !important;
+  padding: 6px 11px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius-md) !important;
+  background: rgba(0, 0, 0, 0.18) !important;
+  color: var(--dm-text) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.025) !important;
+}
+
+.dm-session-chip-label {
+  color: var(--dm-muted) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.12em !important;
+}
+
+#game-code-badge.dm-game-code,
+#round-counter.dm-round-counter {
+  color: var(--dm-gold) !important;
+  font-weight: 700 !important;
+}
+
+.dm-header-button,
+.dm-tool-link,
+#add-entry-open-button,
+.dm-turn-actions > button,
+.dm-more-menu > summary,
+.dm-modal-actions button,
+.participant-note-actions button,
+.participant-status-add-row button,
+#participant-detail-back {
+  min-height: 42px !important;
+  border: 1px solid var(--dm-border-strong) !important;
+  border-radius: var(--dm-radius-md) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(0,0,0,0.08)) !important;
+  color: var(--dm-text) !important;
+  font-weight: 700 !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.14) !important;
+  transition: background var(--dm-ease), border-color var(--dm-ease), transform var(--dm-ease), box-shadow var(--dm-ease) !important;
+}
+
+.dm-header-button:hover,
+.dm-tool-link:hover,
+#add-entry-open-button:hover,
+.dm-turn-actions > button:hover,
+.dm-more-menu > summary:hover,
+.dm-modal-actions button:hover,
+.participant-note-actions button:hover,
+.participant-status-add-row button:hover,
+#participant-detail-back:hover {
+  border-color: var(--dm-accent) !important;
+  background: var(--dm-surface-hover) !important;
+  color: var(--dm-text) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 7px 18px rgba(0,0,0,0.2) !important;
+}
+
+#next-button.dm-primary-action,
+#submit-button,
+#participant-note-save,
+#participant-status-add {
+  border-color: color-mix(in srgb, var(--dm-accent) 74%, white 8%) !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--dm-accent) 78%, white 8%), var(--dm-accent-strong)) !important;
+  color: #071312 !important;
+  text-shadow: none !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.24), 0 7px 20px color-mix(in srgb, var(--dm-accent) 20%, transparent) !important;
+}
+
+body.dm-dnd #next-button.dm-primary-action,
+body.dm-dnd #submit-button,
+body.dm-dnd #participant-note-save,
+body.dm-dnd #participant-status-add {
+  color: #1b1309 !important;
+}
+
+#next-button.dm-primary-action:hover,
+#submit-button:hover,
+#participant-note-save:hover,
+#participant-status-add:hover {
+  filter: brightness(1.08);
+}
+
+.dm-participants-button {
+  border-color: color-mix(in srgb, var(--dm-accent) 62%, var(--dm-border-strong)) !important;
+  background: var(--dm-accent-soft) !important;
+}
+
+.participants-button-count {
+  background: rgba(255,255,255,0.1) !important;
+  color: var(--dm-gold) !important;
+}
+
+.participants-ping-badge,
+.participant-ping-indicator {
+  background: var(--dm-danger) !important;
+  color: #fff !important;
+  border-color: var(--dm-panel-strong) !important;
+}
+
+.dm-initiative-panel {
+  position: relative;
+  padding: 15px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius-lg) !important;
+  background:
+    radial-gradient(circle at 50% -20%, var(--dm-accent-soft), transparent 44%),
+    rgba(0,0,0,0.16) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.025), var(--dm-shadow-card) !important;
+  overflow: visible;
+}
+
+.dm-damage-mode-row {
+  margin: 0 0 11px !important;
+  padding: 0 2px !important;
+}
+
+.dm-damage-mode-label {
+  color: var(--dm-muted) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dm-openlegend .global-stat-selector label {
+  border-radius: 999px;
+  color: var(--dm-muted);
+  transition: background var(--dm-ease), color var(--dm-ease), border-color var(--dm-ease);
+}
+
+.dm-openlegend .global-stat-selector label:has(input:checked) {
+  color: var(--dm-text);
+  background: var(--dm-accent-soft);
+}
+
+.dm-openlegend .ranking-header {
+  padding: 7px 12px 8px !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+  font-size: 0.71rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase;
+}
+
+/* Preserve the existing initiative column/grid geometry; only reskin the rows. */
+.dm-openlegend #rankingList li.list-item,
+.dm-dnd #rankingList li.list-item {
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.08)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.018) !important;
+  transition: border-color var(--dm-ease), background var(--dm-ease), box-shadow var(--dm-ease), transform var(--dm-ease) !important;
+}
+
+.dm-openlegend #rankingList li.list-item + li.list-item,
+.dm-dnd #rankingList li.list-item + li.list-item {
+  margin-top: 6px !important;
+}
+
+.dm-openlegend #rankingList li.list-item:hover,
+.dm-dnd #rankingList li.list-item:hover {
+  border-color: var(--dm-border) !important;
+  background: var(--dm-surface) !important;
+}
+
+.dm-openlegend #rankingList li.list-item.highlighted,
+.dm-dnd #rankingList li.list-item.highlighted {
+  border-color: var(--dm-accent) !important;
+  background:
+    linear-gradient(90deg, var(--dm-accent-soft), rgba(255,255,255,0.025)) !important;
+  box-shadow: inset 3px 0 0 var(--dm-accent), 0 0 0 1px color-mix(in srgb, var(--dm-accent) 12%, transparent), 0 9px 22px rgba(0,0,0,0.18) !important;
+}
+
+.dm-openlegend #rankingList .column.name,
+.dm-dnd #rankingList .name {
+  color: var(--dm-text) !important;
+  font-weight: 700 !important;
+}
+
+.hp-meter {
+  min-width: 94px !important;
+  gap: 6px !important;
+}
+
+.hp-meter__value {
+  color: var(--dm-text) !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-meter__track {
+  height: 9px !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  background: rgba(0,0,0,0.42) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.45) !important;
+}
+
+.hp-meter__fill {
+  background: linear-gradient(90deg, #3fa96c, #78cf89) !important;
+  box-shadow: 0 0 10px rgba(80, 192, 115, 0.28);
+}
+
+.hp-meter[data-hp-state="mid"] .hp-meter__fill {
+  background: linear-gradient(90deg, #bf8b3f, #e0bd62) !important;
+  box-shadow: 0 0 10px rgba(213, 171, 72, 0.24);
+}
+
+.hp-meter[data-hp-state="low"] .hp-meter__fill {
+  background: linear-gradient(90deg, #b94d46, #df6a5f) !important;
+  box-shadow: 0 0 10px rgba(208, 79, 69, 0.25);
+}
+
+.dm-tracker-page .damage-input {
+  min-height: 38px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: 9px !important;
+  background: rgba(0,0,0,0.26) !important;
+  color: var(--dm-text) !important;
+  font-weight: 700 !important;
+  text-align: center;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.24) !important;
+}
+
+.dm-tracker-page .damage-input:focus {
+  border-color: var(--dm-accent) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--dm-accent-soft) !important;
+}
+
+.dm-tracker-page .bane-icon-button,
+.dm-tracker-page .effect-icon-button {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  padding: 4px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: 8px !important;
+  background: rgba(0,0,0,0.2) !important;
+  box-shadow: none !important;
+  transition: transform var(--dm-ease), background var(--dm-ease), border-color var(--dm-ease) !important;
+}
+
+.dm-tracker-page .bane-icon-button:hover,
+.dm-tracker-page .effect-icon-button:hover {
+  border-color: var(--dm-accent) !important;
+  background: var(--dm-accent-soft) !important;
+  transform: translateY(-1px) scale(1.04) !important;
+}
+
+.dm-turn-actions {
+  grid-template-columns: minmax(145px, 0.85fr) minmax(190px, 1.3fr) minmax(92px, auto) !important;
+  gap: 9px !important;
+  margin-top: 14px !important;
+}
+
+.dm-turn-actions > button,
+.dm-more-menu > summary {
+  min-height: 46px !important;
+}
+
+#apply-damage-button {
+  background: rgba(0,0,0,0.18) !important;
+}
+
+.dm-more-menu > summary {
+  border-color: var(--dm-border) !important;
+  background: rgba(0,0,0,0.16) !important;
+}
+
+.dm-more-popover {
+  min-width: 210px !important;
+  padding: 9px !important;
+  border: 1px solid var(--dm-border-strong) !important;
+  border-radius: 12px !important;
+  background: var(--dm-panel-strong) !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.46) !important;
+  backdrop-filter: blur(16px);
+}
+
+.dm-more-popover button,
+#clear-list-button,
+#reset-round-button {
+  min-height: 40px !important;
+  border-radius: 9px !important;
+}
+
+#clear-list-button,
+.remove-button {
+  border-color: color-mix(in srgb, var(--dm-danger) 74%, transparent) !important;
+  background: color-mix(in srgb, var(--dm-danger) 78%, #24100f) !important;
+  color: #fff !important;
+}
+
+#clear-list-button:hover,
+.remove-button:hover {
+  background: var(--dm-danger-hover) !important;
+  color: #fff !important;
+}
+
+.dm-tools-bar {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+  padding: 10px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius-lg) !important;
+  background: rgba(0,0,0,0.12) !important;
+}
+
+.dm-tool-link,
+#add-entry-open-button {
+  min-height: 42px !important;
+  padding: 8px 10px !important;
+  border-color: var(--dm-border) !important;
+  box-shadow: none !important;
+}
+
+#add-entry-open-button {
+  border-color: color-mix(in srgb, var(--dm-accent) 62%, var(--dm-border)) !important;
+  background: var(--dm-accent-soft) !important;
+}
+
+/* Modal system */
+body.dm-openlegend .ol-modal,
+body.dm-dnd .ol-modal {
+  padding: 22px !important;
+  background: rgba(1, 5, 7, 0.72) !important;
+  backdrop-filter: blur(10px) saturate(0.9);
+  -webkit-backdrop-filter: blur(10px) saturate(0.9);
+}
+
+body.dm-dnd .ol-modal {
+  background: rgba(8, 5, 3, 0.74) !important;
+}
+
+body.dm-openlegend .ol-modal__dialog,
+body.dm-dnd .ol-modal__dialog {
+  border: 1px solid var(--dm-border-strong) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), rgba(0,0,0,0.08)),
+    var(--dm-panel-strong) !important;
+  color: var(--dm-text) !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.58) !important;
+}
+
+body.dm-openlegend .ol-modal__dialog h3,
+body.dm-dnd .ol-modal__dialog h3,
+body.dm-openlegend .ol-modal__dialog h4,
+body.dm-dnd .ol-modal__dialog h4 {
+  color: var(--dm-gold) !important;
+}
+
+body.dm-openlegend .ol-modal__close,
+body.dm-dnd .ol-modal__close {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: 999px !important;
+  background: rgba(0,0,0,0.2) !important;
+  color: var(--dm-muted) !important;
+  box-shadow: none !important;
+}
+
+body.dm-openlegend .ol-modal__close:hover,
+body.dm-dnd .ol-modal__close:hover {
+  border-color: var(--dm-accent) !important;
+  background: var(--dm-accent-soft) !important;
+  color: var(--dm-text) !important;
+}
+
+body.dm-openlegend .ol-modal input,
+body.dm-openlegend .ol-modal textarea,
+body.dm-openlegend .ol-modal select,
+body.dm-dnd .ol-modal input,
+body.dm-dnd .ol-modal textarea,
+body.dm-dnd .ol-modal select {
+  border: 1px solid var(--dm-border) !important;
+  border-radius: 9px !important;
+  background: rgba(0,0,0,0.25) !important;
+  color: var(--dm-text) !important;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.22) !important;
+}
+
+body.dm-openlegend .ol-modal input:focus,
+body.dm-openlegend .ol-modal textarea:focus,
+body.dm-openlegend .ol-modal select:focus,
+body.dm-dnd .ol-modal input:focus,
+body.dm-dnd .ol-modal textarea:focus,
+body.dm-dnd .ol-modal select:focus {
+  border-color: var(--dm-accent) !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 3px var(--dm-accent-soft) !important;
+}
+
+.ol-modal__stats {
+  gap: 8px !important;
+}
+
+.ol-modal__stats > div,
+.custom-build-stat-box,
+.dnd-custom-build-stat-box,
+.participant-stat-card {
+  border: 1px solid var(--dm-border) !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,0.025) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.018) !important;
+}
+
+.custom-build-info-box,
+.dnd-custom-build-info-box,
+.custom-build-text-block,
+.dnd-custom-build-text-block,
+.participant-detail-section,
+.dm-stat-status-section {
+  border-color: var(--dm-border) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,0.022) !important;
+}
+
+.custom-build-level-badge,
+.custom-build-size-pill {
+  border-color: var(--dm-border) !important;
+  background: var(--dm-accent-soft) !important;
+  color: var(--dm-gold) !important;
+}
+
+/* Participants */
+#participants-modal .ol-modal__dialog {
+  width: min(900px, 94vw) !important;
+}
+
+.participants-modal-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--dm-border);
+}
+
+.participants-count,
+.participant-note-meta,
+.participant-status-message {
+  color: var(--dm-muted) !important;
+  opacity: 1 !important;
+}
+
+.participant-row-button {
+  min-height: 54px;
+  padding: 10px 12px !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,0.024) !important;
+  color: var(--dm-text) !important;
+  box-shadow: none !important;
+}
+
+.participant-row-button:hover,
+.participant-row-button.has-ping {
+  border-color: var(--dm-accent) !important;
+  background: var(--dm-accent-soft) !important;
+  transform: none !important;
+}
+
+.participant-name {
+  color: var(--dm-text) !important;
+  font-weight: 700 !important;
+}
+
+/* Privacy: never expose login/e-mail text in the participant UI. */
+.participant-account,
+.participant-detail-account {
+  display: none !important;
+}
+
+.participant-open-arrow {
+  color: var(--dm-accent) !important;
+}
+
+#participant-note {
+  min-height: 132px !important;
+  line-height: 1.5;
+}
+
+.participant-status-chip,
+.dm-stat-status-item {
+  border-color: var(--dm-border) !important;
+  background: rgba(0,0,0,0.2) !important;
+  color: var(--dm-text) !important;
+}
+
+/* Add-entry modal */
+.dm-add-entry-dialog {
+  width: min(650px, 94vw) !important;
+}
+
+.dm-entry-field label,
+.dm-entry-field > span {
+  color: var(--dm-muted) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dm-entry-field input {
+  min-height: 44px;
+  padding: 9px 10px !important;
+}
+
+/* Small visual polish for zero-HP rows without changing deletion behavior. */
+.dm-openlegend #rankingList li.list-item.defeated,
+.dm-dnd #rankingList li.list-item.defeated {
+  border-color: color-mix(in srgb, var(--dm-danger) 44%, transparent) !important;
+  background: color-mix(in srgb, var(--dm-danger) 7%, rgba(0,0,0,0.12)) !important;
+}
+
+/* Mobile: dashboard collapses cleanly; initiative remains the focal point. */
+@media (max-width: 760px) {
+  body.dm-openlegend,
+  body.dm-dnd {
+    background-attachment: scroll !important;
+  }
+
+  .dm-tracker-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: max(8px, env(safe-area-inset-top)) 8px max(12px, env(safe-area-inset-bottom)) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: color-mix(in srgb, var(--dm-panel) 93%, transparent) !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+  }
+
+  .dm-header {
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+    padding: 11px !important;
+    margin-bottom: 9px !important;
+    border-radius: 13px !important;
+  }
+
+  .dm-title-block {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+
+  .dm-title-block h1 {
+    font-size: clamp(1.55rem, 7vw, 2rem) !important;
+  }
+
+  .dm-mode-label {
+    margin: 0 !important;
+    font-size: 0.62rem !important;
+    white-space: nowrap;
+  }
+
+  .dm-session-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .dm-session-chip,
+  .dm-header-button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    padding: 6px 7px !important;
+  }
+
+  .dm-session-chip {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+
+  .dm-session-chip-label {
+    font-size: 0.58rem !important;
+  }
+
+  .dm-initiative-panel {
+    padding: 8px !important;
+    border-radius: 13px !important;
+  }
+
+  .dm-openlegend #rankingList li.list-item,
+  .dm-dnd #rankingList li.list-item {
+    border-color: var(--dm-border) !important;
+    background: rgba(0,0,0,0.13) !important;
+    border-radius: 11px !important;
+  }
+
+  .hp-meter {
+    min-width: 76px !important;
+  }
+
+  .hp-meter__track {
+    height: 10px !important;
+  }
+
+  .dm-tracker-page .bane-icon-button,
+  .dm-tracker-page .effect-icon-button {
+    width: 29px !important;
+    height: 29px !important;
+    min-width: 29px !important;
+  }
+
+  .dm-turn-actions {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 7px !important;
+    margin-top: 9px !important;
+  }
+
+  .dm-more-menu {
+    grid-column: 1 / -1 !important;
+  }
+
+  .dm-more-menu > summary {
+    min-height: 40px !important;
+  }
+
+  .dm-more-popover {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 6px !important;
+  }
+
+  .dm-tools-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    padding: 8px !important;
+    margin-top: 8px !important;
+    border-radius: 13px !important;
+  }
+
+  .dm-tool-link,
+  #add-entry-open-button {
+    min-height: 40px !important;
+    padding: 7px 6px !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* Bottom-sheet modals are much easier to use one-handed on phones. */
+  body.dm-openlegend .ol-modal,
+  body.dm-dnd .ol-modal {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  body.dm-openlegend .ol-modal__dialog,
+  body.dm-dnd .ol-modal__dialog,
+  #participants-modal .ol-modal__dialog,
+  .dm-add-entry-dialog,
+  #stat-modal .ol-modal__dialog.has-custom-build {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92dvh !important;
+    margin: 0 !important;
+    padding: 17px 14px max(18px, env(safe-area-inset-bottom)) !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  body.dm-openlegend .ol-modal__close,
+  body.dm-dnd .ol-modal__close {
+    position: sticky !important;
+    top: 0 !important;
+    float: right;
+    z-index: 3;
+  }
+
+  .participant-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .participant-detail-section {
+    padding: 11px !important;
+  }
+
+  .participant-note-actions,
+  .participant-status-add-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 7px !important;
+  }
+
+  .participant-status-chip {
+    max-width: 100%;
+  }
+
+  .dm-entry-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dm-entry-field--wide {
+    grid-column: auto !important;
+  }
+
+  .dm-modal-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  body.dm-openlegend .ol-modal input,
+  body.dm-openlegend .ol-modal textarea,
+  body.dm-openlegend .ol-modal select,
+  body.dm-dnd .ol-modal input,
+  body.dm-dnd .ol-modal textarea,
+  body.dm-dnd .ol-modal select,
+  .dm-tracker-page .damage-input {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .dm-session-bar {
+    gap: 5px !important;
+  }
+
+  .dm-session-chip,
+  .dm-header-button {
+    min-height: 38px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .dm-tools-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dm-turn-actions {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .dm-more-menu {
+    grid-column: 1 / -1 !important;
+  }
+
+  .participant-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 340px) {
+  .dm-session-bar,
+  .dm-tools-bar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dm-title-block {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+}
