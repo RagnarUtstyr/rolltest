@@ -26,20 +26,6 @@ function safeText(value, fallback = "—") {
   return String(value);
 }
 
-function isGenericPlayerName(value) {
-  return ["", "player", "unnamed player"].includes(String(value || "").trim().toLowerCase());
-}
-
-function accountDisplayName(member = {}) {
-  const rawName = String(member.name || "").trim();
-  if (rawName && !isGenericPlayerName(rawName)) return rawName;
-
-  const email = String(member.email || "").trim();
-  if (email) return email;
-
-  return rawName || "Player";
-}
-
 function characterRecord(game, uid) {
   const member = game?.members?.[uid] || {};
   const sheet = game?.players?.[uid] || {};
@@ -60,8 +46,7 @@ function characterRecord(game, uid) {
     sheet,
     entry,
     builder,
-    characterName,
-    accountName: accountDisplayName(member)
+    characterName
   };
 }
 
@@ -85,23 +70,44 @@ function normalizedMode(game) {
 }
 
 function noteValue(value) {
-  if (!value) return { text: "", updatedAt: 0, updatedByRole: "", updatedByName: "" };
+  if (!value) {
+    return {
+      text: "", updatedAt: 0, updatedByRole: "", updatedByName: "",
+      pingActive: false, pingEligible: false, pingedAt: 0, pingedNoteUpdatedAt: 0, dmReadAt: 0
+    };
+  }
   if (typeof value === "string") {
-    return { text: value, updatedAt: 0, updatedByRole: "", updatedByName: "" };
+    return {
+      text: value, updatedAt: 0, updatedByRole: "", updatedByName: "",
+      pingActive: false, pingEligible: false, pingedAt: 0, pingedNoteUpdatedAt: 0, dmReadAt: 0
+    };
   }
   return {
     text: String(value.text || ""),
     updatedAt: Number(value.updatedAt) || 0,
     updatedByRole: String(value.updatedByRole || ""),
-    updatedByName: String(value.updatedByName || "")
+    updatedByName: String(value.updatedByName || ""),
+    pingActive: value.pingActive === true,
+    pingEligible: value.pingEligible === true,
+    pingedAt: Number(value.pingedAt) || 0,
+    pingedNoteUpdatedAt: Number(value.pingedNoteUpdatedAt) || 0,
+    dmReadAt: Number(value.dmReadAt) || 0
   };
 }
 
 function formatNoteMeta(note) {
   if (!note.updatedAt) return "Shared between DM and player.";
-  const who = note.updatedByName || (note.updatedByRole === "dm" ? "DM" : note.updatedByRole === "player" ? "Player" : "Someone");
+  const who = note.updatedByRole === "dm" ? "DM" : note.updatedByRole === "player" ? "Player" : "Someone";
   const when = new Date(note.updatedAt).toLocaleString();
   return `Last updated by ${who} · ${when}`;
+}
+
+function hasActivePing(game, uid) {
+  return noteValue(game?.participantNotes?.[uid]).pingActive;
+}
+
+function activePingCount(game) {
+  return getPlayerMembers(game).reduce((count, member) => count + (hasActivePing(game, member.uid) ? 1 : 0), 0);
 }
 
 function currentStatuses(game, uid) {
@@ -141,6 +147,7 @@ function els() {
   return {
     openButton: document.getElementById("participants-open-button"),
     countBadge: document.getElementById("participants-button-count"),
+    pingBadge: document.getElementById("participants-ping-badge"),
     modal: document.getElementById("participants-modal"),
     closeButton: document.getElementById("participants-modal-close"),
     listView: document.getElementById("participants-list-view"),
@@ -149,7 +156,6 @@ function els() {
     detailView: document.getElementById("participant-detail-view"),
     backButton: document.getElementById("participant-detail-back"),
     detailName: document.getElementById("participant-detail-name"),
-    detailAccount: document.getElementById("participant-detail-account"),
     stats: document.getElementById("participant-detail-stats"),
     note: document.getElementById("participant-note"),
     noteMeta: document.getElementById("participant-note-meta"),
@@ -179,7 +185,7 @@ function closeModal() {
 }
 
 function renderListView() {
-  const { listView, detailView, list, count, countBadge } = els();
+  const { listView, detailView, list, count, countBadge, pingBadge } = els();
   if (!currentGame || !list || !count) return;
 
   listView?.removeAttribute("hidden");
@@ -189,6 +195,11 @@ function renderListView() {
   const countText = `${players.length} ${players.length === 1 ? "player" : "players"}`;
   count.textContent = countText;
   if (countBadge) countBadge.textContent = String(players.length);
+  const pingCount = activePingCount(currentGame);
+  if (pingBadge) {
+    pingBadge.textContent = String(pingCount);
+    pingBadge.hidden = pingCount === 0;
+  }
 
   list.replaceChildren();
 
@@ -210,15 +221,25 @@ function renderListView() {
     const text = document.createElement("span");
     text.className = "participant-row-text";
 
+    const nameLine = document.createElement("span");
+    nameLine.className = "participant-name-line";
+
     const character = document.createElement("span");
     character.className = "participant-name";
     character.textContent = record.characterName;
+    nameLine.appendChild(character);
 
-    const account = document.createElement("span");
-    account.className = "participant-account";
-    account.textContent = `Player: ${record.accountName}`;
+    if (hasActivePing(currentGame, member.uid)) {
+      button.classList.add("has-ping");
+      const ping = document.createElement("span");
+      ping.className = "participant-ping-indicator";
+      ping.textContent = "!";
+      ping.title = "New note ping";
+      ping.setAttribute("aria-label", "New note ping");
+      nameLine.appendChild(ping);
+    }
 
-    text.append(character, account);
+    text.appendChild(nameLine);
 
     const arrow = document.createElement("span");
     arrow.className = "participant-open-arrow";
@@ -356,7 +377,6 @@ function renderParticipantDetail() {
     listView,
     detailView,
     detailName,
-    detailAccount,
     note,
     noteMeta,
     noteStatus
@@ -369,12 +389,6 @@ function renderParticipantDetail() {
   detailView?.removeAttribute("hidden");
 
   if (detailName) detailName.textContent = record.characterName;
-  if (detailAccount) {
-    const email = String(record.member.email || "").trim();
-    detailAccount.textContent = email && record.accountName !== email
-      ? `Player account: ${record.accountName} · ${email}`
-      : `Player account: ${record.accountName}`;
-  }
 
   renderStats(record);
 
@@ -385,9 +399,21 @@ function renderParticipantDetail() {
   renderStatusControls(selectedUid);
 }
 
-function openParticipantDetail(uid) {
+async function openParticipantDetail(uid) {
   selectedUid = uid;
   renderParticipantDetail();
+
+  const sharedNote = noteValue(currentGame?.participantNotes?.[uid]);
+  if (sharedNote.pingActive && code) {
+    try {
+      await update(ref(db, `games/${code}/participantNotes/${uid}`), {
+        pingActive: false,
+        dmReadAt: Date.now()
+      });
+    } catch (error) {
+      console.error("Could not clear participant ping:", error);
+    }
+  }
 }
 
 async function saveSharedNote() {
@@ -402,7 +428,7 @@ async function saveSharedNote() {
       updatedAt: Date.now(),
       updatedByUid: currentUser.uid,
       updatedByRole: "dm",
-      updatedByName: currentUser.displayName || currentUser.email || "DM"
+      updatedByName: currentUser.displayName || "DM"
     });
     if (noteStatus) noteStatus.textContent = "Saved.";
   } catch (error) {
@@ -558,8 +584,13 @@ async function initParticipants() {
     }
 
     const players = getPlayerMembers(currentGame);
-    const { countBadge, modal } = els();
+    const { countBadge, pingBadge, modal } = els();
     if (countBadge) countBadge.textContent = String(players.length);
+    const pingCount = activePingCount(currentGame);
+    if (pingBadge) {
+      pingBadge.textContent = String(pingCount);
+      pingBadge.hidden = pingCount === 0;
+    }
 
     if (modal?.getAttribute("aria-hidden") === "false") {
       if (selectedUid && currentGame?.members?.[selectedUid]) renderParticipantDetail();

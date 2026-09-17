@@ -46,7 +46,11 @@ async function submitData(event) {
       updatedAt: Date.now()
     };
 
-    if (health !== null) entry.health = health;
+    if (health !== null) {
+      entry.health = health;
+      entry.currentHp = health;
+      entry.maxHealth = health;
+    }
     if (grd !== undefined) entry.grd = grd;
     if (res !== undefined) entry.res = res;
     if (tgh !== undefined) entry.tgh = tgh;
@@ -62,6 +66,8 @@ async function submitData(event) {
     if (grdInput) grdInput.value = "";
     if (resInput) resInput.value = "";
     if (tghInput) tghInput.value = "";
+
+    document.dispatchEvent(new CustomEvent("dm-entry-submitted"));
 
     const swordSound = document.getElementById("sword-sound");
     if (swordSound) swordSound.play();

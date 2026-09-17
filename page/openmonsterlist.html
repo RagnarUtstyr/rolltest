@@ -1377,6 +1377,8 @@ addButton.addEventListener("click", async () => {
     await push(ref(db, `games/${code}/entries`), {
       name: monster.name,
       health: monster.health,
+      currentHp: monster.health,
+      maxHealth: monster.health,
       grd: monster.grd,
       res: monster.res,
       tgh: monster.tgh,

@@ -48,6 +48,106 @@ function normalizeEffects(effects) {
   return Object.values(effects).filter(Boolean);
 }
 
+function resolveMaxHealth(entry, currentHealth) {
+  const candidates = [
+    entry?.maxHealth,
+    entry?.baseHp,
+    entry?.customBuild?.hp,
+    currentHealth
+  ];
+  for (const value of candidates) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+  }
+  return null;
+}
+
+function renderHpMeter(container, currentHealth, maxHealth) {
+  if (!container) return;
+  container.replaceChildren();
+
+  if (currentHealth === null || currentHealth === undefined || Number.isNaN(Number(currentHealth))) {
+    container.textContent = 'HP: N/A';
+    return;
+  }
+
+  const current = Number(currentHealth);
+  const max = Number.isFinite(Number(maxHealth)) && Number(maxHealth) > 0 ? Number(maxHealth) : current;
+  const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
+
+  const meter = document.createElement('div');
+  meter.className = 'hp-meter';
+  meter.dataset.hpState = pct <= 25 ? 'low' : pct <= 55 ? 'mid' : 'high';
+
+  const value = document.createElement('span');
+  value.className = 'hp-meter__value';
+  value.textContent = max > 0 ? `${current} / ${max}` : `${current}`;
+
+  const track = document.createElement('span');
+  track.className = 'hp-meter__track';
+  track.setAttribute('aria-label', `HP ${current} of ${max}`);
+  const fill = document.createElement('span');
+  fill.className = 'hp-meter__fill';
+  fill.style.width = `${pct}%`;
+  track.appendChild(fill);
+  meter.append(value, track);
+  container.appendChild(meter);
+}
+
+function renderStatEffects(effects) {
+  const list = document.getElementById('stat-active-status-list');
+  if (!list) return;
+  list.replaceChildren();
+
+  const normalized = normalizeEffects(effects);
+  if (!normalized.length) {
+    const empty = document.createElement('span');
+    empty.className = 'dm-stat-status-empty';
+    empty.textContent = 'No active effects.';
+    list.appendChild(empty);
+    return;
+  }
+
+  normalized.forEach((effect) => {
+    const item = document.createElement('div');
+    item.className = 'dm-stat-status-item';
+
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'dm-stat-status-open';
+    open.title = effect?.name || 'Effect';
+    if (effect?.icon) {
+      const icon = document.createElement('img');
+      icon.src = effect.icon;
+      icon.alt = '';
+      open.appendChild(icon);
+    }
+    const label = document.createElement('span');
+    label.textContent = effect?.name || 'Unknown';
+    open.appendChild(label);
+    open.addEventListener('click', () => openEffectDescriptionModal(effect));
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'dm-stat-status-remove';
+    remove.textContent = '×';
+    remove.title = `Remove ${effect?.name || 'effect'}`;
+    remove.addEventListener('click', async () => {
+      if (!currentStatEntryId) return;
+      const current = normalizeEffects(latestEntries[currentStatEntryId]?.effects);
+      const next = current.filter((item) => String(item?.name || '').toLowerCase() !== String(effect?.name || '').toLowerCase());
+      try {
+        await writeLinkedEffects(currentStatEntryId, next);
+      } catch (error) {
+        console.error('Error removing effect:', error);
+      }
+    });
+
+    item.append(open, remove);
+    list.appendChild(item);
+  });
+}
+
 async function writeLinkedEffects(entryId, effects) {
   const code = getGameCode();
   if (!code || !entryId) return;
@@ -123,7 +223,8 @@ function openStatModal(entryId) {
   document.getElementById("stat-modal-title").textContent = entry.name ?? "";
   document.getElementById("stat-init").textContent = entry.initiative ?? entry.number ?? "N/A";
   document.getElementById("stat-ac").textContent = entry.ac ?? "N/A";
-  document.getElementById("stat-hp").textContent = entry.health ?? "N/A";
+  document.getElementById("stat-hp").textContent = entry.health ?? entry.currentHp ?? "N/A";
+  renderStatEffects(entry.effects);
 
   const link = document.getElementById("stat-url");
   if (link) {
@@ -420,14 +521,6 @@ function buildEffectsRow(entryId, entry) {
 
   effectWrap.appendChild(iconsWrap);
 
-  const effectsButton = document.createElement("button");
-  effectsButton.type = "button";
-  effectsButton.textContent = "Effects";
-  effectsButton.className = "effects-button";
-  effectsButton.dataset.role = "open-effects";
-  effectsButton.dataset.entryId = entryId;
-  effectWrap.appendChild(effectsButton);
-
   return effectWrap;
 }
 
@@ -480,7 +573,9 @@ function fetchRankings() {
 
       const healthDiv = document.createElement("div");
       healthDiv.className = "health";
-      healthDiv.textContent = `HP: ${entry.health ?? "N/A"}`;
+      const currentHealth = entry.health ?? entry.currentHp;
+      const maxHealth = resolveMaxHealth(entry, currentHealth);
+      renderHpMeter(healthDiv, currentHealth, maxHealth);
       listItem.appendChild(healthDiv);
 
       const healthInput = document.createElement("input");
@@ -489,7 +584,8 @@ function fetchRankings() {
       healthInput.className = "damage-input";
       healthInput.dataset.entryId = id;
       healthInput.dataset.currentHealth =
-        typeof entry.health === "number" ? String(entry.health) : "";
+        typeof currentHealth === "number" ? String(currentHealth) : (currentHealth !== null && currentHealth !== undefined ? String(currentHealth) : "");
+      if (maxHealth !== null && maxHealth !== undefined) healthInput.dataset.maxHealth = String(maxHealth);
 
       healthInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
@@ -510,7 +606,7 @@ function fetchRankings() {
       const effectRow = buildEffectsRow(id, entry);
       listItem.appendChild(effectRow);
 
-      if (typeof entry.health === "number" && entry.health <= 0) {
+      if (Number.isFinite(Number(currentHealth)) && Number(currentHealth) <= 0) {
         listItem.classList.add("defeated");
         const removeButton = document.createElement("button");
         removeButton.type = "button";
@@ -526,24 +622,31 @@ function fetchRankings() {
     });
 
     syncModalCountdown(currentStatEntryId);
+    if (currentStatEntryId && latestEntries[currentStatEntryId]) {
+      renderStatEffects(latestEntries[currentStatEntryId].effects);
+    }
   });
 }
 
 function updateHealth(id, newHealth, healthInput) {
   const reference = ref(db, `${getEntriesPath()}/${id}`);
 
-  update(reference, { health: newHealth })
+  update(reference, { health: newHealth, currentHp: newHealth })
     .then(() => {
       const listItem = healthInput.closest(".list-item");
       const healthDiv = listItem?.querySelector(".health");
 
       if (healthDiv) {
-        healthDiv.textContent = `HP: ${newHealth}`;
+        const maxHealth = Number(healthInput.dataset.maxHealth);
+        renderHpMeter(healthDiv, newHealth, Number.isFinite(maxHealth) ? maxHealth : newHealth);
       }
 
       healthInput.dataset.currentHealth = String(newHealth);
 
-      if (latestEntries[id]) latestEntries[id].health = newHealth;
+      if (latestEntries[id]) {
+        latestEntries[id].health = newHealth;
+        latestEntries[id].currentHp = newHealth;
+      }
       if (currentStatEntryId === id) {
         document.getElementById("stat-hp").textContent = newHealth;
       }

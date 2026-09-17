@@ -1,0 +1,692 @@
+/* Shared DM initiative page layout. Loaded after the game theme styles. */
+
+.dm-tracker-page {
+  width: min(1120px, calc(100vw - 24px));
+  max-width: 1120px !important;
+  box-sizing: border-box;
+  margin: 20px auto;
+  padding: 18px !important;
+}
+
+.dm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(227, 207, 149, 0.2);
+  border-radius: 12px;
+  background: rgba(8, 12, 15, 0.72);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.dm-title-block {
+  min-width: 0;
+}
+
+.dm-title-block h1 {
+  margin: 0;
+  line-height: 1.05;
+}
+
+.dm-mode-label {
+  margin-top: 4px;
+  opacity: 0.72;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dm-session-bar {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dm-session-chip,
+.dm-header-button,
+.dm-more-menu > summary,
+.dm-tool-link,
+#add-entry-open-button {
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.dm-session-chip {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 88px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(227, 207, 149, 0.18);
+  background: rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.dm-session-chip-label {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#game-code-badge.dm-game-code,
+#round-counter.dm-round-counter {
+  position: static !important;
+  inset: auto !important;
+  display: block;
+  margin: 2px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-size: 1rem;
+  color: inherit;
+  line-height: 1.2;
+}
+
+.dm-header-button,
+.dm-tool-link,
+#add-entry-open-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 9px 13px !important;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dm-participants-button {
+  position: relative;
+}
+
+.participants-button-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.participants-ping-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 2px solid rgba(12, 15, 16, 0.95);
+  background: #bd3535;
+  color: #fff;
+  font: 700 0.72rem/1 Arial, sans-serif;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+.participants-ping-badge[hidden] {
+  display: none !important;
+}
+
+.dm-initiative-panel {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(227, 207, 149, 0.15);
+  background: rgba(5, 11, 13, 0.48);
+}
+
+.dm-openlegend .ranking-container,
+.dm-dnd #rankingList {
+  max-width: none;
+}
+
+.dm-openlegend .ranking-container {
+  padding: 0;
+}
+
+.dm-damage-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.dm-damage-mode-label {
+  font-size: 0.82rem;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+
+.dm-openlegend .global-stat-selector {
+  justify-content: flex-end;
+  margin: 0;
+  overflow: visible;
+}
+
+.dm-turn-actions {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.85fr) minmax(180px, 1.25fr) auto;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 12px;
+}
+
+.dm-turn-actions > button,
+.dm-more-menu > summary {
+  min-height: 46px;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+#next-button.dm-primary-action {
+  font-size: 1.05rem;
+}
+
+.dm-more-menu {
+  position: relative;
+}
+
+.dm-more-menu > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.dm-more-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.dm-more-popover {
+  position: absolute;
+  z-index: 50;
+  right: 0;
+  bottom: calc(100% + 7px);
+  display: grid;
+  gap: 7px;
+  min-width: 190px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(227, 207, 149, 0.18);
+  background: rgba(12, 15, 16, 0.98);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+.dm-more-popover button {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.dm-tools-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.dm-tool-link,
+#add-entry-open-button {
+  min-width: 0;
+  text-align: center;
+}
+
+.dm-add-entry-dialog {
+  width: min(620px, 96vw) !important;
+}
+
+.dm-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dm-entry-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dm-entry-field--wide {
+  grid-column: 1 / -1;
+}
+
+.dm-entry-field label {
+  margin: 0;
+}
+
+.dm-entry-field input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dm-entry-defenses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.dm-modal-actions button {
+  width: auto !important;
+  margin: 0 !important;
+}
+
+/* HP display inside initiative rows */
+.hp-meter {
+  display: grid;
+  gap: 5px;
+  min-width: 72px;
+}
+
+.hp-meter__value {
+  font-size: 0.9rem;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.hp-meter__track {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.hp-meter__fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #408c52, #70bf69);
+  transition: width 0.18s ease;
+}
+
+.hp-meter[data-hp-state="low"] .hp-meter__fill {
+  background: linear-gradient(90deg, #a44235, #d2684e);
+}
+
+.hp-meter[data-hp-state="mid"] .hp-meter__fill {
+  background: linear-gradient(90deg, #a87832, #d8aa4d);
+}
+
+/* Only status icons are shown in initiative rows. */
+.dm-tracker-page .row-banes,
+.dm-tracker-page .row-effects {
+  min-height: 24px;
+}
+
+.dm-tracker-page .banes-button,
+.dm-tracker-page .effects-button {
+  display: none !important;
+}
+
+.dm-tracker-page .bane-icon-button,
+.dm-tracker-page .effect-icon-button {
+  flex: 0 0 auto;
+}
+
+.dm-stat-status-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dm-stat-status-section h4 {
+  margin: 0 0 8px;
+}
+
+.dm-stat-status-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.dm-stat-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.86rem;
+}
+
+.dm-stat-status-item img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.dm-stat-status-empty {
+  opacity: 0.68;
+  font-style: italic;
+}
+
+/* Participant ping indicators */
+.participant-name-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.participant-ping-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  border-radius: 999px;
+  background: #bd3535;
+  color: #fff;
+  font: 700 0.72rem/1 Arial, sans-serif;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.32);
+}
+
+.participant-row.has-ping {
+  border-color: rgba(189, 53, 53, 0.62) !important;
+  box-shadow: inset 3px 0 0 #bd3535;
+}
+
+/* Remove account/login identity from the participant surface. */
+.participant-account,
+.participant-detail-account {
+  display: none !important;
+}
+
+/* Open Legend palette */
+.dm-openlegend .dm-header,
+.dm-openlegend .dm-initiative-panel {
+  border-color: rgba(45, 61, 115, 0.72);
+}
+
+.dm-openlegend #next-button.dm-primary-action,
+.dm-openlegend #add-entry-open-button {
+  background: linear-gradient(180deg, #205443, #12362e);
+  color: #f1dfaa;
+  border-color: #4b63b3;
+}
+
+/* D&D palette */
+.dm-dnd .dm-header,
+.dm-dnd .dm-initiative-panel {
+  border-color: rgba(157, 119, 70, 0.5);
+  background: rgba(14, 12, 11, 0.78);
+}
+
+.dm-dnd #next-button.dm-primary-action,
+.dm-dnd #add-entry-open-button {
+  background: linear-gradient(180deg, #a8834f 0%, #815f37 100%);
+  color: #17120d;
+  border-color: #6e522f;
+}
+
+@media (max-width: 900px) {
+  .dm-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dm-session-bar {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dm-tools-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .dm-tracker-page {
+    width: calc(100vw - 16px);
+    margin: 8px auto;
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .dm-header {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .dm-session-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dm-session-chip,
+  .dm-header-button {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .dm-initiative-panel {
+    padding: 8px;
+  }
+
+  .dm-damage-mode-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dm-openlegend .global-stat-selector {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dm-turn-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dm-more-menu {
+    grid-column: 1 / -1;
+  }
+
+  .dm-more-menu > summary {
+    width: 100% !important;
+  }
+
+  .dm-more-popover {
+    position: static;
+    margin-top: 7px;
+    min-width: 0;
+  }
+
+  .dm-tools-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dm-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-entry-field--wide {
+    grid-column: auto;
+  }
+
+  .dm-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dm-modal-actions button {
+    width: 100% !important;
+  }
+
+  .hp-meter {
+    min-width: 58px;
+  }
+
+  /* D&D rows reflow instead of squeezing four controls into one line. */
+  .dm-dnd #rankingList .list-item,
+  .dm-dnd #rankingList li {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto) !important;
+    grid-template-areas:
+      "name ac"
+      "hp damage"
+      "effects effects" !important;
+    column-gap: 10px !important;
+    row-gap: 8px !important;
+  }
+
+  .dm-dnd #rankingList .list-item.defeated,
+  .dm-dnd #rankingList li.defeated {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto) !important;
+    grid-template-areas:
+      "name ac"
+      "hp damage"
+      "effects effects"
+      "remove remove" !important;
+  }
+
+  .dm-dnd #rankingList .health {
+    justify-content: flex-start;
+  }
+
+  .dm-dnd #rankingList .damage-input {
+    justify-self: end;
+    width: 78px;
+    max-width: 78px;
+  }
+
+  .dm-dnd #rankingList > li > .remove-button,
+  .dm-dnd #rankingList .list-item > .remove-button {
+    justify-self: stretch;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .dm-tools-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-turn-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-more-menu {
+    grid-column: auto;
+  }
+
+  .dm-entry-defenses {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final component overrides kept at the end so they win over theme defaults. */
+body.dm-dnd {
+  align-items: flex-start;
+}
+
+.dm-more-menu > summary {
+  border: 1px solid rgba(227, 207, 149, 0.22);
+  background: rgba(255, 255, 255, 0.045);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+}
+
+.dm-more-menu > summary:hover,
+.dm-more-menu[open] > summary {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.dm-stat-status-item {
+  color: inherit !important;
+  font: inherit !important;
+  line-height: 1.1;
+  box-shadow: none !important;
+  margin: 0 !important;
+  cursor: pointer;
+}
+
+.dm-stat-status-item:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: inherit !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+.dm-dnd .dm-more-menu > summary {
+  border-color: var(--accent-deep);
+  background: rgba(157, 119, 70, 0.12);
+  color: var(--text);
+}
+
+.dm-openlegend .dm-more-menu > summary {
+  border-color: #2d3d73;
+  background: rgba(11, 38, 33, 0.72);
+  color: #bdb382;
+}
+
+.dm-stat-status-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  font: inherit !important;
+}
+
+.dm-stat-status-open:hover,
+.dm-stat-status-open:focus-visible {
+  background: transparent !important;
+  color: inherit !important;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.dm-stat-status-remove {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  padding: 0 !important;
+  margin: 0 0 0 2px !important;
+  border-radius: 999px !important;
+  line-height: 1 !important;
+}

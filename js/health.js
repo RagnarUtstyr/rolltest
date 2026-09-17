@@ -126,7 +126,7 @@ function renderCustomBuildDetails(customBuild) {
   if (weaponsEl) weaponsEl.innerHTML = __normalizeTextBlock(customBuild.weapons);
 }
 
-function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild }) {
+function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild, banes }) {
   const modal = document.getElementById('stat-modal');
   if (!modal) return;
 
@@ -137,6 +137,7 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   document.getElementById('stat-tgh').textContent = (tgh ?? 'N/A');
 
   renderCustomBuildDetails(customBuild);
+  __renderStatBanes(banes);
 
   const link = document.getElementById('stat-url');
   if (url) {
@@ -268,6 +269,109 @@ function __normalizeBanes(banes) {
   if (!banes) return [];
   if (Array.isArray(banes)) return banes.filter(Boolean);
   return Object.values(banes).filter(Boolean);
+}
+
+function __resolveMaxHealth(entry, currentHealth) {
+  const candidates = [
+    entry?.maxHealth,
+    entry?.baseHp,
+    entry?.customBuild?.hp,
+    currentHealth
+  ];
+  for (const value of candidates) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+  }
+  return null;
+}
+
+function __renderHpMeter(container, currentHealth, maxHealth) {
+  if (!container) return;
+  container.replaceChildren();
+
+  if (currentHealth === null || currentHealth === undefined || Number.isNaN(Number(currentHealth))) {
+    container.textContent = 'N/A';
+    return;
+  }
+
+  const current = Number(currentHealth);
+  const max = Number.isFinite(Number(maxHealth)) && Number(maxHealth) > 0 ? Number(maxHealth) : current;
+  const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
+
+  const meter = document.createElement('div');
+  meter.className = 'hp-meter';
+  meter.dataset.hpState = pct <= 25 ? 'low' : pct <= 55 ? 'mid' : 'high';
+
+  const value = document.createElement('span');
+  value.className = 'hp-meter__value';
+  value.textContent = max > 0 ? `${current} / ${max}` : `${current}`;
+
+  const track = document.createElement('span');
+  track.className = 'hp-meter__track';
+  track.setAttribute('aria-label', `HP ${current} of ${max}`);
+
+  const fill = document.createElement('span');
+  fill.className = 'hp-meter__fill';
+  fill.style.width = `${pct}%`;
+  track.appendChild(fill);
+  meter.append(value, track);
+  container.appendChild(meter);
+}
+
+function __renderStatBanes(banes) {
+  const list = document.getElementById('stat-active-status-list');
+  if (!list) return;
+  list.replaceChildren();
+
+  const normalized = __normalizeBanes(banes);
+  if (!normalized.length) {
+    const empty = document.createElement('span');
+    empty.className = 'dm-stat-status-empty';
+    empty.textContent = 'No active banes.';
+    list.appendChild(empty);
+    return;
+  }
+
+  normalized.forEach((bane) => {
+    const item = document.createElement('div');
+    item.className = 'dm-stat-status-item';
+
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'dm-stat-status-open';
+    open.title = bane?.name || 'Bane';
+
+    if (bane?.icon) {
+      const icon = document.createElement('img');
+      icon.src = bane.icon;
+      icon.alt = '';
+      open.appendChild(icon);
+    }
+
+    const label = document.createElement('span');
+    label.textContent = bane?.name || 'Unknown';
+    open.appendChild(label);
+    open.addEventListener('click', () => openBaneDetailModal(bane));
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'dm-stat-status-remove';
+    remove.textContent = '×';
+    remove.title = `Remove ${bane?.name || 'bane'}`;
+    remove.addEventListener('click', async () => {
+      if (!__currentEntryId) return;
+      const current = __normalizeBanes(__latestEntries[__currentEntryId]?.banes);
+      const next = current.filter((item) => String(item?.name || '').toLowerCase() !== String(bane?.name || '').toLowerCase());
+      try {
+        await __writeLinkedBanes(__currentEntryId, next);
+      } catch (error) {
+        console.error('Error removing bane:', error);
+      }
+    });
+
+    item.append(open, remove);
+    list.appendChild(item);
+  });
 }
 
 const __latestEntries = {};
@@ -545,10 +649,11 @@ function fetchRankings() {
     Object.keys(__latestEntries).forEach((key) => delete __latestEntries[key]);
     rankings.forEach((entry) => { __latestEntries[entry.id] = entry; });
 
-    rankings.forEach(({ id, name, playerName, grd, res, tgh, health, currentHp, url, number, initiative, countdownRemaining, countdownActive, countdownEnded, banes, customBuild }) => {
+    rankings.forEach(({ id, name, playerName, grd, res, tgh, health, currentHp, maxHealth, baseHp, url, number, initiative, countdownRemaining, countdownActive, countdownEnded, banes, customBuild }) => {
       const displayName = name ?? playerName ?? 'Unknown';
       const displayInitiative = number ?? initiative ?? 0;
       const displayHealth = (health ?? currentHp);
+      const displayMaxHealth = __resolveMaxHealth({ maxHealth, baseHp, customBuild }, displayHealth);
 
       __setCountdownState(id, {
         remaining: (typeof countdownRemaining === 'number') ? countdownRemaining : null,
@@ -575,7 +680,8 @@ function fetchRankings() {
           countdownRemaining: s.remaining,
           countdownActive: s.active,
           countdownEnded: s.ended,
-          customBuild
+          customBuild,
+          banes
         });
       });
 
@@ -583,7 +689,7 @@ function fetchRankings() {
 
       const hpCol = document.createElement('div');
       hpCol.className = 'column hp';
-      hpCol.textContent = (displayHealth === null || displayHealth === undefined) ? 'N/A' : `${displayHealth}`;
+      __renderHpMeter(hpCol, displayHealth, displayMaxHealth);
       hpCol.style.cursor = 'pointer';
       hpCol.title = 'Set HP';
       hpCol.addEventListener('click', () => {
@@ -604,6 +710,9 @@ function fetchRankings() {
 
       if (displayHealth !== null && displayHealth !== undefined) {
         dmgInput.dataset.health = displayHealth;
+      }
+      if (displayMaxHealth !== null && displayMaxHealth !== undefined) {
+        dmgInput.dataset.maxHealth = displayMaxHealth;
       }
 
       dmgCol.appendChild(dmgInput);
@@ -637,16 +746,6 @@ function fetchRankings() {
           baneWrap.appendChild(iconButton);
         });
 
-        const banesButton = document.createElement('button');
-        banesButton.type = 'button';
-        banesButton.textContent = 'Banes';
-        banesButton.className = 'banes-button';
-        banesButton.addEventListener('click', () => {
-          __currentEntryId = id;
-          openBanesModal(id, baneArray, `${displayName} - Banes`);
-        });
-        baneWrap.appendChild(banesButton);
-
         listItem.appendChild(baneWrap);
       }
 
@@ -662,6 +761,10 @@ function fetchRankings() {
 
       __applyRowCountdownClasses(id, __getCountdownState(id));
     });
+
+    if (__currentEntryId && __latestEntries[__currentEntryId]) {
+      __renderStatBanes(__latestEntries[__currentEntryId].banes);
+    }
   });
 }
 
@@ -704,7 +807,8 @@ function updateHealth(id, newHealth, inputEl) {
     .then(() => {
       const listItem = inputEl.closest('.list-item');
       const hpCol = listItem?.querySelector('.column.hp');
-      if (hpCol) hpCol.textContent = `${newHealth}`;
+      const maxHealth = Number(inputEl.dataset.maxHealth);
+      if (hpCol) __renderHpMeter(hpCol, newHealth, Number.isFinite(maxHealth) ? maxHealth : newHealth);
       inputEl.dataset.health = newHealth;
 
       if (newHealth <= 0) {
@@ -720,6 +824,8 @@ function updateHealth(id, newHealth, inputEl) {
         }
       } else {
         listItem?.classList.remove('defeated');
+        const removeButton = listItem?.querySelector(':scope > .remove-button');
+        removeButton?.remove();
       }
     })
     .catch(err => console.error('Error updating health:', err));

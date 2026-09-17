@@ -86,6 +86,8 @@ const playerSharedNotesEl = document.getElementById("player-shared-notes");
 const playerSharedNotesSaveBtn = document.getElementById("player-shared-notes-save");
 const playerSharedNotesStatusEl = document.getElementById("player-shared-notes-status");
 const playerSharedNotesMetaEl = document.getElementById("player-shared-notes-meta");
+const playerPingDmBtn = document.getElementById("player-ping-dm");
+const playerPingDmStatusEl = document.getElementById("player-ping-dm-status");
 
 const user = await requireAuth();
 
@@ -206,15 +208,28 @@ function normalizeEffects(effects) {
 }
 
 function normalizeSharedNote(value) {
-  if (!value) return { text: "", updatedAt: 0, updatedByRole: "", updatedByName: "" };
+  if (!value) {
+    return {
+      text: "", updatedAt: 0, updatedByRole: "", updatedByName: "",
+      pingActive: false, pingEligible: false, pingedAt: 0, pingedNoteUpdatedAt: 0, dmReadAt: 0
+    };
+  }
   if (typeof value === "string") {
-    return { text: value, updatedAt: 0, updatedByRole: "", updatedByName: "" };
+    return {
+      text: value, updatedAt: 0, updatedByRole: "", updatedByName: "",
+      pingActive: false, pingEligible: false, pingedAt: 0, pingedNoteUpdatedAt: 0, dmReadAt: 0
+    };
   }
   return {
     text: String(value.text || ""),
     updatedAt: Number(value.updatedAt) || 0,
     updatedByRole: String(value.updatedByRole || ""),
-    updatedByName: String(value.updatedByName || "")
+    updatedByName: String(value.updatedByName || ""),
+    pingActive: value.pingActive === true,
+    pingEligible: value.pingEligible === true,
+    pingedAt: Number(value.pingedAt) || 0,
+    pingedNoteUpdatedAt: Number(value.pingedNoteUpdatedAt) || 0,
+    dmReadAt: Number(value.dmReadAt) || 0
   };
 }
 
@@ -224,12 +239,41 @@ function formatSharedNoteMeta(note) {
   return `Last updated by ${who} · ${new Date(note.updatedAt).toLocaleString()}`;
 }
 
+let currentSharedNote = normalizeSharedNote(null);
+
+function canPingDm(note = currentSharedNote) {
+  return note.pingEligible === true
+    && note.updatedByRole === "player"
+    && note.text.trim().length > 0
+    && note.updatedAt > note.pingedNoteUpdatedAt;
+}
+
+function renderPingState(note = currentSharedNote) {
+  if (!playerPingDmBtn) return;
+  const ready = canPingDm(note);
+  playerPingDmBtn.disabled = !ready;
+  playerPingDmBtn.classList.toggle("is-ready", ready);
+
+  if (!playerPingDmStatusEl) return;
+  if (ready) {
+    playerPingDmStatusEl.textContent = "New saved note ready to ping.";
+  } else if (note.pingActive) {
+    playerPingDmStatusEl.textContent = "DM has been pinged.";
+  } else if (note.dmReadAt && note.dmReadAt >= note.pingedAt && note.pingedAt) {
+    playerPingDmStatusEl.textContent = "DM opened your ping.";
+  } else {
+    playerPingDmStatusEl.textContent = "Save a new note before pinging the DM.";
+  }
+}
+
 function renderSharedNote(value) {
   const note = normalizeSharedNote(value);
+  currentSharedNote = note;
   if (playerSharedNotesEl && document.activeElement !== playerSharedNotesEl) {
     playerSharedNotesEl.value = note.text;
   }
   if (playerSharedNotesMetaEl) playerSharedNotesMetaEl.textContent = formatSharedNoteMeta(note);
+  renderPingState(note);
 }
 
 async function saveSharedNote() {
@@ -237,18 +281,48 @@ async function saveSharedNote() {
   if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = "Saving…";
 
   try {
+    const nextText = playerSharedNotesEl.value;
+    if (nextText === currentSharedNote.text) {
+      if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = "No changes to save.";
+      return;
+    }
+
     const shared = getSharedValues();
     await update(ref(db, participantNotesPath()), {
-      text: playerSharedNotesEl.value,
+      text: nextText,
       updatedAt: Date.now(),
       updatedByUid: user.uid,
       updatedByRole: "player",
-      updatedByName: shared.name || user.displayName || user.email || "Player"
+      updatedByName: shared.name || "Player",
+      pingEligible: true
     });
-    if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = "Saved.";
+    if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = "Saved. You can now ping the DM.";
   } catch (error) {
     console.error("Could not save shared note:", error);
     if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = error.message || "Could not save note.";
+  }
+}
+
+async function pingDm() {
+  if (!canPingDm(currentSharedNote)) {
+    if (playerPingDmStatusEl) playerPingDmStatusEl.textContent = "Save a new note before pinging the DM.";
+    return;
+  }
+
+  if (playerPingDmStatusEl) playerPingDmStatusEl.textContent = "Pinging DM…";
+  try {
+    const now = Date.now();
+    await update(ref(db, participantNotesPath()), {
+      pingActive: true,
+      pingEligible: false,
+      pingedAt: now,
+      pingedNoteUpdatedAt: currentSharedNote.updatedAt,
+      pingedByUid: user.uid
+    });
+    if (playerPingDmStatusEl) playerPingDmStatusEl.textContent = "DM has been pinged.";
+  } catch (error) {
+    console.error("Could not ping DM:", error);
+    if (playerPingDmStatusEl) playerPingDmStatusEl.textContent = error.message || "Could not ping DM.";
   }
 }
 
@@ -1536,8 +1610,15 @@ async function saveInitiativeToGame() {
   if (sheetPayload.initiativeAttribute != null) entryPayload.initiativeAttribute = sheetPayload.initiativeAttribute;
   if (sheetPayload.initiativeFormula != null) entryPayload.initiativeFormula = sheetPayload.initiativeFormula;
 
-  if (mode !== "dnd") {
+  if (mode === "dnd") {
+    entryPayload.health = sheetPayload.currentHp ?? sheetPayload.hp ?? "";
+    entryPayload.currentHp = sheetPayload.currentHp ?? sheetPayload.hp ?? "";
+    entryPayload.maxHealth = sheetPayload.baseHp ?? sheetPayload.hp ?? sheetPayload.currentHp ?? "";
+    entryPayload.ac = sheetPayload.ac ?? "";
+  } else {
+    entryPayload.health = sheetPayload.currentHp ?? "";
     entryPayload.currentHp = sheetPayload.currentHp ?? "";
+    entryPayload.maxHealth = sheetPayload.baseHp ?? sheetPayload.currentHp ?? "";
     entryPayload.lethal = sheetPayload.lethal ?? 0;
     entryPayload.grd = sheetPayload.grd ?? 0;
     entryPayload.res = sheetPayload.res ?? 0;
@@ -1705,6 +1786,7 @@ document.getElementById("player-fatigue-value")?.addEventListener("input", async
 
 saveInitiativeBtn?.addEventListener("click", saveInitiativeToGame);
 playerSharedNotesSaveBtn?.addEventListener("click", saveSharedNote);
+playerPingDmBtn?.addEventListener("click", pingDm);
 
 document.getElementById("dnd-apply-damage-btn")?.addEventListener("click", applyDndDamage);
 document.getElementById("dnd-heal-btn")?.addEventListener("click", healDndHp);

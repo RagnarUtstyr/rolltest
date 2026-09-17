@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260917sync2" defer></script>
+  <script type="module" src="../js/player.js?v=20260917ui1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -515,6 +515,23 @@
     font-size: 0.88rem;
   }
 
+  #player-ping-dm {
+    position: relative;
+  }
+
+  #player-ping-dm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  #player-ping-dm.is-ready {
+    box-shadow: 0 0 0 2px rgba(227, 207, 149, 0.12), 0 8px 18px rgba(0, 0, 0, 0.24);
+  }
+
+  #player-ping-dm-status {
+    font-size: 0.86rem;
+  }
+
 </style>
 </head>
 <body>
@@ -585,8 +602,10 @@
       <textarea id="player-shared-notes" placeholder="Write a note for the DM..."></textarea>
       <div class="shared-notes-actions">
         <button id="player-shared-notes-save" type="button">Save note</button>
+        <button id="player-ping-dm" type="button" disabled>Ping DM</button>
         <span id="player-shared-notes-status" class="muted"></span>
       </div>
+      <div id="player-ping-dm-status" class="muted">Save a new note before pinging the DM.</div>
       <div id="player-shared-notes-meta" class="muted">Shared between you and the DM.</div>
     </div>
 

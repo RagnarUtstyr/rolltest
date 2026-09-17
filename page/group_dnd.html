@@ -6,14 +6,16 @@
   <title>Initiative</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preload" as="image" href="../background_dnd.jpg">
-  <script type="module" src="../js/server_dnd.js?v=20260407e" defer></script>
-  <script type="module" src="../js/health_dnd.js?v=20260917sync2" defer></script>
+  <script type="module" src="../js/server_dnd.js?v=20260917ui1" defer></script>
+  <script type="module" src="../js/health_dnd.js?v=20260917ui1" defer></script>
   <script type="module" src="../js/turn_dnd.js?v=20260416a" defer></script>
-  <script type="module" src="../js/participants.js?v=20260917sync2" defer></script>
+  <script type="module" src="../js/participants.js?v=20260917ui1" defer></script>
+  <script type="module" src="../js/dm_tracker.js?v=20260917a" defer></script>
 
   <link rel="stylesheet" href="../style/style_dnd.css" />
   <link rel="stylesheet" href="../style/turn_dnd.css" />
   <link rel="stylesheet" href="../style/save.css" />
+  <link rel="stylesheet" href="../style/dm_tracker.css?v=20260917a" />
   <link
     href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap"
     rel="stylesheet"
@@ -284,64 +286,84 @@
 </style>
 
 </head>
-<body>
-  <div class="container">
-    <h1>Initiative</h1>
+<body class="dm-dnd">
+  <div class="container dm-tracker-page">
+    <header class="dm-header">
+      <div class="dm-title-block">
+        <h1>Initiative</h1>
+        <div class="dm-mode-label">Dungeons &amp; Dragons</div>
+      </div>
 
-    <div id="game-code-badge">Code: ----</div>
+      <div class="dm-session-bar">
+        <div class="dm-session-chip">
+          <span class="dm-session-chip-label">Game Code</span>
+          <strong id="game-code-badge" class="dm-game-code">----</strong>
+        </div>
+        <div class="dm-session-chip">
+          <span class="dm-session-chip-label">Round</span>
+          <strong id="round-counter" class="dm-round-counter"><span id="round-value">1</span></strong>
+        </div>
+        <button id="participants-open-button" class="dm-header-button dm-participants-button" type="button" hidden>
+          Participants <span id="participants-button-count" class="participants-button-count">0</span>
+          <span id="participants-ping-badge" class="participants-ping-badge" hidden>0</span>
+        </button>
+        <a href="lobby.html" class="button-link dm-header-button">Lobby</a>
+      </div>
+    </header>
 
-    <br />
+    <section class="dm-initiative-panel">
+      <ul id="rankingList"></ul>
 
-    <a href="lobby.html" class="button-link">Lobby</a>
+      <div class="dm-turn-actions">
+        <button id="apply-damage-button">Apply Damage</button>
+        <button id="next-button" class="dm-primary-action">Next</button>
+        <details class="dm-more-menu">
+          <summary>More</summary>
+          <div class="dm-more-popover">
+            <button id="clear-list-button" class="remove-button" type="button">Clear List</button>
+          </div>
+        </details>
+      </div>
+    </section>
 
-    <br />
+    <nav class="dm-tools-bar" aria-label="Initiative tools">
+      <button id="add-entry-open-button" type="button">+ Add Entry</button>
+      <a id="save-link" href="save.html" class="button-link dm-tool-link">Lists</a>
+      <a id="monster-link" href="monster.html" class="button-link dm-tool-link">Monsters</a>
+      <a id="npc-link" href="npc_dnd.html" class="button-link dm-tool-link">NPCs</a>
+      <a id="custom-npc-link" href="custom_dnd.html" class="button-link dm-tool-link">Custom NPC</a>
+    </nav>
+  </div>
 
-    <div class="participants-trigger-row">
-      <button id="participants-open-button" type="button" hidden>
-        Participants <span id="participants-button-count" class="participants-button-count">0</span>
-      </button>
+  <div id="add-entry-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog dm-add-entry-dialog" role="dialog" aria-modal="true" aria-labelledby="add-entry-title">
+      <button class="ol-modal__close" id="add-entry-close" aria-label="Close">×</button>
+      <h3 id="add-entry-title">Add Entry</h3>
+
+      <div class="dm-entry-grid">
+        <div class="dm-entry-field dm-entry-field--wide">
+          <label for="name">Name</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="dm-entry-field">
+          <label for="initiative">Initiative</label>
+          <input type="number" id="initiative" required />
+        </div>
+        <div class="dm-entry-field">
+          <label for="health">HP</label>
+          <input type="number" id="health" />
+        </div>
+        <div class="dm-entry-field dm-entry-field--wide">
+          <label for="ac">AC</label>
+          <input type="number" id="ac" />
+        </div>
+      </div>
+
+      <div class="dm-modal-actions">
+        <button id="add-entry-cancel" type="button">Cancel</button>
+        <button id="submit-button" type="button">Add Entry</button>
+      </div>
     </div>
-
-    <div id="round-counter">Round: <span id="round-value">1</span></div>
-
-    <ul id="rankingList"></ul>
-
-    <div class="button-container">
-      <button id="apply-damage-button">Apply Damage</button>
-      <button id="next-button">Next</button>
-    </div>
-
-    <br />
-
-    <button id="clear-list-button">Clear List</button>
-
-    <br /><br />
-    <br /><br />
-
-    <div class="submit-entry-header">
-      <h2>Submit a New Entry</h2>
-      <a id="custom-npc-link" href="custom_dnd.html" class="button-link">Custom NPC</a>
-    </div>
-
-    <label for="name">Name:</label>
-    <input type="text" id="name" required />
-
-    <label for="initiative">Initiative:</label>
-    <input type="number" id="initiative" required />
-
-    <label for="health">Health:</label>
-    <input type="number" id="health" />
-
-    <label for="ac">AC:</label>
-    <input type="number" id="ac" />
-
-    <button id="submit-button">Submit</button>
-
-    <br /><br />
-
-    <a id="save-link" href="save.html" class="button-link">Go to Lists</a>
-    <a id="monster-link" href="monster.html" class="button-link">Go to Monster List</a>
-    <a id="npc-link" href="npc_dnd.html" class="button-link">Go to NPC List</a>
   </div>
 
   <script>
@@ -369,7 +391,7 @@
       const badge = document.getElementById("game-code-badge");
       if (!badge) return;
 
-      badge.textContent = code ? `Code: ${code}` : "No code in URL";
+      badge.textContent = code ? code : "----";
     })();
   </script>
 
@@ -394,7 +416,6 @@
         <div class="participant-detail-header">
           <h3 id="participant-detail-name">Character</h3>
         </div>
-        <p id="participant-detail-account" class="participant-detail-account"></p>
 
         <div id="participant-detail-stats" class="participant-stats-grid"></div>
 
@@ -486,6 +507,11 @@
         <span class="label">Countdown remaining:</span>
         <span class="value" id="stat-countdown-remaining">—</span>
       </p>
+
+      <div class="dm-stat-status-section">
+        <h4>Active Effects</h4>
+        <div id="stat-active-status-list" class="dm-stat-status-list"></div>
+      </div>
 
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="stat-add-effect" type="button">Effect</button>

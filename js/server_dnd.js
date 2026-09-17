@@ -44,7 +44,11 @@ async function submitData(event) {
       effects: {}
     };
 
-    if (health !== null) entry.health = health;
+    if (health !== null) {
+      entry.health = health;
+      entry.currentHp = health;
+      entry.maxHealth = health;
+    }
     if (ac !== null) entry.ac = ac;
 
     const entriesRef = ref(db, getEntriesPath());
@@ -54,6 +58,8 @@ async function submitData(event) {
     if (initiativeInput) initiativeInput.value = "";
     if (healthInput) healthInput.value = "";
     if (acInput) acInput.value = "";
+
+    document.dispatchEvent(new CustomEvent("dm-entry-submitted"));
 
     const swordSound = document.getElementById("sword-sound");
     if (swordSound) swordSound.play();

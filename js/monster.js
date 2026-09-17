@@ -53,6 +53,8 @@ async function submitMonsterToFirebase(name, initiative, health, url, ac) {
       number: initiative,
       initiative,
       health: typeof health === "number" ? health : null,
+      currentHp: typeof health === "number" ? health : null,
+      maxHealth: typeof health === "number" ? health : null,
       url: url ?? null,
       ac: typeof ac === "number" ? ac : null,
       createdByAdmin: true,
