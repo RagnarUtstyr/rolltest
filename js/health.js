@@ -803,7 +803,18 @@ function applyDamageToAll() {
 
 function updateHealth(id, newHealth, inputEl) {
   const reference = ref(db, `${getEntriesPath()}/${id}`);
-  update(reference, { health: newHealth, currentHp: newHealth })
+  const storedMaxHealth = Number(inputEl?.dataset?.maxHealth);
+  const healthPatch = { health: newHealth, currentHp: newHealth };
+
+  // Preserve the original maximum HP. Older initiative entries may not have
+  // maxHealth stored yet, so the value captured when the row was rendered
+  // is written the first time HP changes instead of letting max HP follow
+  // the damaged current HP.
+  if (Number.isFinite(storedMaxHealth) && storedMaxHealth > 0) {
+    healthPatch.maxHealth = storedMaxHealth;
+  }
+
+  update(reference, healthPatch)
     .then(() => {
       const listItem = inputEl.closest('.list-item');
       const hpCol = listItem?.querySelector('.column.hp');

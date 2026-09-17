@@ -630,8 +630,17 @@ function fetchRankings() {
 
 function updateHealth(id, newHealth, healthInput) {
   const reference = ref(db, `${getEntriesPath()}/${id}`);
+  const storedMaxHealth = Number(healthInput?.dataset?.maxHealth);
+  const healthPatch = { health: newHealth, currentHp: newHealth };
 
-  update(reference, { health: newHealth, currentHp: newHealth })
+  // Preserve the original maximum HP for both new and legacy entries.
+  // Without this, an entry that did not already contain maxHealth could
+  // fall back to its damaged current HP and display e.g. 40 / 40.
+  if (Number.isFinite(storedMaxHealth) && storedMaxHealth > 0) {
+    healthPatch.maxHealth = storedMaxHealth;
+  }
+
+  update(reference, healthPatch)
     .then(() => {
       const listItem = healthInput.closest(".list-item");
       const healthDiv = listItem?.querySelector(".health");
@@ -646,6 +655,9 @@ function updateHealth(id, newHealth, healthInput) {
       if (latestEntries[id]) {
         latestEntries[id].health = newHealth;
         latestEntries[id].currentHp = newHealth;
+        if (Number.isFinite(storedMaxHealth) && storedMaxHealth > 0) {
+          latestEntries[id].maxHealth = storedMaxHealth;
+        }
       }
       if (currentStatEntryId === id) {
         document.getElementById("stat-hp").textContent = newHealth;

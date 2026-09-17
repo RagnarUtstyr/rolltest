@@ -1592,6 +1592,10 @@ async function saveInitiativeToGame() {
 
   const existing = (await getCurrentSheet()) || {};
   const sheetPayload = buildSheetPayload(existing);
+  const existingEntrySnap = await get(ref(db, playerEntryPath()));
+  const existingEntry = existingEntrySnap.exists() ? (existingEntrySnap.val() || {}) : {};
+  const previousMaxHealth = Number(existingEntry.maxHealth);
+  const hasPreviousMaxHealth = Number.isFinite(previousMaxHealth) && previousMaxHealth > 0;
 
   const entryPayload = {
     uid: user.uid,
@@ -1613,12 +1617,22 @@ async function saveInitiativeToGame() {
   if (mode === "dnd") {
     entryPayload.health = sheetPayload.currentHp ?? sheetPayload.hp ?? "";
     entryPayload.currentHp = sheetPayload.currentHp ?? sheetPayload.hp ?? "";
-    entryPayload.maxHealth = sheetPayload.baseHp ?? sheetPayload.hp ?? sheetPayload.currentHp ?? "";
+    const dndBaseHp = Number(sheetPayload.baseHp);
+    entryPayload.maxHealth = Number.isFinite(dndBaseHp) && dndBaseHp > 0
+      ? dndBaseHp
+      : hasPreviousMaxHealth
+        ? previousMaxHealth
+        : (sheetPayload.hp ?? sheetPayload.currentHp ?? "");
     entryPayload.ac = sheetPayload.ac ?? "";
   } else {
     entryPayload.health = sheetPayload.currentHp ?? "";
     entryPayload.currentHp = sheetPayload.currentHp ?? "";
-    entryPayload.maxHealth = sheetPayload.baseHp ?? sheetPayload.currentHp ?? "";
+    const olBaseHp = Number(sheetPayload.baseHp);
+    entryPayload.maxHealth = Number.isFinite(olBaseHp) && olBaseHp > 0
+      ? olBaseHp
+      : hasPreviousMaxHealth
+        ? previousMaxHealth
+        : (sheetPayload.currentHp ?? "");
     entryPayload.lethal = sheetPayload.lethal ?? 0;
     entryPayload.grd = sheetPayload.grd ?? 0;
     entryPayload.res = sheetPayload.res ?? 0;
