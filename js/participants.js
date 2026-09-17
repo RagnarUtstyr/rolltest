@@ -110,6 +110,10 @@ function currentStatuses(game, uid) {
   const sheet = game?.players?.[uid];
   const entry = game?.entries?.[uid];
 
+  const sheetStamp = Number(sheet?.statusUpdatedAt) || 0;
+  const entryStamp = Number(entry?.statusUpdatedAt) || 0;
+
+  if (entry && entry[field] !== undefined && entryStamp > sheetStamp) return normalizeList(entry[field]);
   if (sheet && sheet[field] !== undefined) return normalizeList(sheet[field]);
   if (entry && entry[field] !== undefined) return normalizeList(entry[field]);
   return [];
@@ -416,9 +420,13 @@ async function getStatusTargets(uid) {
 
   const sheet = sheetSnap.exists() ? sheetSnap.val() : null;
   const entry = entrySnap.exists() ? entrySnap.val() : null;
-  const source = sheet && sheet[field] !== undefined
-    ? normalizeList(sheet[field])
-    : normalizeList(entry?.[field]);
+  const sheetStamp = Number(sheet?.statusUpdatedAt) || 0;
+  const entryStamp = Number(entry?.statusUpdatedAt) || 0;
+  const source = entry && entry[field] !== undefined && entryStamp > sheetStamp
+    ? normalizeList(entry[field])
+    : sheet && sheet[field] !== undefined
+      ? normalizeList(sheet[field])
+      : normalizeList(entry?.[field]);
 
   return { field, sheetExists: !!sheet, entryExists: !!entry, source };
 }
@@ -433,9 +441,16 @@ async function writeStatuses(uid, statuses) {
     return;
   }
 
+  const stamp = Date.now();
   const updates = {};
-  if (targets.sheetExists) updates[`games/${code}/players/${uid}/${targets.field}`] = statuses;
-  if (targets.entryExists) updates[`games/${code}/entries/${uid}/${targets.field}`] = statuses;
+  if (targets.sheetExists) {
+    updates[`games/${code}/players/${uid}/${targets.field}`] = statuses;
+    updates[`games/${code}/players/${uid}/statusUpdatedAt`] = stamp;
+  }
+  if (targets.entryExists) {
+    updates[`games/${code}/entries/${uid}/${targets.field}`] = statuses;
+    updates[`games/${code}/entries/${uid}/statusUpdatedAt`] = stamp;
+  }
 
   try {
     await update(ref(db), updates);

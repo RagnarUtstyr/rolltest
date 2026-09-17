@@ -48,6 +48,28 @@ function normalizeEffects(effects) {
   return Object.values(effects).filter(Boolean);
 }
 
+async function writeLinkedEffects(entryId, effects) {
+  const code = getGameCode();
+  if (!code || !entryId) return;
+
+  const nextEffects = normalizeEffects(effects);
+  const entry = latestEntries[entryId] || {};
+  const playerUid = String(entry.uid || '').trim();
+  const stamp = Date.now();
+
+  const updates = {
+    [`games/${code}/entries/${entryId}/effects`]: nextEffects,
+    [`games/${code}/entries/${entryId}/statusUpdatedAt`]: stamp
+  };
+
+  if (playerUid) {
+    updates[`games/${code}/players/${playerUid}/effects`] = nextEffects;
+    updates[`games/${code}/players/${playerUid}/statusUpdatedAt`] = stamp;
+  }
+
+  await update(ref(db), updates);
+}
+
 function sanitizeEffectKey(value) {
   return String(value ?? "").replace(/[.#$\[\]/]/g, "_");
 }
@@ -816,9 +838,10 @@ function bindModalActions() {
     }
 
     if (target.dataset.role === "modal-remove-effect" && effectName) {
-      const key = sanitizeEffectKey(effectName);
       try {
-        await remove(ref(db, `${getEntriesPath()}/${currentEffectsEntryId}/effects/${key}`));
+        const current = normalizeEffects(latestEntries[currentEffectsEntryId]?.effects);
+        const next = current.filter((item) => String(item?.name || '').toLowerCase() !== String(effectName || '').toLowerCase());
+        await writeLinkedEffects(currentEffectsEntryId, next);
       } catch (error) {
         console.error("Error removing effect:", error);
       }
@@ -835,16 +858,18 @@ function bindModalActions() {
     if (!effect) return;
 
     try {
-      const key = sanitizeEffectKey(effect.name);
-      await update(ref(db, `${getEntriesPath()}/${currentEffectsEntryId}/effects`), {
-        [key]: {
+      const current = normalizeEffects(latestEntries[currentEffectsEntryId]?.effects);
+      if (current.some((item) => String(item?.name || '').toLowerCase() === String(effect.name || '').toLowerCase())) return;
+      await writeLinkedEffects(currentEffectsEntryId, [
+        ...current,
+        {
           name: effect.name,
           url: effect.url || "",
           icon: effect.icon || "icons/effects/test.png",
           type: effect.type || "",
           description: effect.description || ""
         }
-      });
+      ]);
     } catch (error) {
       console.error("Error adding effect:", error);
     }

@@ -832,12 +832,16 @@ async function persistPlayerBanes(banes, statusMessage = "Banes updated.") {
   const existing = (await getCurrentSheet()) || {};
   const payload = buildSheetPayload(existing);
   payload.banes = syncFatigueLinkedBanes(banes, payload.fatigue?.points ?? getCurrentFatigue());
+  payload.statusUpdatedAt = Date.now();
   payload.updatedAt = Date.now();
 
   await set(ref(db, playerSheetPath()), payload);
   const entrySnap = await get(ref(db, playerEntryPath()));
   if (entrySnap.exists()) {
-    await set(ref(db, `${playerEntryPath()}/banes`), payload.banes);
+    await update(ref(db, playerEntryPath()), {
+      banes: payload.banes,
+      statusUpdatedAt: payload.statusUpdatedAt
+    });
   }
   setCurrentSheetCache(payload);
   renderPlayerBanes(payload.banes);
@@ -849,12 +853,16 @@ async function persistPlayerEffects(effects, statusMessage = "Effects updated.")
   const existing = (await getCurrentSheet()) || {};
   const payload = buildSheetPayload(existing);
   payload.effects = normalizeEffects(effects);
+  payload.statusUpdatedAt = Date.now();
   payload.updatedAt = Date.now();
 
   await set(ref(db, playerSheetPath()), payload);
   const entrySnap = await get(ref(db, playerEntryPath()));
   if (entrySnap.exists()) {
-    await set(ref(db, `${playerEntryPath()}/effects`), payload.effects);
+    await update(ref(db, playerEntryPath()), {
+      effects: payload.effects,
+      statusUpdatedAt: payload.statusUpdatedAt
+    });
   }
   setCurrentSheetCache(payload);
   renderPlayerEffects(payload.effects);
@@ -1518,6 +1526,7 @@ async function saveInitiativeToGame() {
     name: shared.name,
     number: shared.initiative,
     updatedAt: Date.now(),
+    statusUpdatedAt: Number(sheetPayload.statusUpdatedAt) || Date.now(),
     banes: mode === "dnd" ? [] : normalizeBanes(sheetPayload.banes),
     effects: mode === "dnd" ? normalizeEffects(sheetPayload.effects) : []
   };

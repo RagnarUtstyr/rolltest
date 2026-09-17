@@ -270,6 +270,30 @@ function __normalizeBanes(banes) {
   return Object.values(banes).filter(Boolean);
 }
 
+const __latestEntries = {};
+
+async function __writeLinkedBanes(entryId, banes) {
+  const code = getGameCode();
+  if (!code || !entryId) return;
+
+  const nextBanes = __normalizeBanes(banes);
+  const entry = __latestEntries[entryId] || {};
+  const playerUid = String(entry.uid || '').trim();
+  const stamp = Date.now();
+
+  const updates = {
+    [`games/${code}/entries/${entryId}/banes`]: nextBanes,
+    [`games/${code}/entries/${entryId}/statusUpdatedAt`]: stamp
+  };
+
+  if (playerUid) {
+    updates[`games/${code}/players/${playerUid}/banes`] = nextBanes;
+    updates[`games/${code}/players/${playerUid}/statusUpdatedAt`] = stamp;
+  }
+
+  await update(ref(db), updates);
+}
+
 function closeBanePickerModal() {
   document.getElementById('bane-picker-modal')?.setAttribute('aria-hidden', 'true');
 }
@@ -391,9 +415,10 @@ function openBanesModal(entryId, banes, titleText = 'Banes') {
     removeBtn.style.marginTop = '0';
     removeBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const key = __sanitizeBaneKey(bane.name);
       try {
-        await remove(ref(db, `${getEntriesPath()}/${entryId}/banes/${key}`));
+        const current = __normalizeBanes(__latestEntries[entryId]?.banes);
+        const next = current.filter((item) => String(item?.name || '').toLowerCase() !== String(bane.name || '').toLowerCase());
+        await __writeLinkedBanes(entryId, next);
       } catch (err) {
         console.error('Error removing bane:', err);
       }
@@ -436,16 +461,17 @@ function openBanePickerModal() {
     addBtn.style.marginTop = '0';
     addBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const entryRef = ref(db, `${getEntriesPath()}/${__currentEntryId}/banes`);
-      const key = __sanitizeBaneKey(bane.name);
       try {
-        await update(entryRef, {
-          [key]: {
+        const current = __normalizeBanes(__latestEntries[__currentEntryId]?.banes);
+        if (current.some((item) => String(item?.name || '').toLowerCase() === String(bane.name || '').toLowerCase())) return;
+        await __writeLinkedBanes(__currentEntryId, [
+          ...current,
+          {
             name: bane.name,
             url: bane.url,
             icon: bane.icon || 'icons/banes/test.png'
           }
-        });
+        ]);
       } catch (err) {
         console.error('Error adding bane:', err);
       }
@@ -515,6 +541,9 @@ function fetchRankings() {
 
     const rankings = Object.entries(data).map(([id, entry]) => ({ id, ...entry }));
     rankings.sort((a, b) => (b.number ?? b.initiative ?? 0) - (a.number ?? a.initiative ?? 0));
+
+    Object.keys(__latestEntries).forEach((key) => delete __latestEntries[key]);
+    rankings.forEach((entry) => { __latestEntries[entry.id] = entry; });
 
     rankings.forEach(({ id, name, playerName, grd, res, tgh, health, currentHp, url, number, initiative, countdownRemaining, countdownActive, countdownEnded, banes, customBuild }) => {
       const displayName = name ?? playerName ?? 'Unknown';
