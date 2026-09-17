@@ -83,28 +83,53 @@ function __attributeScoreToDice(score) {
   return diceMap[value] || '—';
 }
 
-function __formatAttributesInline(attributes) {
-  const rows = __normalizeAttributes(attributes);
-  if (!rows.length) return 'Attributes: —';
+function __renderAttributesGrid(container, attributes) {
+  if (!container) return;
+  container.replaceChildren();
 
-  return rows
-    .map(([name, value]) => `${name}: ${value} (${__attributeScoreToDice(value)})`)
-    .join(', ');
+  const rows = __normalizeAttributes(attributes);
+  if (!rows.length) {
+    const empty = document.createElement('span');
+    empty.className = 'muted';
+    empty.textContent = 'No ability scores.';
+    container.appendChild(empty);
+    return;
+  }
+
+  rows.forEach(([name, value]) => {
+    const chip = document.createElement('div');
+    chip.className = 'custom-build-attribute-chip';
+
+    const label = document.createElement('span');
+    label.className = 'custom-build-attribute-name';
+    label.textContent = name;
+
+    const score = document.createElement('span');
+    score.className = 'custom-build-attribute-value';
+    score.textContent = `${value} · ${__attributeScoreToDice(value)}`;
+
+    chip.append(label, score);
+    container.appendChild(chip);
+  });
 }
 
 function renderCustomBuildDetails(customBuild) {
   const section = document.getElementById('stat-custom-build-details');
   const dialog = document.getElementById('stat-modal-dialog');
+  const speedMeta = document.getElementById('stat-speed-meta');
+  const customMetaRight = document.getElementById('stat-custom-meta-right');
   const hasCustomBuild = !!customBuild;
 
   if (section) section.hidden = !hasCustomBuild;
   if (dialog) dialog.classList.toggle('has-custom-build', hasCustomBuild);
+  if (speedMeta) speedMeta.hidden = !hasCustomBuild;
+  if (customMetaRight) customMetaRight.hidden = !hasCustomBuild;
   if (!hasCustomBuild) return;
 
   const levelEl = document.getElementById('custom-build-level-badge');
   const sizeEl = document.getElementById('custom-build-size-pill');
-  const speedInlineEl = document.getElementById('custom-build-speed-inline');
-  const attributesInlineEl = document.getElementById('custom-build-attributes-inline');
+  const speedEl = document.getElementById('stat-speed');
+  const attributesGrid = document.getElementById('custom-build-attributes-grid');
   const grdEl = document.getElementById('custom-build-grd-inline');
   const tghEl = document.getElementById('custom-build-tgh-inline');
   const resEl = document.getElementById('custom-build-res-inline');
@@ -113,12 +138,10 @@ function renderCustomBuildDetails(customBuild) {
   const featsEl = document.getElementById('custom-build-feats');
   const weaponsEl = document.getElementById('custom-build-weapons');
 
-  if (levelEl) levelEl.textContent = `LVL ${customBuild.level ?? '—'}`;
-  if (sizeEl) sizeEl.textContent = customBuild.size ?? '—';
-  if (speedInlineEl) speedInlineEl.textContent = `Speed: ${customBuild.speed ?? '—'}`;
-  if (attributesInlineEl) {
-    attributesInlineEl.textContent = __formatAttributesInline(customBuild.attributes);
-  }
+  if (levelEl) levelEl.textContent = `Level ${customBuild.level ?? '—'}`;
+  if (sizeEl) sizeEl.textContent = `Size ${customBuild.size ?? '—'}`;
+  if (speedEl) speedEl.textContent = customBuild.speed ?? '—';
+  __renderAttributesGrid(attributesGrid, customBuild.attributes);
   if (grdEl) grdEl.textContent = `${customBuild.grd ?? '—'}`;
   if (tghEl) tghEl.textContent = `${customBuild.tgh ?? '—'}`;
   if (resEl) resEl.textContent = `${customBuild.res ?? '—'}`;
@@ -160,8 +183,7 @@ function openStatModal({ name, grd, res, tgh, url, initiative, health, maxHealth
 
   const remainingEl = document.getElementById('stat-countdown-remaining');
   const inputEl = document.getElementById('stat-countdown-amount');
-  const healInputEl = document.getElementById('stat-heal-amount');
-  const damageInputEl = document.getElementById('stat-damage-amount');
+  const hpAmountInput = document.getElementById('stat-hp-amount');
   if (remainingEl) {
     if (countdownEnded) remainingEl.textContent = 'ENDED (0)';
     else if (countdownActive) remainingEl.textContent = `${countdownRemaining ?? '—'}`;
@@ -169,8 +191,7 @@ function openStatModal({ name, grd, res, tgh, url, initiative, health, maxHealth
     else remainingEl.textContent = '—';
   }
   if (inputEl) inputEl.value = '';
-  if (healInputEl) healInputEl.value = '';
-  if (damageInputEl) damageInputEl.value = '';
+  if (hpAmountInput) hpAmountInput.value = '';
 
   modal.setAttribute('aria-hidden', 'false');
 }
@@ -382,7 +403,7 @@ function __renderStatBanes(banes) {
     const label = document.createElement('span');
     label.textContent = bane?.name || 'Unknown';
     open.appendChild(label);
-    open.addEventListener('click', () => openBaneDetailModal(bane));
+    open.addEventListener('click', () => openBaneDetailModal(bane, __currentEntryId));
 
     const remove = document.createElement('button');
     remove.type = 'button';
@@ -459,7 +480,7 @@ function __findOpenLegendBaneEntry(bane) {
   )) || null;
 }
 
-function openBaneDetailModal(bane) {
+function openBaneDetailModal(bane, entryId = null) {
   const modal = document.getElementById('bane-detail-modal');
   const title = document.getElementById('bane-detail-modal-title');
   const content = document.getElementById('bane-detail-modal-content');
@@ -503,8 +524,24 @@ function openBaneDetailModal(bane) {
       ${effect ? `<h4 style="margin:16px 0 8px;">Effect</h4><div>${effect}</div>` : ''}
       ${special ? `<h4 style="margin:16px 0 8px;">Special</h4><div>${special}</div>` : ''}
       ${url ? `<p style="margin-top:16px;"><a class="button-link" target="_blank" rel="noopener" href="${url}">Official page</a></p>` : ''}
+      ${entryId ? `<div class="bane-detail-actions"><button type="button" class="remove-button" data-bane-detail-remove>Remove ${__escapeHtml(name)}</button></div>` : ''}
     </div>
   `;
+
+  const removeBtn = content.querySelector('[data-bane-detail-remove]');
+  if (removeBtn && entryId) {
+    removeBtn.addEventListener('click', async () => {
+      const current = __normalizeBanes(__latestEntries[entryId]?.banes);
+      const next = current.filter((item) => String(item?.name || '').toLowerCase() !== String(bane?.name || '').toLowerCase());
+      try {
+        await __writeLinkedBanes(entryId, next);
+        closeBaneDetailModal();
+      } catch (error) {
+        console.error('Error removing bane:', error);
+      }
+    });
+  }
+
   modal.setAttribute('aria-hidden', 'false');
 }
 
@@ -540,7 +577,7 @@ function openBanesModal(entryId, banes, titleText = 'Banes') {
     left.appendChild(name);
     leftButton.appendChild(left);
     leftButton.addEventListener('click', () => {
-      openBaneDetailModal(bane);
+      openBaneDetailModal(bane, entryId);
     });
 
     const removeBtn = document.createElement('button');
@@ -778,7 +815,7 @@ function fetchRankings() {
           iconButton.appendChild(icon);
           iconButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            openBaneDetailModal(bane);
+            openBaneDetailModal(bane, id);
           });
 
           baneWrap.appendChild(iconButton);
@@ -925,41 +962,41 @@ onReady(() => {
     });
   }
 
+  const hpAmountInput = document.getElementById('stat-hp-amount');
   const healBtn = document.getElementById('stat-heal');
-  const healAmtInput = document.getElementById('stat-heal-amount');
+  const damageBtn = document.getElementById('stat-damage');
 
-  if (healBtn && healAmtInput) {
+  function getModalDamageInput() {
+    if (!__currentEntryId) return null;
+    return document.querySelector(`.damage-input[data-entry-id="${__currentEntryId}"]`);
+  }
+
+  if (healBtn && hpAmountInput) {
     healBtn.addEventListener('click', () => {
       if (!__currentEntryId) return;
-      const amount = parseInt(healAmtInput.value, 10);
-      if (isNaN(amount) || amount === 0) return;
+      const amount = parseInt(hpAmountInput.value, 10);
+      if (isNaN(amount) || amount <= 0) return;
 
-      const dmgInput = document.querySelector(`.damage-input[data-entry-id="${__currentEntryId}"]`);
+      const dmgInput = getModalDamageInput();
       if (!dmgInput || !('health' in dmgInput.dataset)) {
         alert('This entry has no HP set yet.');
         return;
       }
 
       const current = parseInt(dmgInput.dataset.health, 10) || 0;
-      const newHealth = Math.max(current + amount, 0);
-      updateHealth(__currentEntryId, newHealth, dmgInput);
-
-      healAmtInput.value = '';
+      updateHealth(__currentEntryId, Math.max(current + amount, 0), dmgInput);
+      hpAmountInput.value = '';
     });
   }
 
-
-  const damageBtn = document.getElementById('stat-damage');
-  const damageAmtInput = document.getElementById('stat-damage-amount');
-
-  if (damageBtn && damageAmtInput) {
+  if (damageBtn && hpAmountInput) {
     damageBtn.addEventListener('click', () => {
       if (!__currentEntryId) return;
 
       const entry = __latestEntries[__currentEntryId];
       if (!entry || __isPlayerEntry(__currentEntryId, entry)) return;
 
-      const rawDamage = parseInt(damageAmtInput.value, 10);
+      const rawDamage = parseInt(hpAmountInput.value, 10);
       if (isNaN(rawDamage) || rawDamage <= 0) return;
 
       const selectedStat = document.querySelector('input[name="statDamageStat"]:checked')?.value ?? 'grd';
@@ -969,7 +1006,7 @@ onReady(() => {
         return;
       }
 
-      const dmgInput = document.querySelector(`.damage-input[data-entry-id="${__currentEntryId}"]`);
+      const dmgInput = getModalDamageInput();
       if (!dmgInput || !('health' in dmgInput.dataset)) {
         alert('This entry has no HP set yet.');
         return;
@@ -986,7 +1023,7 @@ onReady(() => {
         updateHealth(__currentEntryId, Math.max(current - finalDamage, 0), dmgInput);
       }
 
-      damageAmtInput.value = '';
+      hpAmountInput.value = '';
     });
   }
 });

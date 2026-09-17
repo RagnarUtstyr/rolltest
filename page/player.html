@@ -7,11 +7,11 @@
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css" />
   <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260917olui1" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260917olui2" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260917olui1" defer></script>
+  <script type="module" src="../js/player.js?v=20260917olui2" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -801,7 +801,7 @@
           </div>
         </div>
 
-        <div class="damage-panel">
+        <div id="player-openlegend-damage-panel" class="damage-panel">
           <div class="field-stack">
             <label for="ol-damage-input">DMG</label>
             <input type="number" id="ol-damage-input" min="0" placeholder="Damage" />

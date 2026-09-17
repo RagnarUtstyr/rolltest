@@ -2382,3 +2382,186 @@ body.dm-dnd .ol-modal select:focus {
     min-width: 0;
   }
 }
+
+/* === 2026-09-17 Open Legend modal usability refinements === */
+.dm-stat-primary-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 12px;
+  padding: 0 2px;
+}
+
+.dm-stat-primary-left,
+.dm-stat-primary-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dm-stat-primary-left {
+  flex-wrap: nowrap;
+}
+
+.dm-stat-primary-right {
+  justify-content: flex-end;
+}
+
+.dm-stat-meta-item {
+  white-space: nowrap;
+  color: var(--dm-text);
+}
+
+.dm-stat-meta-item .label {
+  color: var(--dm-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dm-stat-primary-meta [hidden] {
+  display: none !important;
+}
+
+.dm-stat-hp-adjust-row {
+  grid-template-columns: auto minmax(100px, 1fr) auto auto;
+}
+
+.dm-stat-damage-defense-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dm-stat-damage-defense-row .stat-damage-selector {
+  margin: 0;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.dm-stat-damage-defense-row .stat-damage-selector label {
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid var(--dm-border);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--dm-muted);
+  cursor: pointer;
+}
+
+.dm-stat-damage-defense-row .stat-damage-selector label:has(input:checked) {
+  border-color: var(--dm-accent);
+  background: var(--dm-accent-soft);
+  color: var(--dm-text);
+}
+
+#stat-custom-build-details .custom-build-section-title {
+  margin: 0 0 12px;
+}
+
+/* Bane descriptions can be long; keep the modal usable without growing off-screen. */
+#bane-detail-modal-content {
+  max-height: min(58vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.bane-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--dm-border);
+}
+
+/* Native select menus otherwise inherit light text on a grey OS popup. */
+body.dm-openlegend select,
+body.dm-openlegend #participant-status-select {
+  color: #f3ead0;
+  background-color: #102824;
+}
+
+body.dm-openlegend select option,
+body.dm-openlegend #participant-status-select option {
+  color: #171b17;
+  background: #efe4bf;
+}
+
+@media (max-width: 760px) {
+  .dm-stat-primary-meta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+  }
+
+  .dm-stat-primary-left,
+  .dm-stat-primary-right {
+    gap: 6px;
+  }
+
+  .dm-stat-meta-item,
+  .custom-build-level-badge,
+  .custom-build-size-pill {
+    font-size: 0.78rem;
+  }
+
+  .custom-build-level-badge,
+  .custom-build-size-pill {
+    padding: 5px 7px;
+  }
+
+  .dm-stat-hp-adjust-row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto !important;
+  }
+
+  .dm-stat-hp-adjust-row .dm-stat-control-label {
+    grid-column: auto !important;
+  }
+
+  .dm-stat-hp-adjust-row button {
+    min-width: 0;
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  .dm-stat-damage-defense-row .stat-damage-selector {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dm-stat-damage-defense-row .stat-damage-selector label {
+    justify-content: center;
+  }
+
+  #bane-detail-modal-content {
+    max-height: 56vh;
+  }
+}
+
+@media (max-width: 420px) {
+  .dm-stat-primary-meta {
+    gap: 5px;
+  }
+
+  .dm-stat-primary-left,
+  .dm-stat-primary-right {
+    gap: 4px;
+  }
+
+  .dm-stat-meta-item,
+  .custom-build-level-badge,
+  .custom-build-size-pill {
+    font-size: 0.7rem;
+  }
+
+  .custom-build-level-badge,
+  .custom-build-size-pill {
+    padding: 4px 5px;
+  }
+}

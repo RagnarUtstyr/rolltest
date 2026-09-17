@@ -204,7 +204,8 @@ function setupOpenLegendMobileCarousel() {
   const placement = {
     overview: [
       document.getElementById("player-name-panel"),
-      document.getElementById("player-openlegend-overview-panel")
+      document.getElementById("player-openlegend-overview-panel"),
+      document.getElementById("player-openlegend-damage-panel")
     ],
     banes: [
       document.getElementById("player-banes-panel"),

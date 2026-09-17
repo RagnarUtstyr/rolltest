@@ -9,7 +9,7 @@
   <title>Initiative</title>
   <link rel="preload" as="image" href="../background.jpg">
   <script type="module" src="../js/server.js?v=20260917ui1" defer></script>
-  <script type="module" src="../js/health.js?v=20260917npc3" defer></script>
+  <script type="module" src="../js/health.js?v=20260917npc4" defer></script>
   <script type="module" src="../js/turn.js?v=20260416a" defer></script>
   <script type="module" src="../js/participants.js?v=20260917notes2" defer></script>
   <script type="module" src="../js/dm_tracker.js?v=20260917a" defer></script>
@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="../style/style.css" />
   <link rel="stylesheet" href="../style/turn.css" />
   <link rel="stylesheet" href="../style/save.css" />
-  <link rel="stylesheet" href="../style/dm_tracker.css?v=20260917npc3" />
+  <link rel="stylesheet" href="../style/dm_tracker.css?v=20260917npc4" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=MedievalSharp&display=swap" rel="stylesheet" />
 </head>
 <style>
@@ -87,23 +87,10 @@
     color: #e3cf95;
   }
 
-  .custom-build-header-row {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  .custom-build-header-row h3 {
-    margin: 0;
-    text-align: center;
-  }
-
   .custom-build-level-badge,
   .custom-build-size-pill {
-    padding: 8px 12px;
-    border-radius: 10px;
+    padding: 6px 10px;
+    border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.05);
     color: #e3cf95;
@@ -111,25 +98,34 @@
     white-space: nowrap;
   }
 
-  .custom-build-info-box {
-    padding: 10px 12px;
-    border-radius: 10px;
+  .custom-build-attributes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 8px;
     margin-bottom: 12px;
+  }
+
+  .custom-build-attribute-chip {
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 9px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .custom-build-info-row {
-    line-height: 1.4;
+  .custom-build-attribute-name {
+    display: block;
+    color: #bdb382;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  .custom-build-info-row + .custom-build-info-row {
-    margin-top: 8px;
-  }
-
-  .custom-build-info-attributes-row {
-    white-space: nowrap;
-    overflow-x: auto;
+  .custom-build-attribute-value {
+    display: block;
+    margin-top: 3px;
+    color: #e3cf95;
+    font-weight: 700;
   }
 
   .custom-build-stat-row {
@@ -166,16 +162,12 @@
       align-items: stretch;
     }
 
-    .custom-build-header-row {
-      grid-template-columns: 1fr;
-    }
-
-    .custom-build-header-row h3 {
-      text-align: left;
-    }
-
     .custom-build-stat-row {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .custom-build-attributes-grid {
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     }
   }
 
@@ -537,27 +529,31 @@
         <div id="stat-hp-meter"></div>
       </section>
 
-      <p class="ol-meta">
-        <span class="label">Initiative:</span>
-        <span class="value" id="stat-init"></span>
-      </p>
+      <div class="dm-stat-primary-meta">
+        <div class="dm-stat-primary-left">
+          <span class="dm-stat-meta-item"><span class="label">Initiative:</span> <span class="value" id="stat-init"></span></span>
+          <span id="stat-speed-meta" class="dm-stat-meta-item" hidden><span class="label">Speed:</span> <span class="value" id="stat-speed"></span></span>
+        </div>
+        <div id="stat-custom-meta-right" class="dm-stat-primary-right" hidden>
+          <span id="custom-build-level-badge" class="custom-build-level-badge">LVL —</span>
+          <span id="custom-build-size-pill" class="custom-build-size-pill">—</span>
+        </div>
+      </div>
 
       <section id="stat-hp-actions" class="dm-stat-control-stack" aria-label="HP controls">
-        <div class="dm-stat-control-row">
-          <span class="dm-stat-control-label">Heal</span>
-          <input id="stat-heal-amount" type="number" min="1" placeholder="Amount">
+        <div class="dm-stat-control-row dm-stat-hp-adjust-row">
+          <span class="dm-stat-control-label">Amount</span>
+          <input id="stat-hp-amount" type="number" min="0" placeholder="Amount">
           <button id="stat-heal" class="button" type="button">Heal</button>
+          <button id="stat-damage" class="remove-button" type="button">Damage</button>
         </div>
-
-        <div class="dm-stat-control-row dm-stat-damage-row">
-          <span class="dm-stat-control-label">Damage</span>
-          <input id="stat-damage-amount" type="number" min="0" placeholder="Damage">
+        <div class="dm-stat-damage-defense-row">
+          <span class="dm-stat-control-label">Damage vs</span>
           <div class="global-stat-selector stat-damage-selector" aria-label="Damage defense">
             <label><input type="radio" name="statDamageStat" value="grd" checked> GRD</label>
             <label><input type="radio" name="statDamageStat" value="res"> RES</label>
             <label><input type="radio" name="statDamageStat" value="tgh"> TGH</label>
           </div>
-          <button id="stat-damage" class="remove-button" type="button">Damage</button>
         </div>
       </section>
 
@@ -568,20 +564,7 @@
       </div>
 
       <section id="stat-custom-build-details" hidden>
-        <div class="custom-build-header-row">
-          <div id="custom-build-level-badge" class="custom-build-level-badge">LVL —</div>
-          <h4 class="custom-build-section-title">Custom NPC Details</h4>
-          <div id="custom-build-size-pill" class="custom-build-size-pill">—</div>
-        </div>
-
-        <div class="custom-build-info-box">
-          <div class="custom-build-info-row">
-            <span id="custom-build-speed-inline">Speed: —</span>
-          </div>
-          <div class="custom-build-info-row custom-build-info-attributes-row">
-            <span id="custom-build-attributes-inline">Attributes: —</span>
-          </div>
-        </div>
+        <h4 class="custom-build-section-title">Custom NPC Details</h4>
 
         <div class="custom-build-stat-row">
           <div class="custom-build-stat-box">
@@ -597,6 +580,8 @@
             <span id="custom-build-res-inline" class="custom-build-stat-value">—</span>
           </div>
         </div>
+
+        <div id="custom-build-attributes-grid" class="custom-build-attributes-grid" aria-label="Ability scores"></div>
 
         <div class="custom-build-text-block">
           <h4>Favored Actions</h4>

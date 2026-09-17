@@ -1005,3 +1005,33 @@ body.player-mode-openlegend {
     padding: 6px;
   }
 }
+
+/* === 2026-09-17 Open Legend mobile overview + bane modal refinements === */
+.player-mode-openlegend #bane-detail-modal-content {
+  max-height: min(58vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+/* Keep native dropdown choices readable on dark-themed pages. */
+.player-mode-openlegend select {
+  color: #efe7c8;
+  background-color: #102824;
+}
+
+.player-mode-openlegend select option {
+  color: #171b17;
+  background: #efe4bf;
+}
+
+@media (max-width: 720px) {
+  .player-mode-openlegend #player-openlegend-damage-panel {
+    margin-top: 0;
+  }
+
+  .player-mode-openlegend #bane-detail-modal-content {
+    max-height: 56vh;
+  }
+}
