@@ -103,7 +103,6 @@ function renderCustomBuildDetails(customBuild) {
 
   const levelEl = document.getElementById('custom-build-level-badge');
   const sizeEl = document.getElementById('custom-build-size-pill');
-  const hpInlineEl = document.getElementById('custom-build-hp-inline');
   const speedInlineEl = document.getElementById('custom-build-speed-inline');
   const attributesInlineEl = document.getElementById('custom-build-attributes-inline');
   const grdEl = document.getElementById('custom-build-grd-inline');
@@ -116,7 +115,6 @@ function renderCustomBuildDetails(customBuild) {
 
   if (levelEl) levelEl.textContent = `LVL ${customBuild.level ?? '—'}`;
   if (sizeEl) sizeEl.textContent = customBuild.size ?? '—';
-  if (hpInlineEl) hpInlineEl.textContent = `HP: ${customBuild.hp ?? '—'}`;
   if (speedInlineEl) speedInlineEl.textContent = `Speed: ${customBuild.speed ?? '—'}`;
   if (attributesInlineEl) {
     attributesInlineEl.textContent = __formatAttributesInline(customBuild.attributes);
@@ -130,7 +128,7 @@ function renderCustomBuildDetails(customBuild) {
   if (weaponsEl) weaponsEl.innerHTML = __normalizeTextBlock(customBuild.weapons);
 }
 
-function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemaining, countdownActive, countdownEnded, customBuild, banes, isPlayerEntry = false }) {
+function openStatModal({ name, grd, res, tgh, url, initiative, health, maxHealth, countdownRemaining, countdownActive, countdownEnded, customBuild, banes, isPlayerEntry = false }) {
   const modal = document.getElementById('stat-modal');
   if (!modal) return;
 
@@ -139,6 +137,8 @@ function openStatModal({ name, grd, res, tgh, url, initiative, countdownRemainin
   document.getElementById('stat-grd').textContent = (grd ?? 'N/A');
   document.getElementById('stat-res').textContent = (res ?? 'N/A');
   document.getElementById('stat-tgh').textContent = (tgh ?? 'N/A');
+
+  __renderStatHpMeter(health, maxHealth, isPlayerEntry);
 
   const defenseSummary = document.getElementById('stat-defense-summary');
   if (defenseSummary) defenseSummary.hidden = !!customBuild;
@@ -330,6 +330,23 @@ function __renderHpMeter(container, currentHealth, maxHealth) {
   track.appendChild(fill);
   meter.append(value, track);
   container.appendChild(meter);
+}
+
+function __renderStatHpMeter(currentHealth, maxHealth, isPlayerEntry = false) {
+  const wrapper = document.getElementById('stat-hp-overview');
+  const meterHost = document.getElementById('stat-hp-meter');
+  if (!wrapper || !meterHost) return;
+
+  const hasHealth = currentHealth !== null && currentHealth !== undefined && Number.isFinite(Number(currentHealth));
+  const shouldShow = !isPlayerEntry && hasHealth;
+  wrapper.hidden = !shouldShow;
+
+  if (!shouldShow) {
+    meterHost.replaceChildren();
+    return;
+  }
+
+  __renderHpMeter(meterHost, Number(currentHealth), maxHealth);
 }
 
 function __renderStatBanes(banes) {
@@ -693,6 +710,8 @@ function fetchRankings() {
         const s = __getCountdownState(id);
         openStatModal({
           name: displayName, grd, res, tgh, url, initiative: displayInitiative,
+          health: displayHealth,
+          maxHealth: displayMaxHealth,
           countdownRemaining: s.remaining,
           countdownActive: s.active,
           countdownEnded: s.ended,
@@ -782,7 +801,11 @@ function fetchRankings() {
     });
 
     if (__currentEntryId && __latestEntries[__currentEntryId]) {
-      __renderStatBanes(__latestEntries[__currentEntryId].banes);
+      const currentEntry = __latestEntries[__currentEntryId];
+      const modalHealth = currentEntry.health ?? currentEntry.currentHp;
+      const modalMaxHealth = __resolveMaxHealth(currentEntry, modalHealth);
+      __renderStatHpMeter(modalHealth, modalMaxHealth, __isPlayerEntry(__currentEntryId, currentEntry));
+      __renderStatBanes(currentEntry.banes);
     }
   });
 }
@@ -840,6 +863,10 @@ function updateHealth(id, newHealth, inputEl) {
       const maxHealth = Number(inputEl.dataset.maxHealth);
       if (hpCol) __renderHpMeter(hpCol, newHealth, Number.isFinite(maxHealth) ? maxHealth : newHealth);
       inputEl.dataset.health = newHealth;
+      if (__currentEntryId === id) {
+        const modalMaxHealth = Number.isFinite(maxHealth) ? maxHealth : newHealth;
+        __renderStatHpMeter(newHealth, modalMaxHealth, false);
+      }
 
       if (newHealth <= 0) {
         listItem?.classList.add('defeated');
