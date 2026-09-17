@@ -10,7 +10,7 @@
   <script type="module" src="../js/server.js?v=20260406e" defer></script>
   <script type="module" src="../js/health.js?v=20260917a" defer></script>
   <script type="module" src="../js/turn.js?v=20260416a" defer></script>
-  <script type="module" src="../js/participants.js?v=20260917a" defer></script>
+  <script type="module" src="../js/participants.js?v=20260917b" defer></script>
 
   <link rel="stylesheet" href="../style/style.css" />
   <link rel="stylesheet" href="../style/turn.css" />
@@ -176,65 +176,154 @@
     }
   }
 
-
-  .participants-panel {
-    margin: 16px 0 20px;
-    padding: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.18);
-  }
-
-  .participants-panel[hidden] { display: none !important; }
-
-  .participants-header {
+  .participants-trigger-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
+    gap: 10px;
+    margin: 14px 0 18px;
   }
 
-  .participants-header h2 {
-    margin: 0;
-    font-size: 1.15rem;
-  }
+  #participants-open-button[hidden] { display: none !important; }
 
-  .participants-count {
-    opacity: 0.82;
-    font-size: 0.92rem;
-  }
-
-  .participants-list {
-    display: grid;
+  #participants-open-button {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
   }
 
-  .participant-row {
+  .participants-button-count {
+    display: inline-flex;
+    min-width: 1.7em;
+    height: 1.7em;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0 0.45em;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.85em;
+    font-weight: 700;
+  }
+
+  #participants-modal .ol-modal__dialog {
+    width: min(880px, 96vw);
+    max-width: 96vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .participants-modal-header,
+  .participant-detail-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 9px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+
+  .participants-modal-header h3,
+  .participant-detail-header h3 { margin: 0; }
+
+  .participants-count { opacity: 0.82; font-size: 0.92rem; }
+  .participants-list { display: grid; gap: 8px; }
+
+  .participant-row-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 11px 12px;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
     background: rgba(255, 255, 255, 0.035);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
   }
 
-  .participant-name {
-    font-weight: 700;
-    overflow-wrap: anywhere;
+  .participant-row-button:hover { background: rgba(255, 255, 255, 0.08); }
+  .participant-row-text { min-width: 0; display: grid; gap: 3px; }
+  .participant-name { font-weight: 700; overflow-wrap: anywhere; }
+  .participant-account { opacity: 0.72; font-size: 0.88rem; overflow-wrap: anywhere; }
+  .participant-open-arrow { flex: 0 0 auto; font-size: 1.5rem; opacity: 0.75; }
+  .participants-empty { opacity: 0.78; font-style: italic; }
+
+  #participant-detail-view[hidden],
+  #participants-list-view[hidden] { display: none !important; }
+
+  #participant-detail-back { margin-bottom: 12px; }
+  .participant-detail-account { margin: -6px 0 14px; opacity: 0.76; overflow-wrap: anywhere; }
+
+  .participant-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 16px;
   }
 
-  .participant-role {
-    flex: 0 0 auto;
-    opacity: 0.76;
-    font-size: 0.88rem;
+  .participant-stat-card {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    background: rgba(255, 255, 255, 0.035);
+    text-align: center;
   }
 
-  .participants-empty {
-    opacity: 0.78;
-    font-style: italic;
+  .participant-stat-label { display: block; margin-bottom: 5px; opacity: 0.72; font-size: 0.82rem; font-weight: 700; }
+  .participant-stat-value { display: block; font-size: 1.08rem; font-weight: 700; }
+
+  .participant-detail-section {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .participant-detail-section h4 { margin: 0 0 10px; }
+
+  #participant-note {
+    width: 100%;
+    min-height: 120px;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 10px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.2);
+    color: inherit;
+    font: inherit;
+  }
+
+  .participant-note-actions,
+  .participant-status-add-row { display: flex; align-items: center; gap: 9px; margin-top: 9px; flex-wrap: wrap; }
+  .participant-note-meta,
+  .participant-status-message { margin-top: 7px; opacity: 0.72; font-size: 0.86rem; }
+  .participant-status-current { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .participant-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .participant-status-chip img { width: 22px; height: 22px; object-fit: contain; }
+  .participant-status-remove { width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; line-height: 1; }
+  #participant-status-select { flex: 1 1 260px; min-width: 0; padding: 8px 9px; border-radius: 6px; font: inherit; }
+
+  @media (max-width: 760px) {
+    .participant-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 480px) {
+    .participant-stats-grid { grid-template-columns: 1fr; }
+    .participants-modal-header,
+    .participant-detail-header { align-items: flex-start; flex-direction: column; }
   }
 
 </style>
@@ -247,15 +336,11 @@
         <a href="lobby.html" class="button-link">Lobby</a>
         <br>
 
-    <section id="participants-panel" class="participants-panel" hidden aria-labelledby="participants-title">
-      <div class="participants-header">
-        <h2 id="participants-title">Participants</h2>
-        <span id="participants-count" class="participants-count">0 players</span>
-      </div>
-      <div id="participants-list" class="participants-list">
-        <div class="participants-empty">No players have joined yet.</div>
-      </div>
-    </section>
+    <div class="participants-trigger-row">
+      <button id="participants-open-button" type="button" hidden>
+        Participants <span id="participants-button-count" class="participants-button-count">0</span>
+      </button>
+    </div>
 
     <div class="ranking-container">
       <div class="global-stat-selector">
@@ -369,6 +454,54 @@
     }
   })();
 </script>
+
+
+  <!-- DM Participants Modal -->
+  <div id="participants-modal" class="ol-modal" aria-hidden="true">
+    <div class="ol-modal__dialog ol-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="participants-modal-title">
+      <button class="ol-modal__close" id="participants-modal-close" aria-label="Close">×</button>
+
+      <section id="participants-list-view">
+        <div class="participants-modal-header">
+          <h3 id="participants-modal-title">Participants</h3>
+          <span id="participants-count" class="participants-count">0 players</span>
+        </div>
+        <div id="participants-list" class="participants-list">
+          <div class="participants-empty">No players have joined yet.</div>
+        </div>
+      </section>
+
+      <section id="participant-detail-view" hidden>
+        <button id="participant-detail-back" type="button">← Participants</button>
+        <div class="participant-detail-header">
+          <h3 id="participant-detail-name">Character</h3>
+        </div>
+        <p id="participant-detail-account" class="participant-detail-account"></p>
+
+        <div id="participant-detail-stats" class="participant-stats-grid"></div>
+
+        <div class="participant-detail-section">
+          <h4>Shared DM / Player Notes</h4>
+          <textarea id="participant-note" placeholder="Write a note that both the DM and this player can read and edit."></textarea>
+          <div class="participant-note-actions">
+            <button id="participant-note-save" type="button">Save note</button>
+            <span id="participant-note-status"></span>
+          </div>
+          <div id="participant-note-meta" class="participant-note-meta">Shared between DM and player.</div>
+        </div>
+
+        <div class="participant-detail-section">
+          <h4 id="participant-status-title">Conditions</h4>
+          <div id="participant-status-current" class="participant-status-current"></div>
+          <div class="participant-status-add-row">
+            <select id="participant-status-select"></select>
+            <button id="participant-status-add" type="button">Add</button>
+          </div>
+          <div id="participant-status-message" class="participant-status-message"></div>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <!-- Stats Modal -->
   <div id="stat-modal" class="ol-modal" aria-hidden="true">

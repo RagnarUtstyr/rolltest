@@ -8,7 +8,9 @@ import { FATIGUE_DATA, clampFatigueLevel, getFatigueLevels, hasFatigueSlowedLink
 import {
   ref,
   get,
-  set
+  set,
+  update,
+  onValue
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -80,6 +82,10 @@ const playerFatigueSummaryTextEl = document.getElementById("player-fatigue-summa
 const playerFatigueSpecialTextEl = document.getElementById("player-fatigue-special-text");
 const playerEffectsPanel = document.getElementById("player-effects-panel");
 const playerEffectsPreviewEl = document.getElementById("player-effects-preview");
+const playerSharedNotesEl = document.getElementById("player-shared-notes");
+const playerSharedNotesSaveBtn = document.getElementById("player-shared-notes-save");
+const playerSharedNotesStatusEl = document.getElementById("player-shared-notes-status");
+const playerSharedNotesMetaEl = document.getElementById("player-shared-notes-meta");
 
 const user = await requireAuth();
 
@@ -156,6 +162,10 @@ function playerEntryPath() {
   return `games/${code}/entries/${user.uid}`;
 }
 
+function participantNotesPath() {
+  return `games/${code}/participantNotes/${user.uid}`;
+}
+
 function dndBuilderSheetPath() {
   return `games/${code}/builderSheetsDnd/${user.uid}`;
 }
@@ -193,6 +203,93 @@ function normalizeEffects(effects) {
   if (!effects) return [];
   if (Array.isArray(effects)) return effects.filter(Boolean);
   return Object.values(effects).filter(Boolean);
+}
+
+function normalizeSharedNote(value) {
+  if (!value) return { text: "", updatedAt: 0, updatedByRole: "", updatedByName: "" };
+  if (typeof value === "string") {
+    return { text: value, updatedAt: 0, updatedByRole: "", updatedByName: "" };
+  }
+  return {
+    text: String(value.text || ""),
+    updatedAt: Number(value.updatedAt) || 0,
+    updatedByRole: String(value.updatedByRole || ""),
+    updatedByName: String(value.updatedByName || "")
+  };
+}
+
+function formatSharedNoteMeta(note) {
+  if (!note.updatedAt) return "Shared between you and the DM.";
+  const who = note.updatedByName || (note.updatedByRole === "dm" ? "DM" : "Player");
+  return `Last updated by ${who} · ${new Date(note.updatedAt).toLocaleString()}`;
+}
+
+function renderSharedNote(value) {
+  const note = normalizeSharedNote(value);
+  if (playerSharedNotesEl && document.activeElement !== playerSharedNotesEl) {
+    playerSharedNotesEl.value = note.text;
+  }
+  if (playerSharedNotesMetaEl) playerSharedNotesMetaEl.textContent = formatSharedNoteMeta(note);
+}
+
+async function saveSharedNote() {
+  if (!playerSharedNotesEl) return;
+  if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = "Saving…";
+
+  try {
+    const shared = getSharedValues();
+    await update(ref(db, participantNotesPath()), {
+      text: playerSharedNotesEl.value,
+      updatedAt: Date.now(),
+      updatedByUid: user.uid,
+      updatedByRole: "player",
+      updatedByName: shared.name || user.displayName || user.email || "Player"
+    });
+    if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = "Saved.";
+  } catch (error) {
+    console.error("Could not save shared note:", error);
+    if (playerSharedNotesStatusEl) playerSharedNotesStatusEl.textContent = error.message || "Could not save note.";
+  }
+}
+
+let hasLivePlayerSheet = false;
+
+function startSharedPlayerWatchers() {
+  onValue(ref(db, participantNotesPath()), (snapshot) => {
+    renderSharedNote(snapshot.exists() ? snapshot.val() : null);
+  }, (error) => {
+    console.error("Could not watch shared note:", error);
+  });
+
+  onValue(ref(db, playerSheetPath()), (snapshot) => {
+    hasLivePlayerSheet = snapshot.exists();
+    if (!snapshot.exists()) return;
+
+    const data = snapshot.val() || {};
+    if (mode === "dnd") {
+      setPlayerEffects(data.effects ?? []);
+    } else {
+      const fatiguePoints = data?.fatigue?.points ?? getCurrentFatigue();
+      setPlayerBanes(syncFatigueLinkedBanes(data.banes ?? [], fatiguePoints));
+      setPlayerFatigue(fatiguePoints);
+    }
+  }, (error) => {
+    console.error("Could not watch player sheet status:", error);
+  });
+
+  onValue(ref(db, playerEntryPath()), (snapshot) => {
+    if (hasLivePlayerSheet || !snapshot.exists()) return;
+    const data = snapshot.val() || {};
+    if (mode === "dnd") {
+      setPlayerEffects(data.effects ?? []);
+    } else {
+      const fatiguePoints = data?.fatigue?.points ?? getCurrentFatigue();
+      setPlayerBanes(syncFatigueLinkedBanes(data.banes ?? [], fatiguePoints));
+      setPlayerFatigue(fatiguePoints);
+    }
+  }, (error) => {
+    console.error("Could not watch initiative entry status:", error);
+  });
 }
 
 function getCurrentSheetCache() {
@@ -738,6 +835,10 @@ async function persistPlayerBanes(banes, statusMessage = "Banes updated.") {
   payload.updatedAt = Date.now();
 
   await set(ref(db, playerSheetPath()), payload);
+  const entrySnap = await get(ref(db, playerEntryPath()));
+  if (entrySnap.exists()) {
+    await set(ref(db, `${playerEntryPath()}/banes`), payload.banes);
+  }
   setCurrentSheetCache(payload);
   renderPlayerBanes(payload.banes);
   renderPlayerFatigue(payload.fatigue?.points ?? 0);
@@ -751,6 +852,10 @@ async function persistPlayerEffects(effects, statusMessage = "Effects updated.")
   payload.updatedAt = Date.now();
 
   await set(ref(db, playerSheetPath()), payload);
+  const entrySnap = await get(ref(db, playerEntryPath()));
+  if (entrySnap.exists()) {
+    await set(ref(db, `${playerEntryPath()}/effects`), payload.effects);
+  }
   setCurrentSheetCache(payload);
   renderPlayerEffects(payload.effects);
   statusEl.textContent = statusMessage;
@@ -791,6 +896,13 @@ async function persistPlayerFatigue(points, statusMessage = "Fatigue updated.") 
   payload.updatedAt = Date.now();
 
   await set(ref(db, playerSheetPath()), payload);
+  const entrySnap = await get(ref(db, playerEntryPath()));
+  if (entrySnap.exists()) {
+    await update(ref(db, playerEntryPath()), {
+      fatigue: payload.fatigue,
+      banes: payload.banes
+    });
+  }
   setCurrentSheetCache(payload);
   renderPlayerFatigue(safePoints);
   renderPlayerBanes(payload.banes);
@@ -1583,6 +1695,7 @@ document.getElementById("player-fatigue-value")?.addEventListener("input", async
 });
 
 saveInitiativeBtn?.addEventListener("click", saveInitiativeToGame);
+playerSharedNotesSaveBtn?.addEventListener("click", saveSharedNote);
 
 document.getElementById("dnd-apply-damage-btn")?.addEventListener("click", applyDndDamage);
 document.getElementById("dnd-heal-btn")?.addEventListener("click", healDndHp);
@@ -1625,3 +1738,4 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 });
 
 await loadExistingCharacter();
+startSharedPlayerWatchers();

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=9" defer></script>
+  <script type="module" src="../js/player.js?v=10" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -479,6 +479,42 @@
       grid-column: 1 / -1 !important;
     }
   }
+
+
+  .shared-notes-panel {
+    margin-top: 14px;
+  }
+
+  .shared-notes-panel h2 {
+    margin-bottom: 6px;
+  }
+
+  #player-shared-notes {
+    width: 100%;
+    min-height: 120px;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 10px;
+    border-radius: 7px;
+    border: 2px solid #2d3d73;
+    background: rgba(255, 255, 255, 0.12);
+    color: inherit;
+    font: inherit;
+  }
+
+  .shared-notes-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 9px;
+  }
+
+  #player-shared-notes-meta {
+    margin-top: 7px;
+    font-size: 0.88rem;
+  }
+
 </style>
 </head>
 <body>
@@ -541,6 +577,17 @@
           <button id="player-view-fatigue-btn" type="button">Manage fatigue</button>
                   </div>
       </div>
+    </div>
+
+    <div class="player-panel shared-notes-panel">
+      <h2>Shared DM / Player Notes</h2>
+      <p class="muted">Both you and the DM can read and edit this note.</p>
+      <textarea id="player-shared-notes" placeholder="Write a note for the DM..."></textarea>
+      <div class="shared-notes-actions">
+        <button id="player-shared-notes-save" type="button">Save note</button>
+        <span id="player-shared-notes-status" class="muted"></span>
+      </div>
+      <div id="player-shared-notes-meta" class="muted">Shared between you and the DM.</div>
     </div>
 
     <section id="player-dnd-section" class="hidden">
