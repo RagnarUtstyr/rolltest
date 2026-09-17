@@ -7,11 +7,11 @@
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css" />
   <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260917olui1" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260917notes2" defer></script>
+  <script type="module" src="../js/player.js?v=20260917olui1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -537,14 +537,55 @@
 <body>
   <div class="container auth-shell player-shell player-page">
     <div class="top-row">
-      <h1>Player Sheet</h1>
+      <h1 id="player-page-title">Player Sheet</h1>
       <a class="button-link" href="lobby.html">Back to lobby</a>
     </div>
 
     <div id="player-game-meta" class="player-panel"></div>
 
+    <div id="ol-mobile-carousel" class="ol-mobile-carousel" hidden aria-label="Open Legend player sections">
+      <div class="ol-carousel-tabs" role="tablist" aria-label="Player sections">
+        <button type="button" class="ol-carousel-tab is-active" data-carousel-tab="overview" aria-selected="true">Overview</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="banes" aria-selected="false">Banes</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="notes" aria-selected="false">Notes</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="actions" aria-selected="false">Actions</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Trackers</button>
+      </div>
+
+      <div id="ol-carousel-track" class="ol-carousel-track">
+        <section class="ol-carousel-slide" data-carousel-slide="overview" aria-label="Overview">
+          <div class="ol-carousel-slot" data-carousel-slot="overview"></div>
+        </section>
+        <section class="ol-carousel-slide" data-carousel-slide="banes" aria-label="Banes and fatigue">
+          <div class="ol-carousel-slot" data-carousel-slot="banes"></div>
+        </section>
+        <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="Shared notes">
+          <div class="ol-carousel-slot" data-carousel-slot="notes"></div>
+        </section>
+        <section class="ol-carousel-slide" data-carousel-slide="actions" aria-label="Actions">
+          <div class="ol-carousel-slot" data-carousel-slot="actions"></div>
+        </section>
+        <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Trackers">
+          <div class="ol-carousel-slot" data-carousel-slot="trackers"></div>
+        </section>
+      </div>
+
+      <div class="ol-carousel-controls" aria-label="Carousel controls">
+        <button id="ol-carousel-prev" type="button" class="ol-carousel-arrow" aria-label="Previous section">‹</button>
+        <div class="ol-carousel-dots" aria-hidden="true">
+          <span class="ol-carousel-dot is-active"></span>
+          <span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span>
+        </div>
+        <button id="ol-carousel-next" type="button" class="ol-carousel-arrow" aria-label="Next section">›</button>
+      </div>
+      <div class="ol-carousel-hint">Swipe to move between sections</div>
+    </div>
+
     <div class="top-character-row">
-      <div class="player-panel compact-panel name-panel">
+      <div id="player-name-panel" class="player-panel compact-panel name-panel">
         <h2>Name</h2>
         <div class="name-grid">
           <div class="field-stack">
@@ -554,7 +595,7 @@
         </div>
       </div>
 
-      <div class="player-panel compact-panel initiative-panel">
+      <div id="player-initiative-panel" class="player-panel compact-panel initiative-panel">
         <h2>Initiative</h2>
         <div class="field-stack">
           <label for="player-initiative">Initiative</label>
@@ -596,7 +637,7 @@
       </div>
     </div>
 
-    <div class="player-panel shared-notes-panel">
+    <div id="player-shared-notes-panel" class="player-panel shared-notes-panel">
       <h2>Shared DM / Player Notes</h2>
       <p class="muted">Both you and the DM can read and edit this note.</p>
       <textarea id="player-shared-notes" placeholder="Write a note for the DM..."></textarea>
@@ -706,7 +747,7 @@
     </section>
 
     <section id="player-openlegend-section" class="hidden">
-      <div class="player-panel">
+      <div id="player-openlegend-overview-panel" class="player-panel ol-overview-panel">
         <div class="builder-link-row">
           <h2>Open Legend Sheet</h2>
           <a id="openlegend-builder-link" class="button-link" href="openlegend_character_builder.html">Open Builder</a>
@@ -715,8 +756,15 @@
         <div class="ol-summary-wrap">
           <div class="ol-summary-top-row">
             <div class="summary-card hp-card hp-card-large ol-current-hp-card">
-              <div class="summary-label">Current HP</div>
-              <div id="player-ol-current-hp" class="summary-value hp-display">—</div>
+              <div class="summary-label">Hit Points</div>
+              <div class="ol-hp-readout">
+                <span id="player-ol-current-hp" class="summary-value hp-display">—</span>
+                <span class="ol-hp-divider">/</span>
+                <span id="player-ol-max-hp" class="summary-value hp-display ol-hp-max">—</span>
+              </div>
+              <div class="ol-hp-bar" role="progressbar" aria-label="Hit points" aria-valuemin="0" aria-valuenow="0">
+                <div id="player-ol-hp-fill" class="ol-hp-fill"></div>
+              </div>
             </div>
 
             <div class="summary-card ol-lethal-card">
@@ -740,6 +788,16 @@
               <div class="summary-label">TGH</div>
               <div id="player-ol-tgh-view" class="summary-value">—</div>
             </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="player-openlegend-actions-panel" class="player-panel ol-actions-panel">
+        <div class="ol-actions-heading">
+          <div>
+            <div class="ol-section-kicker">Turn tools</div>
+            <h2>Actions</h2>
           </div>
         </div>
 
@@ -781,7 +839,7 @@
       </div>
     </section>
 
-    <div class="player-panel">
+    <div id="player-trackers-panel" class="player-panel">
       <h2>Trackers</h2>
       <p class="muted tracker-subtitle">Saved with your character in this game.</p>
 

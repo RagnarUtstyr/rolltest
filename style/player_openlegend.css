@@ -1,254 +1,619 @@
-body {
-  background: url('../background.jpg') no-repeat center center fixed;
-  background-size: cover;
+/* Open Legend player dashboard refresh. Scoped so the D&D player sheet keeps its existing layout. */
+body.player-mode-openlegend {
+  --ol-page-bg: #071512;
+  --ol-panel: rgba(6, 28, 24, 0.9);
+  --ol-panel-strong: rgba(5, 23, 20, 0.97);
+  --ol-panel-soft: rgba(12, 47, 39, 0.7);
+  --ol-border: rgba(225, 193, 118, 0.5);
+  --ol-border-soft: rgba(126, 171, 150, 0.28);
+  --ol-gold: #e6cf94;
+  --ol-gold-soft: #c8b47d;
+  --ol-text: #eee5c9;
+  --ol-muted: #a8b1a4;
+  --ol-green: #56d786;
+  --ol-green-dark: #1d7d4a;
+  --ol-orange: #dd9a52;
+  --ol-red: #d55e55;
+  --ol-blue: #69aee6;
+
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ol-text);
+  background:
+    linear-gradient(180deg, rgba(3, 16, 14, 0.7), rgba(3, 12, 11, 0.94)),
+    radial-gradient(circle at 50% 0%, rgba(42, 128, 95, 0.17), transparent 38%),
+    url('../background.jpg') center / cover fixed no-repeat,
+    var(--ol-page-bg);
 }
 
-.player-page.container {
-  background-color: rgba(31, 29, 26, 0.9);
-  box-shadow: 0 0 14px rgba(0, 0, 0, 0.5);
+.player-mode-openlegend .player-page.container {
+  width: min(calc(100% - 28px), 1120px);
+  max-width: 1120px;
+  margin: 18px auto;
+  padding: 16px;
+  border: 1px solid var(--ol-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.018), rgba(0,0,0,0.14)),
+    rgba(3, 18, 16, 0.9);
+  box-shadow: 0 28px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.035);
+  backdrop-filter: blur(11px);
 }
 
-.player-panel {
-  background: rgba(11, 41, 36, 0.55);
-  border: 1px solid #2d3d73;
+.player-mode-openlegend .top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 12px;
+  padding: 12px 14px 16px;
+  border-bottom: 1px solid rgba(230, 207, 148, 0.22);
 }
 
-.player-page h1,
-.player-page h2,
-.player-page .tracker-name,
-.player-page .stat-value {
-  color: #e3cf95;
+.player-mode-openlegend #player-page-title {
+  margin: 0;
+  color: var(--ol-gold);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 0 2px 18px rgba(0,0,0,0.6);
 }
 
-.player-page .muted,
-.player-page .tracker-progress,
-.player-page .stat-label,
-.player-page .field-stack label {
-  color: #bdb382;
+.player-mode-openlegend #player-page-title::after {
+  content: "PLAYER DASHBOARD";
+  display: block;
+  margin-top: 7px;
+  color: #79a991;
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.17em;
 }
 
-.player-page .field-stack input,
-.player-page input[type="text"],
-.player-page input[type="number"] {
-  background: rgba(255, 255, 255, 0.15);
-  color: #e3cf95;
-  border: 2px solid #2d3d73;
+.player-mode-openlegend .top-row .button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid rgba(230, 207, 148, 0.44);
+  border-radius: 9px;
+  color: var(--ol-text);
+  background: rgba(7, 34, 29, 0.88);
+  text-decoration: none;
 }
 
-.player-page .field-stack input:focus,
-.player-page input[type="text"]:focus,
-.player-page input[type="number"]:focus {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #4b63b3;
+.player-mode-openlegend .player-panel,
+.player-mode-openlegend .panel {
+  min-width: 0;
+  border: 1px solid var(--ol-border-soft);
+  border-radius: 13px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.022), rgba(0,0,0,0.1)),
+    var(--ol-panel);
+  box-shadow: 0 11px 28px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.024);
 }
 
-.player-page button,
-.player-page .button-link {
-  background-color: #0b2621;
-  color: #bdb382;
-  border: 2px solid #2d3d73;
+.player-mode-openlegend .player-panel h2,
+.player-mode-openlegend .tracker-name,
+.player-mode-openlegend h3,
+.player-mode-openlegend h4 {
+  color: var(--ol-gold);
 }
 
-.player-page button:hover,
-.player-page .button-link:hover {
-  background-color: #1a3b4a;
-  color: #ffffff;
+.player-mode-openlegend .muted,
+.player-mode-openlegend .tracker-progress,
+.player-mode-openlegend .stat-label,
+.player-mode-openlegend .field-stack label {
+  color: var(--ol-muted);
+  opacity: 1;
 }
 
-.player-page .remove-button {
-  background-color: #a8342d;
-  border-color: transparent;
-  color: #fff;
+.player-mode-openlegend #player-game-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 13px 15px;
+  background: linear-gradient(90deg, rgba(17, 62, 50, 0.7), rgba(5, 26, 22, 0.86));
+  border-color: rgba(230, 207, 148, 0.32);
 }
 
-.player-page .remove-button:hover {
-  background-color: #851f1a;
+.player-mode-openlegend .ol-game-meta-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.player-page .stat-card {
-  background: rgba(20, 22, 30, 0.92);
-  border: 1px solid #2d3d73;
+.player-mode-openlegend .ol-game-meta-main strong {
+  overflow: hidden;
+  color: var(--ol-text);
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.player-page .hp-card {
-  border-color: #8b0000;
+.player-mode-openlegend .ol-game-meta-kicker,
+.player-mode-openlegend .ol-section-kicker {
+  color: #79ad93;
+  font-family: Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
-.player-page .tracker-card {
-  background: rgba(11, 41, 36, 0.88);
-  border: 1px solid #1a3b4a;
+.player-mode-openlegend .ol-game-code-card {
+  flex: 0 0 auto;
+  min-width: 118px;
+  padding: 8px 12px;
+  border: 1px solid rgba(230, 207, 148, 0.34);
+  border-radius: 9px;
+  background: rgba(0,0,0,0.17);
+  text-align: center;
 }
 
-.player-page .tracker-boxes input[type="checkbox"] {
-  background: #1b1b1b;
-  border: 2px solid #2d3d73;
+.player-mode-openlegend .ol-game-code-card span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ol-muted);
+  font: 700 0.62rem/1 Arial, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.player-page .tracker-boxes input[type="checkbox"]:checked {
-  background: #8b0000;
-  border-color: #8b0000;
+.player-mode-openlegend .ol-game-code-card strong {
+  color: var(--ol-gold);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.08rem;
+  letter-spacing: 0.14em;
 }
 
-.player-page .empty-state {
-  border: 1px dashed #2d3d73;
-  color: #bdb382;
+/* Desktop summary row */
+.player-mode-openlegend .top-character-row {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.2fr) minmax(170px, 0.8fr) minmax(240px, 1.25fr) minmax(180px, 0.85fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 14px;
 }
 
-.player-page .initiative-panel {
-  background: rgba(20, 22, 30, 0.75);
-  border: 1px solid #2d3d73;
+.player-mode-openlegend .top-character-row > .player-panel,
+.player-mode-openlegend .top-character-row > .compact-panel,
+.player-mode-openlegend .top-character-row > .name-panel,
+.player-mode-openlegend .top-character-row > .initiative-panel,
+.player-mode-openlegend .top-character-row > #player-banes-panel,
+.player-mode-openlegend .top-character-row > #player-fatigue-panel {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  flex: initial;
+  margin: 0;
 }
 
-.player-page .damage-panel {
-  background: rgba(20, 22, 30, 0.45);
-  border: 1px solid #2d3d73;
-  border-radius: 8px;
-  padding: 12px;
+.player-mode-openlegend .compact-panel {
+  padding: 14px;
 }
 
-.player-page .damage-options {
-  background: rgba(11, 41, 36, 0.45);
-  border-radius: 8px;
-  padding: 8px 10px;
+.player-mode-openlegend .compact-panel h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
 }
 
-.player-page .calc-result {
-  color: #e3cf95;
+.player-mode-openlegend .field-stack input,
+.player-mode-openlegend input[type="text"],
+.player-mode-openlegend input[type="number"],
+.player-mode-openlegend textarea {
+  width: 100%;
+  max-width: none;
+  color: var(--ol-text);
+  border: 1px solid rgba(126, 171, 150, 0.35);
+  border-radius: 9px;
+  background: rgba(2, 15, 13, 0.76);
+  outline: none;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.018);
 }
 
-.player-page .ol-summary-wrap {
+.player-mode-openlegend .field-stack input:focus,
+.player-mode-openlegend input[type="text"]:focus,
+.player-mode-openlegend input[type="number"]:focus,
+.player-mode-openlegend textarea:focus {
+  border-color: rgba(230, 207, 148, 0.72);
+  background: rgba(5, 25, 21, 0.94);
+  box-shadow: 0 0 0 3px rgba(230, 207, 148, 0.08);
+}
+
+.player-mode-openlegend button,
+.player-mode-openlegend .button-link {
+  border: 1px solid rgba(230, 207, 148, 0.34);
+  border-radius: 9px;
+  color: var(--ol-text);
+  background: linear-gradient(180deg, rgba(18, 62, 50, 0.96), rgba(7, 36, 30, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.player-mode-openlegend button:hover,
+.player-mode-openlegend .button-link:hover {
+  color: #fff6da;
+  border-color: rgba(230, 207, 148, 0.66);
+  background: linear-gradient(180deg, rgba(23, 78, 62, 0.98), rgba(9, 44, 36, 0.98));
+}
+
+.player-mode-openlegend #save-initiative-button,
+.player-mode-openlegend #ol-apply-damage-btn,
+.player-mode-openlegend #ol-heal-btn,
+.player-mode-openlegend #create-tracker-btn {
+  color: #f5ffef;
+  border-color: rgba(86, 215, 134, 0.52);
+  background: linear-gradient(180deg, #247b49, #155a37);
+}
+
+.player-mode-openlegend #player-ping-dm.is-ready {
+  color: #fff2c4;
+  border-color: rgba(230, 207, 148, 0.78);
+  box-shadow: 0 0 0 2px rgba(230, 207, 148, 0.11), 0 8px 18px rgba(0,0,0,0.24);
+}
+
+.player-mode-openlegend #player-openlegend-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.85fr);
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.player-mode-openlegend #player-openlegend-section > .player-panel {
+  margin: 0;
+}
+
+.player-mode-openlegend .builder-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.player-mode-openlegend .builder-link-row h2,
+.player-mode-openlegend .ol-actions-heading h2 {
+  margin: 0;
+}
+
+.player-mode-openlegend .ol-summary-wrap {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin: 0;
 }
 
-.player-page .ol-summary-top-row {
+.player-mode-openlegend .ol-summary-top-row {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(120px, 0.72fr);
   gap: 12px;
   align-items: stretch;
 }
 
-.player-page .ol-current-hp-card,
-.player-page .ol-lethal-card {
-  min-width: 0;
-}
-
-.player-page .ol-lethal-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.player-page .ol-lethal-input {
-  width: 100%;
-  max-width: 100%;
-  min-height: 52px;
-  text-align: center;
-}
-
-.player-page .ol-defense-grid {
+.player-mode-openlegend .ol-defense-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
-.player-page .summary-card {
-  background: rgba(20, 22, 30, 0.72);
-  border: 1px solid #2d3d73;
-  border-radius: 10px;
-  padding: 12px;
+.player-mode-openlegend .summary-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(126, 171, 150, 0.28);
+  border-radius: 11px;
+  background: rgba(3, 19, 17, 0.68);
   text-align: center;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
 }
 
-.player-page .summary-label {
-  color: #bdb382;
-  font-size: 0.95rem;
+.player-mode-openlegend .summary-label {
   margin-bottom: 8px;
-}
-
-.player-page .summary-value {
-  color: #e3cf95;
-  font-size: 1.6rem;
-  line-height: 1.1;
-}
-
-.player-page .hp-card-large {
-  padding: 18px 16px;
-}
-
-.player-page .hp-card-large .summary-label {
-  font-size: 1.05rem;
-  margin-bottom: 10px;
-}
-
-.player-page .hp-display {
-  font-size: 2.8rem;
+  color: var(--ol-muted);
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #e3cf95;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.player-mode-openlegend .ol-hp-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+}
+
+.player-mode-openlegend .hp-display {
+  min-height: 0;
+  color: var(--ol-text);
+  font-size: 2.2rem;
   line-height: 1;
-  min-height: 2.8rem;
 }
 
-.player-page .defense-card .summary-value {
-  font-size: 1.45rem;
-  font-weight: 700;
+.player-mode-openlegend .ol-hp-max {
+  color: #c5d0c5;
+  font-size: 1.55rem;
 }
 
-.player-page .defense-card {
-  min-height: 92px;
+.player-mode-openlegend .ol-hp-divider {
+  color: #74867a;
+  font-size: 1.35rem;
+}
+
+.player-mode-openlegend .ol-hp-bar {
+  height: 10px;
+  margin-top: 13px;
+  overflow: hidden;
+  border: 1px solid rgba(154, 193, 171, 0.34);
+  border-radius: 999px;
+  background: rgba(0,0,0,0.34);
+}
+
+.player-mode-openlegend .ol-hp-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3cb96c, #6fe293);
+  transition: width 0.22s ease, background 0.2s ease;
+}
+
+.player-mode-openlegend .ol-hp-fill.is-mid {
+  background: linear-gradient(90deg, #b9772e, #e0a24d);
+}
+
+.player-mode-openlegend .ol-hp-fill.is-low {
+  background: linear-gradient(90deg, #a6403b, #d25c52);
+}
+
+.player-mode-openlegend .ol-lethal-card {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.player-page #ol-apply-damage-btn,
-.player-page #ol-heal-btn,
-.player-page #ol-reset-hp-btn {
-  background-color: #0b2621;
-  color: #bdb382;
-  border: 2px solid #2d3d73;
-  font-family: 'MedievalSharp', cursive;
+.player-mode-openlegend .ol-lethal-input {
+  min-height: 52px;
+  text-align: center;
+  font-size: 1.3rem;
 }
 
-.player-page #ol-apply-damage-btn:hover,
-.player-page #ol-heal-btn:hover,
-.player-page #ol-reset-hp-btn:hover {
-  background-color: #1a3b4a;
-  color: #237768;
+.player-mode-openlegend .defense-card {
+  min-height: 86px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-@media (max-width: 600px) {
-  .player-page .ol-summary-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .player-page .ol-summary-top-row {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    gap: 10px;
-  }
-
-  .player-page .ol-lethal-input {
-    min-height: 46px;
-  }
-
-  .player-page .ol-defense-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .player-page .hp-display {
-    font-size: 2.2rem;
-  }
-
-  .player-page .defense-card .summary-value {
-    font-size: 1.3rem;
-  }
+.player-mode-openlegend .defense-card .summary-value {
+  color: var(--ol-gold);
+  font-size: 1.6rem;
 }
+
+.player-mode-openlegend .ol-actions-panel {
+  padding: 16px;
+}
+
+.player-mode-openlegend .ol-actions-heading {
+  margin-bottom: 12px;
+}
+
+.player-mode-openlegend .damage-panel {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.7fr) minmax(210px, 1.2fr);
+  gap: 12px;
+  align-items: end;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 13px;
+  border: 1px solid rgba(126, 171, 150, 0.25);
+  border-radius: 11px;
+  background: rgba(2, 17, 15, 0.56);
+}
+
+.player-mode-openlegend .damage-button-row {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.player-mode-openlegend .damage-button-row button {
+  width: 100%;
+}
+
+.player-mode-openlegend .damage-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  padding: 7px;
+  border: 1px solid rgba(126, 171, 150, 0.18);
+  border-radius: 8px;
+  background: rgba(7, 38, 31, 0.52);
+}
+
+.player-mode-openlegend .damage-options label {
+  gap: 5px;
+  color: var(--ol-muted);
+}
+
+.player-mode-openlegend .damage-options input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  accent-color: var(--ol-green);
+}
+
+.player-mode-openlegend .ol-recovery-area {
+  max-width: none;
+  margin: 12px 0 0;
+  padding: 12px;
+  border: 1px solid rgba(126, 171, 150, 0.2);
+  border-radius: 11px;
+  background: rgba(4, 24, 20, 0.52);
+}
+
+.player-mode-openlegend .ol-recovery-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  margin: 0;
+}
+
+.player-mode-openlegend .ol-recovery-row button {
+  min-height: 48px;
+}
+
+.player-mode-openlegend .ol-reset-row {
+  margin-top: 9px;
+}
+
+.player-mode-openlegend .ol-reset-row button {
+  width: 100%;
+}
+
+.player-mode-openlegend .calc-result {
+  min-height: 1.2em;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Banes / fatigue */
+.player-mode-openlegend #player-banes-panel,
+.player-mode-openlegend #player-fatigue-panel,
+.player-mode-openlegend .initiative-panel,
+.player-mode-openlegend .name-panel {
+  background: linear-gradient(180deg, rgba(12, 48, 39, 0.72), rgba(4, 24, 21, 0.82));
+}
+
+.player-mode-openlegend .bane-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.player-mode-openlegend .bane-toolbar button {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  font-size: 0.82rem;
+}
+
+.player-mode-openlegend .player-banes-preview {
+  min-height: 34px;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.player-mode-openlegend .player-bane-chip {
+  border: 1px solid rgba(126, 171, 150, 0.32);
+  background: rgba(1, 16, 14, 0.62);
+  color: var(--ol-text);
+}
+
+.player-mode-openlegend .player-bane-chip img,
+.player-mode-openlegend .bane-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.player-mode-openlegend .fatigue-level-display {
+  min-height: 54px;
+  border-color: rgba(126, 171, 150, 0.28);
+  background: rgba(1, 16, 14, 0.58);
+  color: var(--ol-gold);
+}
+
+/* Shared notes */
+.player-mode-openlegend .shared-notes-panel {
+  margin: 0 0 14px;
+  padding: 16px;
+}
+
+.player-mode-openlegend #player-shared-notes {
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid rgba(126, 171, 150, 0.32);
+  background: rgba(2, 16, 14, 0.72);
+}
+
+.player-mode-openlegend .shared-notes-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.player-mode-openlegend .shared-notes-actions button {
+  min-width: 120px;
+}
+
+.player-mode-openlegend #player-shared-notes-status {
+  flex: 1 1 180px;
+}
+
+.player-mode-openlegend #player-ping-dm-status,
+.player-mode-openlegend #player-shared-notes-meta {
+  margin-top: 7px;
+  font-size: 0.82rem;
+}
+
+/* Trackers */
+.player-mode-openlegend #player-trackers-panel {
+  margin-bottom: 0;
+}
+
+.player-mode-openlegend .tracker-card {
+  border: 1px solid rgba(126, 171, 150, 0.24);
+  background: rgba(4, 29, 24, 0.72);
+}
+
+.player-mode-openlegend .tracker-boxes input[type="checkbox"] {
+  border-color: rgba(126, 171, 150, 0.45);
+  background: rgba(0,0,0,0.3);
+}
+
+.player-mode-openlegend .tracker-boxes input[type="checkbox"]:checked {
+  border-color: var(--ol-green);
+  background: var(--ol-green-dark);
+}
+
+.player-mode-openlegend .empty-state {
+  border: 1px dashed rgba(126, 171, 150, 0.26);
+  color: var(--ol-muted);
+}
+
+/* Modals */
+.player-mode-openlegend .ol-modal {
+  background: rgba(0, 8, 7, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.player-mode-openlegend .ol-modal__dialog {
+  border: 1px solid rgba(230, 207, 148, 0.45);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0a2923, #061c19);
+  color: var(--ol-text);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+}
+
+.player-mode-openlegend .bane-picker-row,
+.player-mode-openlegend .fatigue-level-card {
+  border-color: rgba(126, 171, 150, 0.28);
+  background: rgba(2, 17, 15, 0.55);
+}
+
+/* Mobile carousel only; desktop retains the normal dashboard layout. */
+.player-mode-openlegend .ol-mobile-carousel {
+  display: none;
+}
+
 #fatigue-modal .fatigue-action-buttons {
   display: flex !important;
   justify-content: center;
@@ -264,4 +629,379 @@ body {
   min-width: 78px;
   flex: 0 0 auto;
   padding: 8px 12px;
+}
+
+@media (max-width: 900px) and (min-width: 721px) {
+  .player-mode-openlegend .top-character-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .player-mode-openlegend #player-openlegend-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  body.player-mode-openlegend {
+    background-attachment: scroll;
+  }
+
+  .player-mode-openlegend .player-page.container {
+    width: calc(100% - 12px);
+    margin: 6px auto;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .player-mode-openlegend .top-row {
+    padding: 9px 7px 12px;
+    margin-bottom: 8px;
+  }
+
+  .player-mode-openlegend #player-page-title {
+    font-size: 1.62rem;
+  }
+
+  .player-mode-openlegend #player-page-title::after {
+    margin-top: 5px;
+    font-size: 0.58rem;
+  }
+
+  .player-mode-openlegend .top-row .button-link {
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .player-mode-openlegend #player-game-meta {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  .player-mode-openlegend .ol-game-meta-main strong {
+    font-size: 0.94rem;
+  }
+
+  .player-mode-openlegend .ol-game-meta-main .muted {
+    display: none;
+  }
+
+  .player-mode-openlegend .ol-game-code-card {
+    min-width: 92px;
+    padding: 7px 9px;
+  }
+
+  .player-mode-openlegend .ol-game-code-card strong {
+    font-size: 0.96rem;
+  }
+
+  .player-mode-openlegend .top-character-row {
+    display: none !important;
+  }
+
+  .player-mode-openlegend #player-openlegend-section {
+    display: none !important;
+  }
+
+  .player-mode-openlegend .ol-mobile-carousel.is-mobile-active {
+    display: block;
+    margin-top: 8px;
+  }
+
+  .player-mode-openlegend .ol-carousel-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(72px, 1fr));
+    gap: 5px;
+    overflow-x: auto;
+    padding: 0 0 8px;
+    scrollbar-width: none;
+  }
+
+  .player-mode-openlegend .ol-carousel-tabs::-webkit-scrollbar,
+  .player-mode-openlegend .ol-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .player-mode-openlegend .ol-carousel-tab {
+    min-width: 72px;
+    min-height: 42px;
+    padding: 7px 8px;
+    border-color: rgba(126, 171, 150, 0.24);
+    color: #9dad9f;
+    background: rgba(4, 27, 23, 0.76);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .player-mode-openlegend .ol-carousel-tab.is-active {
+    color: #f7eed0;
+    border-color: rgba(86, 215, 134, 0.65);
+    background: linear-gradient(180deg, #23784a, #145634);
+    box-shadow: 0 0 18px rgba(55, 182, 105, 0.16);
+  }
+
+  .player-mode-openlegend .ol-carousel-track {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    border: 1px solid rgba(126, 171, 150, 0.18);
+    border-radius: 13px;
+    background: rgba(1, 14, 12, 0.38);
+  }
+
+  .player-mode-openlegend .ol-carousel-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+    padding: 8px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .player-mode-openlegend .ol-carousel-slot {
+    display: grid;
+    gap: 9px;
+    width: 100%;
+  }
+
+  .player-mode-openlegend .ol-carousel-slot > .player-panel,
+  .player-mode-openlegend .ol-carousel-slot > .compact-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 13px;
+  }
+
+  .player-mode-openlegend .ol-carousel-slot .name-panel,
+  .player-mode-openlegend .ol-carousel-slot .initiative-panel,
+  .player-mode-openlegend .ol-carousel-slot #player-banes-panel,
+  .player-mode-openlegend .ol-carousel-slot #player-fatigue-panel {
+    display: block !important;
+  }
+
+  .player-mode-openlegend .ol-carousel-slot .field-stack input,
+  .player-mode-openlegend .ol-carousel-slot input[type="text"],
+  .player-mode-openlegend .ol-carousel-slot input[type="number"],
+  .player-mode-openlegend .ol-carousel-slot textarea,
+  .player-mode-openlegend .ol-carousel-slot button {
+    font-size: 16px;
+  }
+
+  .player-mode-openlegend .ol-summary-top-row {
+    grid-template-columns: minmax(0, 1.6fr) minmax(96px, 0.72fr);
+    gap: 8px;
+  }
+
+  .player-mode-openlegend .summary-card {
+    padding: 11px;
+  }
+
+  .player-mode-openlegend .hp-display {
+    font-size: 1.9rem;
+  }
+
+  .player-mode-openlegend .ol-hp-max {
+    font-size: 1.28rem;
+  }
+
+  .player-mode-openlegend .ol-defense-grid {
+    gap: 7px;
+  }
+
+  .player-mode-openlegend .defense-card {
+    min-height: 72px;
+  }
+
+  .player-mode-openlegend .defense-card .summary-value {
+    font-size: 1.35rem;
+  }
+
+  .player-mode-openlegend .bane-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .player-mode-openlegend .damage-panel {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .player-mode-openlegend .damage-button-row {
+    grid-column: auto;
+  }
+
+  .player-mode-openlegend #ol-damage-input,
+  .player-mode-openlegend #ol-heal-amount {
+    width: 100%;
+    max-width: none;
+    min-height: 46px;
+  }
+
+  .player-mode-openlegend .damage-options {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .player-mode-openlegend .damage-options input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  .player-mode-openlegend .ol-recovery-row {
+    grid-template-columns: 1fr;
+  }
+
+  .player-mode-openlegend .ol-recovery-row button,
+  .player-mode-openlegend .ol-reset-row button,
+  .player-mode-openlegend .damage-button-row button,
+  .player-mode-openlegend .initiative-panel button {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .player-mode-openlegend .shared-notes-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .player-mode-openlegend .shared-notes-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .player-mode-openlegend #player-shared-notes-status {
+    grid-column: 1 / -1;
+  }
+
+  .player-mode-openlegend #player-shared-notes {
+    min-height: 180px;
+    resize: none;
+  }
+
+  .player-mode-openlegend .tracker-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px;
+    gap: 8px;
+  }
+
+  .player-mode-openlegend .tracker-form #create-tracker-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .player-mode-openlegend .tracker-card {
+    grid-template-columns: 1fr;
+  }
+
+  .player-mode-openlegend .ol-carousel-controls {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .player-mode-openlegend .ol-carousel-arrow {
+    width: 44px;
+    height: 42px;
+    min-height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.55rem;
+    line-height: 1;
+  }
+
+  .player-mode-openlegend .ol-carousel-arrow:disabled {
+    opacity: 0.32;
+    cursor: default;
+  }
+
+  .player-mode-openlegend .ol-carousel-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .player-mode-openlegend .ol-carousel-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #48625a;
+    transition: width 0.15s ease, background 0.15s ease;
+  }
+
+  .player-mode-openlegend .ol-carousel-dot.is-active {
+    width: 18px;
+    border-radius: 999px;
+    background: var(--ol-green);
+  }
+
+  .player-mode-openlegend .ol-carousel-hint {
+    margin-top: 4px;
+    color: #7d9084;
+    font-family: Arial, sans-serif;
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  .player-mode-openlegend .ol-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .player-mode-openlegend .ol-modal__dialog,
+  .player-mode-openlegend .ol-modal__dialog--wide {
+    width: 100%;
+    max-width: none;
+    max-height: 88vh;
+    margin: 0;
+    padding: 18px 14px max(18px, env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: 18px 18px 0 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .player-mode-openlegend .player-page.container {
+    width: calc(100% - 6px);
+    padding: 6px;
+  }
+
+  .player-mode-openlegend #player-page-title {
+    font-size: 1.4rem;
+  }
+
+  .player-mode-openlegend .top-row .button-link {
+    padding-inline: 8px;
+    font-size: 0.72rem;
+  }
+
+  .player-mode-openlegend #player-game-meta {
+    gap: 8px;
+  }
+
+  .player-mode-openlegend .ol-game-code-card {
+    min-width: 82px;
+  }
+
+  .player-mode-openlegend .ol-summary-top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .player-mode-openlegend .ol-defense-grid {
+    gap: 5px;
+  }
+
+  .player-mode-openlegend .ol-carousel-slide {
+    padding: 6px;
+  }
 }

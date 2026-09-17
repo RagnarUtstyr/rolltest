@@ -1,6 +1,6 @@
 import { requireAuth } from "./auth.js";
 import { db } from "./firebase-config.js";
-import { watchOrLoadGame } from "./game-service.js?v=20260917notes2";
+import { watchOrLoadGame } from "./game-service.js?v=20260917olui1";
 import { BANES } from "./banes.js";
 import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
@@ -104,9 +104,27 @@ if (!game) {
 
 const mode = String(game.mode || "").toLowerCase();
 
+function isOpenLegendMode(value) {
+  const normalized = String(value || "").toLowerCase();
+  return normalized === "openlegend" || normalized === "ol" || normalized === "open_legend";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function applyModeStyles(currentMode) {
   const dndStyle = document.getElementById("player-dnd-style");
   const olStyle = document.getElementById("player-ol-style");
+  const isOl = isOpenLegendMode(currentMode);
+
+  document.body.classList.toggle("player-mode-openlegend", isOl);
+  document.body.classList.toggle("player-mode-dnd", currentMode === "dnd");
 
   if (!dndStyle || !olStyle) return;
 
@@ -115,21 +133,36 @@ function applyModeStyles(currentMode) {
 
   if (currentMode === "dnd") {
     dndStyle.disabled = false;
-  } else if (
-    currentMode === "openlegend" ||
-    currentMode === "ol" ||
-    currentMode === "open_legend"
-  ) {
+  } else if (isOl) {
     olStyle.disabled = false;
   }
 }
 
 applyModeStyles(mode);
 
-metaEl.innerHTML = `
-  <div><strong>${game.title}</strong></div>
-  <div class="muted">Code: ${game.code} · ${game.mode} · Admin: ${game.ownerName}</div>
-`;
+const pageTitleEl = document.getElementById("player-page-title");
+if (isOpenLegendMode(mode) && pageTitleEl) {
+  pageTitleEl.textContent = "Open Legend";
+}
+
+if (isOpenLegendMode(mode)) {
+  metaEl.innerHTML = `
+    <div class="ol-game-meta-main">
+      <span class="ol-game-meta-kicker">Campaign</span>
+      <strong>${escapeHtml(game.title || "Open Legend")}</strong>
+      <span class="muted">Player dashboard</span>
+    </div>
+    <div class="ol-game-code-card">
+      <span>Game Code</span>
+      <strong>${escapeHtml(game.code)}</strong>
+    </div>
+  `;
+} else {
+  metaEl.innerHTML = `
+    <div><strong>${escapeHtml(game.title)}</strong></div>
+    <div class="muted">Code: ${escapeHtml(game.code)} · ${escapeHtml(game.mode)} · Admin: ${escapeHtml(game.ownerName)}</div>
+  `;
+}
 
 if (mode === "dnd") {
   dndSection.classList.remove("hidden");
@@ -138,11 +171,7 @@ if (mode === "dnd") {
   if (dndBuilderLink) {
     dndBuilderLink.href = `dnd_character_builder_firebase.html?code=${encodeURIComponent(code)}`;
   }
-} else if (
-  mode === "openlegend" ||
-  mode === "ol" ||
-  mode === "open_legend"
-) {
+} else if (isOpenLegendMode(mode)) {
   olSection.classList.remove("hidden");
 
   if (openLegendBuilderLink) {
@@ -155,6 +184,136 @@ if (mode === "dnd") {
   statusEl.textContent = `Unsupported game mode: ${game.mode}`;
   throw new Error(`Unsupported game mode: ${game.mode}`);
 }
+
+function setupOpenLegendMobileCarousel() {
+  if (!isOpenLegendMode(mode)) return;
+
+  const carousel = document.getElementById("ol-mobile-carousel");
+  const track = document.getElementById("ol-carousel-track");
+  if (!carousel || !track) return;
+
+  carousel.hidden = false;
+
+  const slides = Array.from(track.querySelectorAll("[data-carousel-slide]"));
+  const tabs = Array.from(carousel.querySelectorAll("[data-carousel-tab]"));
+  const dots = Array.from(carousel.querySelectorAll(".ol-carousel-dot"));
+  const prevBtn = document.getElementById("ol-carousel-prev");
+  const nextBtn = document.getElementById("ol-carousel-next");
+  const mobileQuery = window.matchMedia("(max-width: 720px)");
+
+  const placement = {
+    overview: [
+      document.getElementById("player-name-panel"),
+      document.getElementById("player-openlegend-overview-panel")
+    ],
+    banes: [
+      document.getElementById("player-banes-panel"),
+      document.getElementById("player-fatigue-panel")
+    ],
+    notes: [document.getElementById("player-shared-notes-panel")],
+    actions: [
+      document.getElementById("player-initiative-panel"),
+      document.getElementById("player-openlegend-actions-panel")
+    ],
+    trackers: [document.getElementById("player-trackers-panel")]
+  };
+
+  const restoreMarkers = new Map();
+  Object.values(placement).flat().filter(Boolean).forEach((node) => {
+    if (restoreMarkers.has(node)) return;
+    const marker = document.createComment(`restore-${node.id || "player-panel"}`);
+    node.parentNode?.insertBefore(marker, node);
+    restoreMarkers.set(node, marker);
+  });
+
+  let activeIndex = 0;
+  let scrollTimer = null;
+
+  function updateActive(nextIndex) {
+    activeIndex = Math.max(0, Math.min(slides.length - 1, nextIndex));
+    const activeKey = slides[activeIndex]?.dataset.carouselSlide;
+
+    tabs.forEach((tab) => {
+      const active = tab.dataset.carouselTab === activeKey;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", String(active));
+    });
+    dots.forEach((dot, index) => dot.classList.toggle("is-active", index === activeIndex));
+    if (prevBtn) prevBtn.disabled = activeIndex === 0;
+    if (nextBtn) nextBtn.disabled = activeIndex === slides.length - 1;
+  }
+
+  function goTo(index, smooth = true) {
+    if (!mobileQuery.matches || !slides.length) return;
+    updateActive(index);
+    const slide = slides[activeIndex];
+    track.scrollTo({ left: slide.offsetLeft, behavior: smooth ? "smooth" : "auto" });
+  }
+
+  function movePanelsIntoCarousel() {
+    Object.entries(placement).forEach(([key, nodes]) => {
+      const slot = carousel.querySelector(`[data-carousel-slot="${key}"]`);
+      if (!slot) return;
+      nodes.filter(Boolean).forEach((node) => slot.appendChild(node));
+    });
+    carousel.classList.add("is-mobile-active");
+    requestAnimationFrame(() => goTo(activeIndex, false));
+  }
+
+  function restoreDesktopLayout() {
+    restoreMarkers.forEach((marker, node) => {
+      if (marker.parentNode) marker.parentNode.insertBefore(node, marker.nextSibling);
+    });
+    carousel.classList.remove("is-mobile-active");
+    track.scrollLeft = 0;
+    updateActive(0);
+  }
+
+  function applyResponsiveLayout() {
+    if (mobileQuery.matches) movePanelsIntoCarousel();
+    else restoreDesktopLayout();
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const index = slides.findIndex((slide) => slide.dataset.carouselSlide === tab.dataset.carouselTab);
+      if (index >= 0) goTo(index);
+    });
+  });
+
+  prevBtn?.addEventListener("click", () => goTo(activeIndex - 1));
+  nextBtn?.addEventListener("click", () => goTo(activeIndex + 1));
+
+  track.addEventListener("scroll", () => {
+    if (!mobileQuery.matches) return;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const center = track.scrollLeft + (track.clientWidth / 2);
+      let nearest = 0;
+      let nearestDistance = Infinity;
+      slides.forEach((slide, index) => {
+        const slideCenter = slide.offsetLeft + (slide.offsetWidth / 2);
+        const distance = Math.abs(slideCenter - center);
+        if (distance < nearestDistance) {
+          nearest = index;
+          nearestDistance = distance;
+        }
+      });
+      updateActive(nearest);
+    }, 70);
+  }, { passive: true });
+
+  if (typeof mobileQuery.addEventListener === "function") {
+    mobileQuery.addEventListener("change", applyResponsiveLayout);
+  } else if (typeof mobileQuery.addListener === "function") {
+    mobileQuery.addListener(applyResponsiveLayout);
+  }
+
+  updateActive(0);
+  applyResponsiveLayout();
+}
+
+setupOpenLegendMobileCarousel();
 
 function playerSheetPath() {
   return `games/${code}/players/${user.uid}`;
@@ -1111,10 +1270,38 @@ function getOlCurrentHp() {
   return numberOrNull(el.textContent);
 }
 
+function updateOlHpBar() {
+  const currentEl = document.getElementById("player-ol-current-hp");
+  const maxEl = document.getElementById("player-ol-max-hp");
+  const fillEl = document.getElementById("player-ol-hp-fill");
+  const barEl = fillEl?.parentElement;
+  if (!currentEl || !maxEl || !fillEl || !barEl) return;
+
+  const current = numberOrNull(currentEl.textContent);
+  const max = numberOrNull(maxEl.textContent);
+  const valid = current !== null && max !== null && max > 0;
+  const percent = valid ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
+
+  fillEl.style.width = `${percent}%`;
+  fillEl.classList.toggle("is-low", valid && percent <= 25);
+  fillEl.classList.toggle("is-mid", valid && percent > 25 && percent <= 50);
+  barEl.setAttribute("aria-valuenow", String(valid ? Math.max(0, current) : 0));
+  if (valid) barEl.setAttribute("aria-valuemax", String(max));
+  else barEl.removeAttribute("aria-valuemax");
+}
+
+function setOlMaxHp(value) {
+  const el = document.getElementById("player-ol-max-hp");
+  if (!el) return;
+  el.textContent = value === null || value === undefined || value === "" || Number(value) <= 0 ? "—" : String(value);
+  updateOlHpBar();
+}
+
 function setOlCurrentHp(value) {
   const el = document.getElementById("player-ol-current-hp");
   if (!el) return;
   el.textContent = value === null || value === undefined || value === "" ? "—" : String(value);
+  updateOlHpBar();
 }
 
 function getOlLethalValue() {
@@ -1144,6 +1331,8 @@ function getOpenLegendValues() {
 }
 
 function setOpenLegendValues(data = {}) {
+  const cached = getCurrentSheetCache() || {};
+  setOlMaxHp(data.baseHp ?? data.maxHealth ?? cached.baseHp ?? cached.maxHealth ?? "");
   setOlCurrentHp(data.currentHp ?? "");
   setOlLethalValue(data.lethal ?? "");
   document.getElementById("player-ol-grd-view").textContent = data.grd ?? "—";
@@ -1526,6 +1715,8 @@ async function loadExistingCharacter() {
     } else {
       setOpenLegendValues({
         currentHp: data.currentHp ?? "",
+        baseHp: data.baseHp ?? data.maxHealth ?? "",
+        maxHealth: data.maxHealth ?? "",
         lethal: data.lethal ?? "",
         grd: data.grd ?? "—",
         res: data.res ?? "—",
@@ -1556,6 +1747,8 @@ async function loadExistingCharacter() {
     } else {
       setOpenLegendValues({
         currentHp: entry.currentHp ?? "",
+        baseHp: entry.baseHp ?? entry.maxHealth ?? "",
+        maxHealth: entry.maxHealth ?? "",
         lethal: entry.lethal ?? "",
         grd: entry.grd ?? "—",
         res: entry.res ?? "—",
