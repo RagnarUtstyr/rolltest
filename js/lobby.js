@@ -5,7 +5,7 @@ import {
   watchOwnedAndJoinedGames,
   deleteGame,
   leaveSpecificGame
-} from "./game-service.js";
+} from "./game-service.js?v=20260917notes2";
 
 const createBtn = document.getElementById("create-game-button");
 const joinBtn = document.getElementById("join-game-button");

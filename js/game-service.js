@@ -129,7 +129,6 @@ export async function leaveCurrentGame(uid) {
     [`games/${gameCode}/entries/${uid}`]: null,
     [`games/${gameCode}/players/${uid}`]: null,
     [`games/${gameCode}/builderSheetsDnd/${uid}`]: null,
-    [`games/${gameCode}/participantNotes/${uid}`]: null,
     [`memberships/${uid}`]: null,
     [`users/${uid}/games/${gameCode}`]: null
   });
@@ -154,7 +153,6 @@ export async function leaveSpecificGame(uid, gameCode) {
     [`games/${normalized}/entries/${uid}`]: null,
     [`games/${normalized}/players/${uid}`]: null,
     [`games/${normalized}/builderSheetsDnd/${uid}`]: null,
-    [`games/${normalized}/participantNotes/${uid}`]: null,
     [`users/${uid}/games/${normalized}`]: null
   };
 

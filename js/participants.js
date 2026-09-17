@@ -103,7 +103,7 @@ function formatNoteMeta(note) {
 }
 
 function hasActivePing(game, uid) {
-  return noteValue(game?.participantNotes?.[uid]).pingActive;
+  return noteValue(game?.players?.[uid]?.sharedNote).pingActive;
 }
 
 function activePingCount(game) {
@@ -383,7 +383,7 @@ function renderParticipantDetail() {
   } = els();
 
   const record = characterRecord(currentGame, selectedUid);
-  const sharedNote = noteValue(currentGame?.participantNotes?.[selectedUid]);
+  const sharedNote = noteValue(currentGame?.players?.[selectedUid]?.sharedNote);
 
   listView?.setAttribute("hidden", "");
   detailView?.removeAttribute("hidden");
@@ -403,10 +403,10 @@ async function openParticipantDetail(uid) {
   selectedUid = uid;
   renderParticipantDetail();
 
-  const sharedNote = noteValue(currentGame?.participantNotes?.[uid]);
+  const sharedNote = noteValue(currentGame?.players?.[uid]?.sharedNote);
   if (sharedNote.pingActive && code) {
     try {
-      await update(ref(db, `games/${code}/participantNotes/${uid}`), {
+      await update(ref(db, `games/${code}/players/${uid}/sharedNote`), {
         pingActive: false,
         dmReadAt: Date.now()
       });
@@ -423,7 +423,7 @@ async function saveSharedNote() {
 
   if (noteStatus) noteStatus.textContent = "Saving…";
   try {
-    await update(ref(db, `games/${code}/participantNotes/${selectedUid}`), {
+    await update(ref(db, `games/${code}/players/${selectedUid}/sharedNote`), {
       text: note.value,
       updatedAt: Date.now(),
       updatedByUid: currentUser.uid,

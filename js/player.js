@@ -1,6 +1,6 @@
 import { requireAuth } from "./auth.js";
 import { db } from "./firebase-config.js";
-import { watchOrLoadGame } from "./game-service.js";
+import { watchOrLoadGame } from "./game-service.js?v=20260917notes2";
 import { BANES } from "./banes.js";
 import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
@@ -164,8 +164,11 @@ function playerEntryPath() {
   return `games/${code}/entries/${user.uid}`;
 }
 
-function participantNotesPath() {
-  return `games/${code}/participantNotes/${user.uid}`;
+function sharedNotePath() {
+  // Keep shared DM/player notes inside the player's own character node.
+  // This inherits the same Firebase permissions the player already uses for
+  // games/{code}/players/{uid}, avoiding a separate participantNotes rule.
+  return `games/${code}/players/${user.uid}/sharedNote`;
 }
 
 function dndBuilderSheetPath() {
@@ -288,7 +291,7 @@ async function saveSharedNote() {
     }
 
     const shared = getSharedValues();
-    await update(ref(db, participantNotesPath()), {
+    await update(ref(db, sharedNotePath()), {
       text: nextText,
       updatedAt: Date.now(),
       updatedByUid: user.uid,
@@ -312,7 +315,7 @@ async function pingDm() {
   if (playerPingDmStatusEl) playerPingDmStatusEl.textContent = "Pinging DM…";
   try {
     const now = Date.now();
-    await update(ref(db, participantNotesPath()), {
+    await update(ref(db, sharedNotePath()), {
       pingActive: true,
       pingEligible: false,
       pingedAt: now,
@@ -329,7 +332,7 @@ async function pingDm() {
 let hasLivePlayerSheet = false;
 
 function startSharedPlayerWatchers() {
-  onValue(ref(db, participantNotesPath()), (snapshot) => {
+  onValue(ref(db, sharedNotePath()), (snapshot) => {
     renderSharedNote(snapshot.exists() ? snapshot.val() : null);
   }, (error) => {
     console.error("Could not watch shared note:", error);
