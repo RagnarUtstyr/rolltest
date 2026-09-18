@@ -1126,3 +1126,145 @@ body.player-mode-dnd .dnd-sheet-app #player-shared-notes-panel .remove-button {
   background:linear-gradient(180deg,#6f2930,#4b1d23) !important;
   color:#ffe8e8 !important;
 }
+
+/* Spell library + rest controls */
+.dnd-header-rest-button,
+body.player-mode-dnd .dnd-header-rest-button {
+  min-height: 40px !important;
+  padding: 7px 14px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(215,174,104,.58) !important;
+  background: linear-gradient(180deg, rgba(39,63,77,.96), rgba(18,39,52,.98)) !important;
+  color: #f1d9a5 !important;
+  font: 700 .84rem Georgia, serif !important;
+  white-space: nowrap;
+}
+body.player-mode-dnd .dnd-header-rest-button:hover {
+  border-color: var(--dnd-gold) !important;
+  background: linear-gradient(180deg, rgba(59,77,85,.98), rgba(25,46,58,.98)) !important;
+}
+
+.dnd-spell-source-note {
+  margin: -2px 0 12px;
+  color: var(--dnd-muted);
+  font-size: .78rem;
+  text-align: right;
+}
+.dnd-spell-library-state {
+  grid-column: auto;
+}
+.dnd-slot-card--pact {
+  border-color: rgba(131,104,190,.7) !important;
+  box-shadow: inset 0 0 0 1px rgba(131,104,190,.08);
+}
+.dnd-slot-card--arcanum {
+  border-color: rgba(215,174,104,.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(215,174,104,.1);
+}
+.dnd-slot-card--pact > span,
+.dnd-slot-card--arcanum > span { color: var(--dnd-gold-soft); }
+.dnd-slot-card small { color: var(--dnd-muted); font-size: .72rem; }
+.dnd-spell-card.is-arcanum { border-color: rgba(215,174,104,.72); }
+
+.dnd-rest-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+}
+.dnd-rest-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--dnd-border);
+  border-radius: 12px;
+  background: rgba(9,27,39,.82);
+}
+.dnd-rest-card h4 { margin: 0 0 8px; color: var(--dnd-gold-soft); font-size: 1.15rem; }
+.dnd-rest-card p { margin: 0 0 12px; color: var(--dnd-muted); line-height: 1.45; }
+.dnd-rest-summary {
+  min-height: 46px;
+  margin-bottom: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.2);
+  color: #dfe8ed;
+  font-size: .84rem;
+  line-height: 1.45;
+}
+.dnd-rest-card button { width: 100%; }
+
+@media (max-width: 720px) {
+  .dnd-header-rest-button,
+  body.player-mode-dnd .dnd-header-rest-button {
+    min-height: 38px !important;
+    padding: 6px 9px !important;
+    font-size: .72rem !important;
+  }
+  .dnd-rest-grid { grid-template-columns: 1fr; }
+  .dnd-spell-source-note { text-align: left; }
+}
+
+@media (max-width: 430px) {
+  .dnd-header-actions { gap: 4px; }
+  .dnd-header-rest-button,
+  body.player-mode-dnd .dnd-header-rest-button { padding-inline: 7px !important; }
+}
+
+
+/* === 2026-09-18 overview feature consolidation === */
+body.player-mode-dnd #player-openlegend-section,
+body.player-mode-dnd #ol-mobile-carousel { display:none !important; }
+
+.dnd-overview-feature-row {
+  display:grid;
+  grid-template-columns:minmax(210px, .72fr) minmax(0, 2fr);
+  align-items:stretch;
+  gap:10px;
+  margin:0 0 12px;
+}
+.dnd-overview-feature-row .dnd-ac-feature-card { margin:0; grid-template-columns:92px minmax(0,1fr); }
+.dnd-overview-feature-row .dnd-ac-feature-main,
+.dnd-overview-feature-row .dnd-ac-feature-equipment { padding:11px 12px; }
+.dnd-overview-feature-row .dnd-ac-feature-main strong { font-size:1.9rem; }
+.dnd-overview-features { display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr)); gap:8px; min-width:0; }
+.dnd-overview-features.is-empty { display:none; }
+body.player-mode-dnd .dnd-feature-quick-card {
+  min-width:0;
+  min-height:76px;
+  display:grid;
+  align-content:center;
+  gap:4px;
+  padding:10px 12px !important;
+  text-align:left;
+}
+.dnd-feature-quick-card span { color:var(--dnd-muted); font-size:.69rem; text-transform:uppercase; letter-spacing:.055em; }
+.dnd-feature-quick-card strong { color:#fff0cb; font-size:.9rem; overflow-wrap:anywhere; }
+.dnd-feature-quick-card small { color:#c9d4da; font-size:.74rem; }
+.dnd-overview-management { display:flex; align-items:end; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:10px 0; padding:10px; border:1px solid rgba(116,154,180,.24); border-radius:10px; background:rgba(8,26,38,.66); }
+.dnd-overview-initiative-edit { display:grid; grid-template-columns:auto 82px auto; align-items:center; gap:8px; }
+.dnd-overview-initiative-edit label { color:var(--dnd-muted); font-size:.78rem; }
+.dnd-overview-initiative-edit input { min-height:38px; text-align:center; }
+.dnd-overview-management-actions { display:flex; flex-wrap:wrap; gap:7px; justify-content:flex-end; }
+.dnd-overview-panel--attributes { margin-top:10px; }
+.dnd-feature-notes-card { border:1px solid rgba(116,154,180,.28); border-radius:12px; padding:14px; background:rgba(7,24,35,.78); }
+.dnd-feature-notes { display:grid; gap:10px; }
+.dnd-feature-notes-block { padding:10px 12px; border-left:2px solid rgba(215,174,104,.55); background:rgba(255,255,255,.025); }
+.dnd-feature-notes-block h4 { margin:0 0 6px; color:var(--dnd-gold-soft); font-size:1rem; }
+.dnd-feature-notes-block p { margin:4px 0; line-height:1.45; color:#d8e0e5; }
+.dnd-feature-notes-block ul { margin:7px 0 0; padding-left:19px; display:grid; gap:3px; color:#c8d4db; }
+
+@media (max-width: 800px) {
+  .dnd-overview-feature-row { grid-template-columns:1fr; }
+  .dnd-overview-feature-row .dnd-ac-feature-card { width:100%; }
+  .dnd-overview-features { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dnd-overview-management { align-items:stretch; }
+  .dnd-overview-initiative-edit { width:100%; grid-template-columns:minmax(0,1fr) 74px auto; }
+  .dnd-overview-management-actions { width:100%; justify-content:flex-start; }
+}
+@media (max-width: 480px) {
+  .dnd-overview-features { grid-template-columns:1fr 1fr; }
+  .dnd-overview-initiative-edit { grid-template-columns:1fr 74px; }
+  .dnd-overview-initiative-edit button { grid-column:1 / -1; }
+}
+
+.dnd-overview-feature-row:has(.dnd-overview-features.is-empty) { grid-template-columns:1fr; }
+.dnd-overview-feature-row:has(.dnd-overview-features.is-empty) .dnd-ac-feature-card { max-width:520px; }

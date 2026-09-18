@@ -6,6 +6,14 @@ import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
 import { FATIGUE_DATA, clampFatigueLevel, getFatigueLevels, hasFatigueSlowedLink } from "./fatigue.js";
 import { DND_SPELLS, loadDndSpellLibrary, getDndSpellLibraryState, findDndSpell } from "./dnd_spells.js?v=20260918spells1";
+import { OPENLEGEND_FEATS } from "./openlegend_feats.js";
+import {
+  OPENLEGEND_WEAPONS,
+  getOpenLegendAttributeDie,
+  findOpenLegendWeaponPreset,
+  createOpenLegendWeapon,
+  composeOpenLegendWeaponDamage
+} from "./openlegend_weapons.js";
 import {
   ref,
   get,
@@ -93,12 +101,14 @@ const playerPingDmStatusEl = document.getElementById("player-ping-dm-status");
 const user = await requireAuth();
 
 if (!code) {
+  document.body.classList.remove("player-mode-loading");
   statusEl.textContent = "Missing game code.";
   throw new Error("Missing game code.");
 }
 
 const game = await watchOrLoadGame(code);
 if (!game) {
+  document.body.classList.remove("player-mode-loading");
   statusEl.textContent = "Game not found.";
   throw new Error("Game not found.");
 }
@@ -126,6 +136,7 @@ function escapeHtml(value) {
 }
 
 function applyModeStyles(currentMode) {
+  document.body.classList.remove("player-mode-loading");
   const dndStyle = document.getElementById("player-dnd-style");
   const olStyle = document.getElementById("player-ol-style");
   const isOl = isOpenLegendMode(currentMode);
@@ -220,7 +231,10 @@ function setupPlayerMobileCarousel(config) {
       const active = tab.dataset.carouselTab === key;
       tab.classList.toggle("is-active", active);
       tab.setAttribute("aria-selected", String(active));
-      if (active) tab.scrollIntoView({behavior:"smooth", block:"nearest", inline:"center"});
+      if (active) {
+        const bar=tab.parentElement;
+        if(bar){const left=Math.max(0,tab.offsetLeft-(bar.clientWidth-tab.offsetWidth)/2);bar.scrollTo({left,behavior:"smooth"});}
+      }
     });
     dots.forEach((dot,index)=>dot.classList.toggle("is-active", index===activeIndex));
   }
@@ -263,14 +277,16 @@ function setupPlayerMobileCarousels() {
       placement: {
         overview: [
           document.getElementById("player-name-panel"),
-          document.getElementById("player-openlegend-overview-panel"),
-          document.getElementById("player-openlegend-damage-panel")
+          document.getElementById("player-openlegend-overview-panel")
         ],
-        actions: [
+        combat: [
           document.getElementById("player-initiative-panel"),
           document.getElementById("player-openlegend-actions-panel")
         ],
         attributes: [document.getElementById("player-openlegend-attributes-panel")],
+        weapons: [document.getElementById("player-openlegend-weapons-panel")],
+        feats: [document.getElementById("player-openlegend-feats-panel")],
+        profile: [document.getElementById("player-openlegend-profile-panel")],
         trackers: [document.getElementById("player-trackers-panel")],
         banes: [document.getElementById("player-banes-panel"), document.getElementById("player-fatigue-panel")],
         notes: [document.getElementById("player-shared-notes-panel")]
@@ -418,6 +434,32 @@ const DND_SPELL_META = {
 const DND_SPECIES = ["Human","Dwarf","Elf","Halfling","Gnome","Dragonborn","Orc","Tiefling"];
 const DND_BACKGROUNDS = ["Acolyte","Artisan","Criminal","Guard","Hermit","Noble","Sage","Soldier","Wayfarer"];
 const DND_BACKGROUND_FEAT = {Acolyte:"Magic Initiate",Artisan:"Crafter",Criminal:"Alert",Guard:"Alert",Hermit:"Healer",Noble:"Skilled",Sage:"Magic Initiate",Soldier:"Savage Attacker",Wayfarer:"Lucky"};
+const DND_SPECIES_NOTES = {
+  Human:"Medium or Small, Speed 30 feet, Resourceful, Skillful, and Versatile.",
+  Dwarf:"Speed 30 feet, Darkvision, Dwarven Resilience, and Stonecunning.",
+  Elf:"Speed 30 feet, Darkvision, Fey Ancestry, and keen senses.",
+  Halfling:"Speed 30 feet, Brave, Halfling Nimbleness, and Luck.",
+  Gnome:"Speed 30 feet, Darkvision and Gnomish Cunning.",
+  Dragonborn:"Speed 30 feet, Breath Weapon and Draconic Resistance.",
+  Orc:"Speed 30 feet, Adrenaline Rush, Darkvision and Relentless Endurance.",
+  Tiefling:"Speed 30 feet, Darkvision and Fiendish Legacy."
+};
+const DND_BACKGROUND_NOTES = {
+  Acolyte:"Acolyte grants skill training, an origin feat, equipment, and ability boosts among Intelligence, Wisdom, and Charisma.",
+  Artisan:"Artisan grants Crafter, practical proficiencies, and boosts among Strength, Dexterity, and Intelligence.",
+  Criminal:"Criminal grants Alert, stealth-focused skills, and boosts among Dexterity, Constitution, and Intelligence.",
+  Guard:"Guard grants Alert, observant martial training, and boosts among Strength, Intelligence, and Wisdom.",
+  Hermit:"Hermit grants Healer and boosts among Constitution, Wisdom, and Charisma.",
+  Noble:"Noble grants Skilled and boosts among Strength, Intelligence, and Charisma.",
+  Sage:"Sage grants Magic Initiate and boosts among Constitution, Intelligence, and Wisdom.",
+  Soldier:"Soldier grants Savage Attacker and boosts among Strength, Dexterity, and Constitution.",
+  Wayfarer:"Wayfarer grants Lucky and boosts among Dexterity, Wisdom, and Charisma."
+};
+const DND_CLASS_PRIMARY = {
+  Barbarian:["Strength"], Bard:["Charisma"], Cleric:["Wisdom"], Druid:["Wisdom"], Fighter:["Strength","Dexterity"],
+  Monk:["Dexterity","Wisdom"], Paladin:["Strength","Charisma"], Ranger:["Dexterity","Wisdom"], Rogue:["Dexterity"],
+  Sorcerer:["Charisma"], Warlock:["Charisma"], Wizard:["Intelligence"]
+};
 const DND_CLASSES = Object.keys(DND_CLASS_HD);
 const DND_SUBCLASSES = {
   Barbarian:{chooseAt:3,options:["Path of the Berserker","Path of the Totem Warrior"]},
@@ -439,17 +481,17 @@ const DND_CLASS_ASI_LEVELS = {
   Rogue:[4,8,10,12,16,19], Sorcerer:[4,8,12,16,19], Warlock:[4,8,12,16,19], Wizard:[4,8,12,16,19]
 };
 const DND_CLASS_FEATURES = {
-  Barbarian:{1:["Rage","Unarmored Defense"],2:["Reckless Attack","Danger Sense"],3:["Primal Path"],5:["Extra Attack","Fast Movement"],7:["Feral Instinct"],9:["Brutal Critical"],11:["Relentless Rage"],15:["Persistent Rage"],18:["Indomitable Might"],20:["Primal Champion"]},
-  Bard:{1:["Spellcasting","Bardic Inspiration"],2:["Jack of All Trades","Song of Rest"],3:["Bard College","Expertise"],5:["Font of Inspiration"],6:["Countercharm"],10:["Expertise","Magical Secrets"],14:["Magical Secrets"],18:["Magical Secrets"],20:["Superior Inspiration"]},
-  Cleric:{1:["Spellcasting","Divine Domain"],2:["Channel Divinity"],5:["Destroy Undead"],6:["Domain Feature"],8:["Domain Feature"],10:["Divine Intervention"],17:["Domain Feature"],20:["Divine Intervention Improvement"]},
-  Druid:{1:["Druidic","Spellcasting"],2:["Wild Shape","Druid Circle"],4:["Wild Shape Improvement"],8:["Wild Shape Improvement"],18:["Timeless Body","Beast Spells"],20:["Archdruid"]},
-  Fighter:{1:["Fighting Style","Second Wind"],2:["Action Surge"],3:["Martial Archetype"],4:["Ability Score Improvement"],5:["Extra Attack"],6:["Ability Score Improvement"],9:["Indomitable"],11:["Extra Attack"],13:["Indomitable"],17:["Action Surge","Indomitable"],20:["Extra Attack"]},
-  Monk:{1:["Unarmored Defense","Martial Arts"],2:["Ki","Unarmored Movement"],3:["Monastic Tradition","Deflect Missiles"],4:["Slow Fall"],5:["Extra Attack","Stunning Strike"],7:["Evasion","Stillness of Mind"],10:["Purity of Body"],14:["Diamond Soul"],18:["Empty Body"],20:["Perfect Self"]},
-  Paladin:{1:["Divine Sense","Lay on Hands"],2:["Fighting Style","Spellcasting","Divine Smite"],3:["Divine Health","Sacred Oath"],5:["Extra Attack"],6:["Aura of Protection"],10:["Aura of Courage"],11:["Improved Divine Smite"],14:["Cleansing Touch"],18:["Aura Improvements"]},
-  Ranger:{1:["Favored Enemy","Natural Explorer"],2:["Fighting Style","Spellcasting"],3:["Ranger Archetype","Primeval Awareness"],5:["Extra Attack"],8:["Land's Stride"],14:["Vanish"],18:["Feral Senses"],20:["Foe Slayer"]},
+  Barbarian:{1:["Rage","Unarmored Defense"],2:["Reckless Attack","Danger Sense"],3:["Primal Path"],5:["Extra Attack","Fast Movement"],7:["Feral Instinct"],9:["Brutal Critical (1 die)"],11:["Relentless Rage"],15:["Persistent Rage"],18:["Indomitable Might"],20:["Primal Champion"]},
+  Bard:{1:["Spellcasting","Bardic Inspiration"],2:["Jack of All Trades","Song of Rest"],3:["Bard College","Expertise"],5:["Font of Inspiration"],6:["Countercharm","Bard College feature"],10:["Expertise","Magical Secrets","Bardic Inspiration d10"],14:["Magical Secrets"],18:["Magical Secrets"],20:["Superior Inspiration"]},
+  Cleric:{1:["Spellcasting","Divine Domain"],2:["Channel Divinity"],5:["Destroy Undead (CR 1/2)"],6:["Channel Divinity (2/rest)","Domain feature"],8:["Destroy Undead (CR 1)","Divine Strike or Potent Spellcasting"],10:["Divine Intervention"],17:["Destroy Undead (CR 4)","Domain feature"],20:["Divine Intervention improvement"]},
+  Druid:{1:["Druidic","Spellcasting"],2:["Wild Shape","Druid Circle"],4:["Wild Shape improvement"],8:["Wild Shape improvement"],18:["Timeless Body","Beast Spells"],20:["Archdruid"]},
+  Fighter:{1:["Fighting Style","Second Wind"],2:["Action Surge (x1)"],3:["Martial Archetype"],4:["Ability Score Improvement"],5:["Extra Attack (x1)"],6:["Ability Score Improvement"],7:["Martial Archetype feature"],8:["Ability Score Improvement"],9:["Indomitable (x1)"],10:["Martial Archetype feature"],11:["Extra Attack (x2)"],12:["Ability Score Improvement"],13:["Indomitable (x2)"],14:["Ability Score Improvement"],15:["Martial Archetype feature"],16:["Ability Score Improvement"],17:["Action Surge (x2)","Indomitable (x3)"],18:["Martial Archetype feature"],19:["Ability Score Improvement"],20:["Extra Attack (x3)"]},
+  Monk:{1:["Unarmored Defense","Martial Arts"],2:["Ki","Unarmored Movement"],3:["Monastic Tradition","Deflect Missiles"],4:["Slow Fall"],5:["Extra Attack","Stunning Strike"],6:["Ki-Empowered Strikes","Monastic Tradition feature"],7:["Evasion","Stillness of Mind"],10:["Purity of Body"],14:["Diamond Soul"],18:["Empty Body"],20:["Perfect Self"]},
+  Paladin:{1:["Divine Sense","Lay on Hands"],2:["Fighting Style","Spellcasting","Divine Smite"],3:["Divine Health","Sacred Oath"],5:["Extra Attack"],6:["Aura of Protection"],7:["Sacred Oath feature"],10:["Aura of Courage"],11:["Improved Divine Smite"],14:["Cleansing Touch"],18:["Aura improvements"],20:["Sacred Oath feature"]},
+  Ranger:{1:["Favored Enemy","Natural Explorer"],2:["Fighting Style","Spellcasting"],3:["Ranger Archetype","Primeval Awareness"],5:["Extra Attack"],6:["Favored Enemy improvement","Natural Explorer improvement"],7:["Ranger Archetype feature"],8:["Land's Stride"],10:["Natural Explorer improvement","Hide in Plain Sight"],14:["Vanish"],18:["Feral Senses"],20:["Foe Slayer"]},
   Rogue:{1:["Expertise","Sneak Attack","Thieves' Cant"],2:["Cunning Action"],3:["Roguish Archetype"],5:["Uncanny Dodge"],6:["Expertise"],7:["Evasion"],11:["Reliable Talent"],14:["Blindsense"],15:["Slippery Mind"],18:["Elusive"],20:["Stroke of Luck"]},
-  Sorcerer:{1:["Spellcasting","Sorcerous Origin"],2:["Font of Magic"],3:["Metamagic"],10:["Metamagic Option"],17:["Metamagic Option"],20:["Sorcerous Restoration"]},
-  Warlock:{1:["Otherworldly Patron","Pact Magic"],2:["Eldritch Invocations"],3:["Pact Boon"],11:["Mystic Arcanum"],13:["Mystic Arcanum"],15:["Mystic Arcanum"],17:["Mystic Arcanum"],20:["Eldritch Master"]},
+  Sorcerer:{1:["Spellcasting","Sorcerous Origin"],2:["Font of Magic"],3:["Metamagic"],10:["Metamagic option"],17:["Metamagic option"],20:["Sorcerous Restoration"]},
+  Warlock:{1:["Otherworldly Patron","Pact Magic"],2:["Eldritch Invocations"],3:["Pact Boon"],6:["Otherworldly Patron feature"],11:["Mystic Arcanum (6th)"],13:["Mystic Arcanum (7th)"],14:["Otherworldly Patron feature"],15:["Mystic Arcanum (8th)"],17:["Mystic Arcanum (9th)"],20:["Eldritch Master"]},
   Wizard:{1:["Spellcasting","Arcane Recovery"],2:["Arcane Tradition"],18:["Spell Mastery"],20:["Signature Spells"]}
 };
 const DND_ARMORS = {
@@ -805,6 +847,21 @@ function renderDndActionList(target, rows, limit = Infinity) {
   if (!target) return;
   target.innerHTML = rows.slice(0, limit).map((row)=>`<button type="button" class="dnd-action-row" data-dnd-action="${escapeHtml(row.name)}"><span class="dnd-action-symbol">✦</span><div><small>${escapeHtml(row.type)}</small><strong>${escapeHtml(row.name)}</strong></div><span class="dnd-row-chevron">›</span></button>`).join("");
 }
+function dndOverviewFeatureRows(builder = {}) {
+  const hidden = new Set(["Attack", "Opportunity Attack", "Spellcasting", "Pact Magic", "Extra Attack"]);
+  return dndActionRows(builder).filter((row)=>!hidden.has(row.name));
+}
+function renderDndOverviewFeatures(builder = {}) {
+  const target=document.getElementById("dnd-overview-features");
+  if(!target) return;
+  const rows=dndOverviewFeatureRows(builder);
+  target.classList.toggle("is-empty", rows.length===0);
+  target.innerHTML=rows.length ? rows.slice(0,6).map((row)=>{
+    const res=dndTrackedResourceForAction(builder,row.name);
+    const current=res ? Number(builder.resourceTracker?.[res.key] ?? res.current) : null;
+    return `<button type="button" class="dnd-feature-quick-card" data-dnd-action="${escapeHtml(row.name)}"><span>${escapeHtml(row.type)}</span><strong>${escapeHtml(row.name)}</strong>${res?`<small>${current} / ${res.max}</small>`:`<small>Details</small>`}</button>`;
+  }).join("") : "";
+}
 function renderDndAttributes(target, builder, sheet, compact = false) {
   if (!target) return;
   const abilities = dndAbilities(builder, sheet);
@@ -890,13 +947,11 @@ function renderDndSpells(builder) {
   const arcanumSpells=spells.filter((spell)=>dndIsArcanumEntry(builder,spell));
   const cap=dndSpellCapacity(builder);
   const cantripCount=(grouped[0]||[]).length;
-  const library=getDndSpellLibraryState();
   if(capacityTarget) capacityTarget.innerHTML=`
     <div><span>Cantrips</span><strong>${cantripCount}${cap.cantrips?` / ${cap.cantrips}`:""}</strong></div>
     <div><span>Class Spells</span><strong>${regularSpells.length}${cap.spells?` / ${cap.spells}`:""}</strong></div>
     ${cap.prepared?`<div><span>Prepared Capacity</span><strong>${Math.min(regularSpells.length,cap.prepared)} / ${cap.prepared}</strong></div>`:""}
-    ${arcanumLevels.length?`<div><span>Mystic Arcanum</span><strong>${arcanumSpells.length} / ${arcanumLevels.length}</strong></div>`:""}
-    <div class="dnd-spell-library-state"><span>Spell Library</span><strong>${library.count} ${library.complete?"SRD spells":"fallback spells"}</strong></div>`;
+    ${arcanumLevels.length?`<div><span>Mystic Arcanum</span><strong>${arcanumSpells.length} / ${arcanumLevels.length}</strong></div>`:""}`;
 
   const levels=new Set([0]);
   Object.keys(grouped).map(Number).forEach((lvl)=>levels.add(lvl));
@@ -920,14 +975,39 @@ function renderDndSpells(builder) {
     return `<section class="dnd-spell-group"><div class="dnd-spell-group-title"><h3>${label}</h3><span>${usageParts.join(" · ")}</span></div><div class="dnd-spell-card-grid">${cards}</div></section>`;
   }).join("");
 }
+function dndFeatureNotesHtml(builder = {}) {
+  const species=builder.species || "";
+  const background=builder.background || "";
+  const speciesTraits=DND_SPECIES_FEATURES[species] || [];
+  const backgroundSkills=DND_BACKGROUND_SKILLS[background] || [];
+  const chunks=[];
+  if(species){
+    chunks.push(`<section class="dnd-feature-notes-block"><h4>${escapeHtml(species)}</h4><p>${escapeHtml(DND_SPECIES_NOTES[species] || "")}</p>${speciesTraits.length?`<p><strong>Traits:</strong> ${escapeHtml(speciesTraits.join(", "))}</p>`:""}</section>`);
+  }
+  if(background){
+    chunks.push(`<section class="dnd-feature-notes-block"><h4>${escapeHtml(background)}</h4><p>${escapeHtml(DND_BACKGROUND_NOTES[background] || "")}</p><p><strong>Background feat:</strong> ${escapeHtml(DND_BACKGROUND_FEAT[background] || "—")}</p><p><strong>Background skills:</strong> ${escapeHtml(backgroundSkills.join(", ") || "—")}</p></section>`);
+  }
+  (builder.classes || []).forEach((c)=>{
+    const className=c?.name || "Class";
+    const level=Math.max(1,Number(c?.level||1));
+    const casting=DND_CLASS_CASTING[className];
+    const lines=[];
+    for(let lvl=1; lvl<=level; lvl+=1){
+      const items=[...(DND_CLASS_FEATURES[className]?.[lvl] || [])];
+      if((DND_CLASS_ASI_LEVELS[className]||[]).includes(lvl) && !items.some((x)=>/Ability Score Improvement/i.test(x))) items.push("ASI / feat level");
+      if(items.length) lines.push(`<li><strong>Lv ${lvl}:</strong> ${escapeHtml(items.join(", "))}</li>`);
+    }
+    chunks.push(`<section class="dnd-feature-notes-block"><h4>${escapeHtml(className)} ${level}</h4><p><strong>Hit Die:</strong> d${DND_CLASS_HD[className] || "—"}<br><strong>Primary Abilities:</strong> ${escapeHtml((DND_CLASS_PRIMARY[className]||[]).join(", ") || "—")}<br><strong>Spellcasting:</strong> ${escapeHtml(casting || "None")}${c?.subclass?`<br><strong>Subclass:</strong> ${escapeHtml(c.subclass)}`:""}</p>${lines.length?`<ul>${lines.join("")}</ul>`:""}</section>`);
+  });
+  return chunks.join("") || `<div class="dnd-empty-inline">No species, background or class notes yet.</div>`;
+}
 function renderDndProfile(builder, sheet) {
   const target=document.getElementById("dnd-profile-content"); if(!target)return;
   const classes=Array.isArray(builder.classes)?builder.classes:[]; const classText=classes.map((c)=>`${c?.name||"Class"} ${c?.level||1}${c?.subclass?` (${c.subclass})`:""}`).join(" / ")||sheet.classSummary||"—";
-  const money=builder.money||{}; const auto=dndAutomaticProficiencies(builder); const automaticFeatures=dndAutomaticFeatureSections(builder); const extraProfs=dndAdditionalProficiencySummary(builder);
+  const money=builder.money||{}; const auto=dndAutomaticProficiencies(builder); const extraProfs=dndAdditionalProficiencySummary(builder);
   const speciesOptions=DND_SPECIES.map((name)=>`<option ${builder.species===name?"selected":""}>${name}</option>`).join("");
   const backgroundOptions=DND_BACKGROUNDS.map((name)=>`<option ${builder.background===name?"selected":""}>${name}</option>`).join("");
   const granted=(key)=>auto[key]?.length?auto[key].join(", "):"None";
-  const featureHtml=automaticFeatures.length?automaticFeatures.map((section)=>`<article class="dnd-auto-feature-section"><h4>${escapeHtml(section.title)}</h4><div>${section.items.map((item)=>`<span>${escapeHtml(item)}</span>`).join("")}</div></article>`).join(""):`<div class="dnd-empty-inline">No automatic features yet.</div>`;
   const extraProfHtml=extraProfs.length?extraProfs.map(([label,value])=>`<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`).join(""):`<div class="dnd-empty-inline">No additional proficiencies.</div>`;
   target.innerHTML=`
     <div class="dnd-profile-edit-grid">
@@ -938,7 +1018,7 @@ function renderDndProfile(builder, sheet) {
       <label>Alignment<input id="dnd-profile-alignment" type="text" value="${escapeHtml(builder.alignment||"")}"></label>
       <label>Experience<input id="dnd-profile-experience" type="number" min="0" value="${Number(builder.experience||0)}"></label>
     </div>
-    <section class="dnd-auto-features-card"><div class="dnd-panel-heading"><h3>Class &amp; Race Features</h3></div><div class="dnd-auto-features-grid">${featureHtml}</div></section>
+    <section class="dnd-feature-notes-card"><div class="dnd-panel-heading"><h3>Species, Background &amp; Class Notes</h3></div><div class="dnd-feature-notes">${dndFeatureNotesHtml(builder)}</div></section>
     <label class="dnd-profile-field-wide">Additional Features<textarea id="dnd-profile-features">${escapeHtml(builder.features||"")}</textarea></label>
     <section class="dnd-proficiency-card"><div class="dnd-panel-heading"><h3>Proficiencies</h3><div class="dnd-heading-actions"><button id="dnd-profile-manage-skills" class="dnd-compact-manage-button" type="button">Skills</button><button id="dnd-profile-manage-proficiencies" class="dnd-compact-manage-button" type="button">Manage</button></div></div>
       <div class="dnd-auto-proficiency-grid">
@@ -971,7 +1051,7 @@ function renderDndDashboard(builder = currentDndBuilderData || {}, sheet = getCu
   const init=Number(sheet.initiativeBonus ?? dndMod(abilities.Dexterity)); const prof=Number(sheet.prof ?? sheet.proficiencyBonus ?? dndProfBonus(builder));
   const setText=(id,value)=>{ const el=document.getElementById(id); if(el) el.textContent=value; };
   setText("dnd-view-initiative",dndSigned(init)); setText("dnd-view-speed",`${DND_SPECIES_SPEED[builder.species] ?? 30} ft`); setText("dnd-view-hit-dice",dndHitDiceSummary(builder)); setText("dnd-view-hit-dice-remaining",dndHitDiceRemainingSummary(builder)); setText("dnd-view-ac",String(sheet.ac ?? dndArmorClassFromBuilder(builder) ?? "—")); setText("dnd-view-ac-equipment",dndArmorEquipmentSummary(builder)); setText("dnd-view-prof",dndSigned(prof));
-  renderDndActionList(document.getElementById("dnd-overview-actions"),dndActionRows(builder),4); renderDndActionList(document.getElementById("dnd-actions-full"),dndActionRows(builder));
+  renderDndOverviewFeatures(builder);
   renderDndAttributes(document.getElementById("dnd-overview-attributes"),builder,sheet,true); renderDndAttributes(document.getElementById("dnd-attributes-full"),builder,sheet,false);
   renderDndSkills(builder,sheet); renderDndWeapons(builder,sheet); renderDndSpells(builder); renderDndProfile(builder,sheet);
   const initInput=document.getElementById("dnd-initiative-input"); if(initInput && document.activeElement!==initInput) initInput.value=document.getElementById("player-initiative")?.value||"";
@@ -1603,6 +1683,10 @@ function dndBuilderSheetPath() {
   return `games/${code}/builderSheetsDnd/${user.uid}`;
 }
 
+function openLegendBuilderSheetPath() {
+  return `games/${code}/builderSheets/${user.uid}`;
+}
+
 function numberOrNull(value) {
   if (value === "" || value === null || value === undefined) return null;
   const parsed = parseInt(value, 10);
@@ -1777,7 +1861,7 @@ function startSharedPlayerWatchers() {
       setDndValues(data);
       dndRenderOrDefer(currentDndBuilderData || {}, data);
     } else {
-      renderOpenLegendAttributes(data.attributes ?? {});
+      olRenderOrDefer(currentOpenLegendBuilderData || {}, data);
       const fatiguePoints = data?.fatigue?.points ?? getCurrentFatigue();
       setPlayerBanes(syncFatigueLinkedBanes(data.banes ?? [], fatiguePoints));
       setPlayerFatigue(fatiguePoints);
@@ -1793,6 +1877,15 @@ function startSharedPlayerWatchers() {
       maybePromptDndCreation(snapshot.exists());
     }, (error) => {
       console.error("Could not watch D&D builder sheet:", error);
+    });
+  }
+
+  if (isOpenLegendMode(mode)) {
+    onValue(ref(db, openLegendBuilderSheetPath()), (snapshot) => {
+      currentOpenLegendBuilderData = olNormalizeBuilder(snapshot.exists() ? snapshot.val() || {} : {}, getCurrentSheetCache() || {});
+      olRenderOrDefer(currentOpenLegendBuilderData, getCurrentSheetCache() || {});
+    }, (error) => {
+      console.error("Could not watch Open Legend builder sheet:", error);
     });
   }
 
@@ -1819,6 +1912,167 @@ function setCurrentSheetCache(data) {
   window.__playerSheetCache = data || null;
 }
 
+let currentOpenLegendBuilderData = null;
+let olBuilderAutoSaveTimer = null;
+let olBuilderSaving = false;
+let olDeferredLiveRender = false;
+let currentOlWeaponEditIndex = null;
+let currentOlFeatEditIndex = null;
+
+const OL_DEFAULT_MODIFIERS = {
+  speed:30, wealth:0, armorGuardBonus:0, guardBonus:0, toughnessBonus:0,
+  resolveBonus:0, hpBonus:0, initiativeBonus:0, initiativeAttribute:"Agility"
+};
+function olClone(value){ return JSON.parse(JSON.stringify(value ?? {})); }
+function olNormalizeFeat(raw){
+  if(typeof raw === "string") return {key:raw,name:raw,level:1};
+  const name=String(raw?.key || raw?.name || "").trim();
+  const entry=OPENLEGEND_FEATS.find((feat)=>feat.name===name);
+  return {key:name,name,level:Math.max(1,Math.min(Number(entry?.maxLevel||1),Number(raw?.level||1)))};
+}
+function olNormalizeWeapon(raw={}){
+  const preset=findOpenLegendWeaponPreset(raw?.presetKey || raw?.name || "");
+  const base=preset ? createOpenLegendWeapon(preset.key) : createOpenLegendWeapon();
+  return {
+    ...base, ...olClone(raw),
+    tags:Array.isArray(raw?.tags)?raw.tags.join(", "):String(raw?.tags ?? base.tags ?? ""),
+    flatBonus:Number(raw?.flatBonus ?? base.flatBonus ?? 0), boon:Math.max(0,Number(raw?.boon ?? base.boon ?? 0)), bane:Math.max(0,Number(raw?.bane ?? base.bane ?? 0))
+  };
+}
+function olNormalizeBuilder(data={}, sheet={}){
+  const attributes=Object.fromEntries(OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>[name,Math.max(0,Number(data?.attributes?.[name] ?? sheet?.attributes?.[name] ?? 0))]));
+  return {
+    name:data.name ?? sheet.name ?? user.displayName ?? "", concept:data.concept || "", xp:Math.max(0,Number(data.xp||0)), level:Math.max(1,Number(data.level||1)),
+    attributes,
+    feats:Array.isArray(data.feats)?data.feats.map(olNormalizeFeat).filter((feat)=>feat.name):(Array.isArray(sheet.feats)?sheet.feats.map(olNormalizeFeat).filter((feat)=>feat.name):[]),
+    perks:Array.isArray(data.perks)?data.perks.map(String):[], flaws:Array.isArray(data.flaws)?data.flaws.map(String):[],
+    weapons:Array.isArray(data.weapons)?data.weapons.map(olNormalizeWeapon):(Array.isArray(sheet.weapons)?sheet.weapons.map(olNormalizeWeapon):[]), notes:data.notes || "",
+    modifiers:{...OL_DEFAULT_MODIFIERS,...olClone(data.modifiers||{})}
+  };
+}
+function olXpLevel(xp){ return Math.max(1,1+Math.floor(Math.max(0,Number(xp||0))/3)); }
+function olDerived(builder={}){
+  const a=builder.attributes||{}; const m={...OL_DEFAULT_MODIFIERS,...(builder.modifiers||{})};
+  const n=(key)=>Number(a[key]||0), bonus=(key)=>Number(m[key]||0);
+  return {
+    grd:10+n("Agility")+n("Might")+bonus("armorGuardBonus")+bonus("guardBonus"),
+    tgh:10+n("Fortitude")+n("Will")+bonus("toughnessBonus"),
+    res:10+n("Presence")+n("Will")+bonus("resolveBonus"),
+    baseHp:10+(2*(n("Fortitude")+n("Presence")+n("Will")))+bonus("hpBonus"),
+    speed:Number(m.speed||30), wealth:Number(m.wealth||0),
+    initiativeAttribute:m.initiativeAttribute || "Agility", initiativeBonus:Number(m.initiativeBonus||0)
+  };
+}
+function olWeaponDamage(builder={}, weapon={}){
+  return composeOpenLegendWeaponDamage({attributeDie:getOpenLegendAttributeDie(builder.attributes?.[weapon.attribute]||0),bonusDice:weapon.bonusDice,flatBonus:weapon.flatBonus,customDamage:weapon.customDamage});
+}
+function olEditingFieldHasFocus(){
+  const active=document.activeElement;
+  return !!active?.matches?.("input,textarea,select") && !!active.closest?.("#player-openlegend-attributes-panel,#player-openlegend-profile-panel,#ol-weapon-editor-modal,#ol-feat-editor-modal");
+}
+function olRenderOrDefer(builder=currentOpenLegendBuilderData||{},sheet=getCurrentSheetCache()||{}){
+  if(olEditingFieldHasFocus()){olDeferredLiveRender=true;return;}
+  olDeferredLiveRender=false; renderOpenLegendDashboard(builder,sheet);
+}
+function flushOlDeferredLiveRender(){ if(!olDeferredLiveRender||olEditingFieldHasFocus())return; olDeferredLiveRender=false; renderOpenLegendDashboard(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); }
+function olAttributePointCost(score){const n=Math.max(0,Math.floor(Number(score)||0));return (n*(n+1))/2;}
+function olBudgetSummary(builder={}){
+  const xp=Math.max(0,Number(builder.xp||0));
+  const attributeTotal=40+(xp*3); const featTotal=6+xp;
+  const attributeSpent=Object.values(builder.attributes||{}).reduce((sum,value)=>sum+olAttributePointCost(value),0);
+  const featSpent=(builder.feats||[]).reduce((sum,feat)=>{const entry=OPENLEGEND_FEATS.find((f)=>f.name===feat.name);return sum+(Number(entry?.costPerLevel||0)*Number(feat.level||1));},0);
+  return {attributeTotal,attributeSpent,featTotal,featSpent};
+}
+function renderOpenLegendOverviewMeta(builder={}){
+  const target=document.getElementById("player-openlegend-overview-meta"); if(!target)return;
+  const d=olDerived(builder); const level=Math.max(1,Number(builder.level||olXpLevel(builder.xp))); const budget=olBudgetSummary(builder);
+  target.innerHTML=`<div><span>Level</span><strong>${level}</strong></div><div><span>XP</span><strong>${Number(builder.xp||0)}</strong></div><div><span>Speed</span><strong>${d.speed} ft</strong></div><div><span>Wealth</span><strong>${d.wealth}</strong></div><div class="${budget.attributeSpent>budget.attributeTotal?"is-over-budget":""}"><span>Attribute Points</span><strong>${budget.attributeSpent} / ${budget.attributeTotal}</strong></div><div class="${budget.featSpent>budget.featTotal?"is-over-budget":""}"><span>Feat Points</span><strong>${budget.featSpent} / ${budget.featTotal}</strong></div>`;
+}
+function renderOpenLegendWeapons(builder={}){
+  const target=document.getElementById("player-openlegend-weapons-list"); if(!target)return;
+  const weapons=builder.weapons||[];
+  target.innerHTML=weapons.length?weapons.map((weapon,index)=>{
+    const preset=findOpenLegendWeaponPreset(weapon.presetKey||weapon.name||"");
+    return `<article class="ol-weapon-card"><div class="ol-card-heading"><div><small>${escapeHtml(preset?.category||"Custom Weapon")}</small><h3>${escapeHtml(weapon.name||`Weapon ${index+1}`)}</h3></div><div class="ol-card-actions"><button type="button" data-ol-edit-weapon="${index}">Edit</button><button type="button" class="remove-button" data-ol-remove-weapon="${index}">Remove</button></div></div><div class="ol-weapon-stats"><div><span>Damage</span><strong>${escapeHtml(olWeaponDamage(builder,weapon))}</strong></div><div><span>Attack</span><strong>${escapeHtml(weapon.attribute||"—")}</strong></div><div><span>VS</span><strong>${escapeHtml(weapon.vs||"GRD")}</strong></div><div><span>Range</span><strong>${escapeHtml(weapon.range||"—")}</strong></div></div>${weapon.tags?`<div class="ol-card-tags">${escapeHtml(String(weapon.tags))}</div>`:""}${weapon.notes?`<p class="muted">${escapeHtml(weapon.notes)}</p>`:""}</article>`;
+  }).join(""):`<div class="empty-state">No weapons added.</div>`;
+}
+function renderOpenLegendFeats(builder={}){
+  const target=document.getElementById("player-openlegend-feats-list"); const summary=document.getElementById("player-openlegend-feats-summary"); if(!target)return;
+  const feats=builder.feats||[]; const budget=olBudgetSummary(builder); const spent=budget.featSpent;
+  if(summary)summary.innerHTML=`<span>${feats.length} feat${feats.length===1?"":"s"}</span><strong class="${spent>budget.featTotal?"is-over-budget":""}">${spent} / ${budget.featTotal} feat points</strong>`;
+  target.innerHTML=feats.length?feats.map((feat,index)=>{const entry=OPENLEGEND_FEATS.find((f)=>f.name===feat.name); return `<article class="ol-feat-card"><div class="ol-card-heading"><div><small>Tier ${Number(feat.level||1)} · ${Number(entry?.costPerLevel||0)} pt / tier</small><h3>${escapeHtml(feat.name)}</h3></div><div class="ol-card-actions"><button type="button" data-ol-edit-feat="${index}">Details</button><button type="button" class="remove-button" data-ol-remove-feat="${index}">Remove</button></div></div><p>${escapeHtml(entry?.description||"")}</p></article>`;}).join(""):`<div class="empty-state">No feats added.</div>`;
+}
+function renderOpenLegendProfile(builder={}){
+  const target=document.getElementById("player-openlegend-profile-content"); if(!target)return;
+  const m={...OL_DEFAULT_MODIFIERS,...(builder.modifiers||{})};
+  const listInputs=(type,list)=>`<div class="ol-simple-list" data-ol-${type}-list>${(list||[]).map((item,index)=>`<div><input type="text" data-ol-${type}-index="${index}" value="${escapeHtml(item)}"><button type="button" class="remove-button" data-ol-remove-${type}="${index}">Remove</button></div>`).join("")||`<span class="muted">None added.</span>`}</div>`;
+  target.innerHTML=`
+    <div class="ol-form-grid ol-form-grid--3">
+      <label>Concept<input id="ol-profile-concept" type="text" value="${escapeHtml(builder.concept||"")}"></label>
+      <label>XP<input id="ol-profile-xp" type="number" min="0" value="${Number(builder.xp||0)}"></label>
+      <label>Level<input id="ol-profile-level" type="number" value="${Math.max(1,Number(builder.level||olXpLevel(builder.xp)))}" readonly></label>
+      <label>Speed<input id="ol-profile-speed" type="number" min="0" value="${Number(m.speed||30)}"></label>
+      <label>Wealth<input id="ol-profile-wealth" type="number" min="0" value="${Number(m.wealth||0)}"></label>
+      <label>Initiative Attribute<select id="ol-profile-init-attribute">${OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>`<option ${m.initiativeAttribute===name?"selected":""}>${name}</option>`).join("")}</select></label>
+      <label>Initiative Bonus<input id="ol-profile-init-bonus" type="number" value="${Number(m.initiativeBonus||0)}"></label>
+      <label>Armor Guard Bonus<input id="ol-profile-armor-guard" type="number" value="${Number(m.armorGuardBonus||0)}"></label>
+      <label>Other Guard Bonus<input id="ol-profile-guard-bonus" type="number" value="${Number(m.guardBonus||0)}"></label>
+      <label>Toughness Bonus<input id="ol-profile-toughness-bonus" type="number" value="${Number(m.toughnessBonus||0)}"></label>
+      <label>Resolve Bonus<input id="ol-profile-resolve-bonus" type="number" value="${Number(m.resolveBonus||0)}"></label>
+      <label>HP Bonus<input id="ol-profile-hp-bonus" type="number" value="${Number(m.hpBonus||0)}"></label>
+    </div>
+    <div class="ol-profile-two-col"><section><div class="ol-panel-heading"><h3>Perks</h3><button type="button" data-ol-add-perk>Add Perk</button></div>${listInputs("perk",builder.perks)}</section><section><div class="ol-panel-heading"><h3>Flaws</h3><button type="button" data-ol-add-flaw>Add Flaw</button></div>${listInputs("flaw",builder.flaws)}</section></div>
+    <label class="ol-modal-field">Character Notes<textarea id="ol-profile-notes">${escapeHtml(builder.notes||"")}</textarea></label>
+    <div class="ol-profile-legacy-row"><a id="ol-profile-legacy-builder" class="button-link" href="openlegend_character_builder.html?code=${encodeURIComponent(code)}">Legacy Builder</a><span class="muted">Advanced validation and any fields not yet moved remain available here.</span></div>`;
+}
+function renderOpenLegendDashboard(builder=currentOpenLegendBuilderData||{},sheet=getCurrentSheetCache()||{}){
+  if(!isOpenLegendMode(mode))return;
+  const normalized=olNormalizeBuilder(builder,sheet); currentOpenLegendBuilderData=normalized;
+  renderOpenLegendAttributes(normalized.attributes); renderOpenLegendOverviewMeta(normalized); renderOpenLegendWeapons(normalized); renderOpenLegendFeats(normalized); renderOpenLegendProfile(normalized);
+  const d=olDerived(normalized); setOpenLegendValues({...sheet,baseHp:d.baseHp,grd:d.grd,res:d.res,tgh:d.tgh,currentHp:sheet.currentHp ?? d.baseHp,lethal:sheet.lethal??0,banes:sheet.banes??[],fatigue:sheet.fatigue??{points:0}});
+}
+function syncOlBuilderFromProfile(builder){
+  const val=(id)=>document.getElementById(id)?.value;
+  if(val("ol-profile-concept")!==undefined)builder.concept=val("ol-profile-concept")||"";
+  if(val("ol-profile-xp")!==undefined){builder.xp=Math.max(0,Number(val("ol-profile-xp")||0));builder.level=olXpLevel(builder.xp);}
+  builder.modifiers={...OL_DEFAULT_MODIFIERS,...(builder.modifiers||{})};
+  const map={speed:"ol-profile-speed",wealth:"ol-profile-wealth",initiativeBonus:"ol-profile-init-bonus",armorGuardBonus:"ol-profile-armor-guard",guardBonus:"ol-profile-guard-bonus",toughnessBonus:"ol-profile-toughness-bonus",resolveBonus:"ol-profile-resolve-bonus",hpBonus:"ol-profile-hp-bonus"};
+  Object.entries(map).forEach(([key,id])=>{if(val(id)!==undefined)builder.modifiers[key]=Number(val(id)||0);});
+  if(val("ol-profile-init-attribute")!==undefined)builder.modifiers.initiativeAttribute=val("ol-profile-init-attribute")||"Agility";
+  if(val("ol-profile-notes")!==undefined)builder.notes=val("ol-profile-notes")||"";
+  document.querySelectorAll("[data-ol-perk-index]").forEach((input)=>{const i=Number(input.dataset.olPerkIndex);builder.perks[i]=input.value.trim();}); builder.perks=(builder.perks||[]).filter(Boolean);
+  document.querySelectorAll("[data-ol-flaw-index]").forEach((input)=>{const i=Number(input.dataset.olFlawIndex);builder.flaws[i]=input.value.trim();}); builder.flaws=(builder.flaws||[]).filter(Boolean);
+  return builder;
+}
+async function saveOpenLegendBuilderAndPlayer(builder,message="Open Legend auto-saved.",render=true){
+  if(olBuilderSaving)return; olBuilderSaving=true;
+  const status=document.getElementById("ol-profile-save-status"); if(status)status.textContent="Saving…";
+  try{
+    const normalized=olNormalizeBuilder(builder,getCurrentSheetCache()||{}); normalized.name=document.getElementById("player-name")?.value?.trim() || normalized.name; normalized.level=olXpLevel(normalized.xp);
+    const d=olDerived(normalized); const existing=(await getCurrentSheet())||{}; const oldCurrent=Number(existing.currentHp); const nextCurrent=Number.isFinite(oldCurrent)?Math.max(0,Math.min(oldCurrent,d.baseHp)):d.baseHp;
+    const initDie=getOpenLegendAttributeDie(normalized.attributes?.[d.initiativeAttribute]||0);
+    const initFormula=`${String(initDie||"").toLowerCase()}${d.initiativeBonus>=0?`+${d.initiativeBonus}`:d.initiativeBonus}`;
+    const now=Date.now(); const builderPayload={...olClone(normalized),updatedAt:now};
+    const playerPayload={...existing,uid:user.uid,userEmail:user.email||"",userName:user.displayName||"",mode:"openlegend",name:normalized.name,attributes:olClone(normalized.attributes),baseHp:d.baseHp,currentHp:nextCurrent,grd:d.grd,res:d.res,tgh:d.tgh,initiativeAttribute:d.initiativeAttribute,initiativeBonus:d.initiativeBonus,initiativeDie:initDie,initiativeFormula:initFormula,feats:olClone(normalized.feats),weapons:normalized.weapons.map((weapon)=>({...weapon,computedDamage:olWeaponDamage(normalized,weapon)})),builderUpdatedAt:now,updatedAt:now};
+    await update(ref(db),{[openLegendBuilderSheetPath()]:builderPayload,[playerSheetPath()]:playerPayload});
+    currentOpenLegendBuilderData=normalized; setCurrentSheetCache(playerPayload); if(render)olRenderOrDefer(normalized,playerPayload); if(status)status.textContent="Saved"; statusEl.textContent=message;
+  }catch(error){console.error("Open Legend save failed:",error);if(status)status.textContent="Save failed";statusEl.textContent=error.message||"Could not save Open Legend character.";}finally{olBuilderSaving=false;}
+}
+function scheduleOlBuilderAutoSave(syncProfile=false){ clearTimeout(olBuilderAutoSaveTimer); olBuilderAutoSaveTimer=setTimeout(async()=>{let builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});if(syncProfile)builder=syncOlBuilderFromProfile(builder);await saveOpenLegendBuilderAndPlayer(builder,"Open Legend auto-saved.",false);},650); }
+function openOlWeaponEditor(index=null){
+  const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); const editing=Number.isInteger(index)&&!!builder.weapons[index]; currentOlWeaponEditIndex=editing?index:null; const weapon=editing?olNormalizeWeapon(builder.weapons[index]):createOpenLegendWeapon(OPENLEGEND_WEAPONS[0]?.key||"");
+  const preset=document.getElementById("ol-weapon-preset"); preset.innerHTML=`<option value="">Custom</option>${OPENLEGEND_WEAPONS.map((w)=>`<option value="${escapeHtml(w.key)}">${escapeHtml(w.name)}</option>`).join("")}`; preset.value=weapon.presetKey||"";
+  document.getElementById("ol-weapon-attribute").innerHTML=OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>`<option ${weapon.attribute===name?"selected":""}>${name}</option>`).join("");
+  const values={"ol-weapon-name":weapon.name,"ol-weapon-vs":weapon.vs,"ol-weapon-range":weapon.range,"ol-weapon-bonus-dice":weapon.bonusDice,"ol-weapon-flat-bonus":weapon.flatBonus,"ol-weapon-boon":weapon.boon,"ol-weapon-bane":weapon.bane,"ol-weapon-tags":weapon.tags,"ol-weapon-notes":weapon.notes}; Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??"";});
+  document.getElementById("ol-weapon-editor-title").textContent=editing?"Edit Weapon":"Add Weapon"; refreshOlWeaponPreview(); document.getElementById("ol-weapon-editor-modal").setAttribute("aria-hidden","false");
+}
+function refreshOlWeaponPreview(){ const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); const weapon={attribute:document.getElementById("ol-weapon-attribute")?.value||"Agility",bonusDice:document.getElementById("ol-weapon-bonus-dice")?.value||"",flatBonus:Number(document.getElementById("ol-weapon-flat-bonus")?.value||0)}; const el=document.getElementById("ol-weapon-damage-preview");if(el)el.innerHTML=`<span>Computed Damage</span><strong>${escapeHtml(olWeaponDamage(builder,weapon))}</strong>`; }
+function applyOlWeaponPreset(){const key=document.getElementById("ol-weapon-preset")?.value||"";if(!key)return;const w=createOpenLegendWeapon(key);const map={"ol-weapon-name":w.name,"ol-weapon-attribute":w.attribute,"ol-weapon-vs":w.vs,"ol-weapon-range":w.range,"ol-weapon-bonus-dice":w.bonusDice,"ol-weapon-flat-bonus":w.flatBonus,"ol-weapon-boon":w.boon,"ol-weapon-bane":w.bane,"ol-weapon-tags":w.tags,"ol-weapon-notes":w.notes};Object.entries(map).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??"";});refreshOlWeaponPreview();}
+async function saveOlWeapon(){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const weapon=olNormalizeWeapon({presetKey:document.getElementById("ol-weapon-preset")?.value||"",name:document.getElementById("ol-weapon-name")?.value?.trim()||"Weapon",attribute:document.getElementById("ol-weapon-attribute")?.value||"Agility",vs:document.getElementById("ol-weapon-vs")?.value||"GRD",range:document.getElementById("ol-weapon-range")?.value?.trim()||"Melee",bonusDice:document.getElementById("ol-weapon-bonus-dice")?.value?.trim()||"",flatBonus:Number(document.getElementById("ol-weapon-flat-bonus")?.value||0),boon:Number(document.getElementById("ol-weapon-boon")?.value||0),bane:Number(document.getElementById("ol-weapon-bane")?.value||0),tags:document.getElementById("ol-weapon-tags")?.value?.trim()||"",notes:document.getElementById("ol-weapon-notes")?.value?.trim()||""});if(Number.isInteger(currentOlWeaponEditIndex)&&builder.weapons[currentOlWeaponEditIndex])builder.weapons[currentOlWeaponEditIndex]=weapon;else builder.weapons.push(weapon);currentOlWeaponEditIndex=null;await saveOpenLegendBuilderAndPlayer(builder,"Weapon saved.");document.getElementById("ol-weapon-editor-modal")?.setAttribute("aria-hidden","true");}
+function openOlFeatEditor(index=null){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const editing=Number.isInteger(index)&&!!builder.feats[index];currentOlFeatEditIndex=editing?index:null;const feat=editing?builder.feats[index]:{name:OPENLEGEND_FEATS[0]?.name||"",level:1};const select=document.getElementById("ol-feat-select");select.innerHTML=OPENLEGEND_FEATS.map((f)=>`<option ${f.name===feat.name?"selected":""}>${escapeHtml(f.name)}</option>`).join("");document.getElementById("ol-feat-level").value=String(Number(feat.level||1));document.getElementById("ol-feat-editor-title").textContent=editing?"Feat Details":"Add Feat";refreshOlFeatDetail();document.getElementById("ol-feat-editor-modal").setAttribute("aria-hidden","false");}
+function refreshOlFeatDetail(){const name=document.getElementById("ol-feat-select")?.value||"";const entry=OPENLEGEND_FEATS.find((f)=>f.name===name);const level=document.getElementById("ol-feat-level");if(level&&entry){level.max=String(entry.maxLevel||1);level.value=String(Math.max(1,Math.min(Number(entry.maxLevel||1),Number(level.value||1))));}const target=document.getElementById("ol-feat-detail");if(target)target.innerHTML=entry?`<h4>${escapeHtml(entry.displayTitle||entry.name)}</h4><p>${entry.descriptionHtml||escapeHtml(entry.description||"")}</p>${entry.effectHtml?`<div>${entry.effectHtml}</div>`:""}${entry.specialHtml?`<div><strong>Special</strong>${entry.specialHtml}</div>`:""}`:"";}
+async function saveOlFeat(){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const name=document.getElementById("ol-feat-select")?.value||"";const entry=OPENLEGEND_FEATS.find((f)=>f.name===name);if(!entry)return;const feat={key:name,name,level:Math.max(1,Math.min(Number(entry.maxLevel||1),Number(document.getElementById("ol-feat-level")?.value||1)))};if(Number.isInteger(currentOlFeatEditIndex)&&builder.feats[currentOlFeatEditIndex])builder.feats[currentOlFeatEditIndex]=feat;else if(!builder.feats.some((f)=>f.name===name))builder.feats.push(feat);currentOlFeatEditIndex=null;await saveOpenLegendBuilderAndPlayer(builder,"Feat saved.");document.getElementById("ol-feat-editor-modal")?.setAttribute("aria-hidden","true");}
+
 const OPEN_LEGEND_ATTRIBUTE_ORDER = [
   "Agility", "Fortitude", "Might", "Learning", "Logic", "Perception",
   "Will", "Deception", "Persuasion", "Presence",
@@ -1837,41 +2091,11 @@ function openLegendAttributeDie(score) {
 function renderOpenLegendAttributes(attributes = {}) {
   const grid = document.getElementById("player-openlegend-attributes-grid");
   if (!grid) return;
-  grid.replaceChildren();
-
   const raw = attributes && typeof attributes === "object" ? attributes : {};
-  const seen = new Set();
-  const rows = [];
-
-  OPEN_LEGEND_ATTRIBUTE_ORDER.forEach((name) => {
-    if (Object.prototype.hasOwnProperty.call(raw, name)) {
-      rows.push([name, Number(raw[name]) || 0]);
-      seen.add(name);
-    }
-  });
-  Object.entries(raw)
-    .filter(([name]) => !seen.has(name))
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .forEach(([name, value]) => rows.push([name, Number(value) || 0]));
-
-  if (!rows.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No attributes saved.";
-    grid.appendChild(empty);
-    return;
-  }
-
-  rows.forEach(([name, value]) => {
-    const card = document.createElement("div");
-    card.className = "ol-attribute-card";
-    card.innerHTML = `
-      <span class="ol-attribute-name">${name}</span>
-      <strong class="ol-attribute-score">${value}</strong>
-      <span class="ol-attribute-die">${openLegendAttributeDie(value)}</span>
-    `;
-    grid.appendChild(card);
-  });
+  grid.innerHTML=OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>{
+    const value=Math.max(0,Number(raw[name]||0));
+    return `<label class="ol-attribute-card ol-attribute-card--editable"><span class="ol-attribute-name">${escapeHtml(name)}</span><input type="number" min="0" max="10" data-ol-attribute="${escapeHtml(name)}" value="${value}"><span class="ol-attribute-die">${escapeHtml(getOpenLegendAttributeDie(value)||"—")}</span></label>`;
+  }).join("");
 }
 
 function getCurrentBanes() {
@@ -3045,7 +3269,7 @@ async function loadExistingCharacter() {
     if (mode === "dnd") {
       setDndValues(data);
     } else {
-      renderOpenLegendAttributes(data.attributes ?? {});
+      renderOpenLegendDashboard(currentOpenLegendBuilderData || {}, data);
       setOpenLegendValues({
         currentHp: data.currentHp ?? "",
         baseHp: data.baseHp ?? data.maxHealth ?? "",
@@ -3078,7 +3302,7 @@ async function loadExistingCharacter() {
     if (mode === "dnd") {
       setDndValues(entry);
     } else {
-      renderOpenLegendAttributes(entry.attributes ?? {});
+      renderOpenLegendDashboard(currentOpenLegendBuilderData || {}, entry);
       setOpenLegendValues({
         currentHp: entry.currentHp ?? "",
         baseHp: entry.baseHp ?? entry.maxHealth ?? "",
@@ -3101,7 +3325,7 @@ async function loadExistingCharacter() {
   setSharedValues({ name: user.displayName ?? "" });
   if (mode === "dnd") setPlayerEffects([]);
   else {
-    renderOpenLegendAttributes({});
+    renderOpenLegendDashboard(currentOpenLegendBuilderData || {}, getCurrentSheetCache() || {});
     setPlayerBanes([]);
     setPlayerFatigue(0);
   }
@@ -3344,6 +3568,39 @@ document.getElementById("player-ol-lethal")?.addEventListener("input", () => {
   scheduleAutoSave("Open Legend lethal updated.");
 });
 
+
+
+if (isOpenLegendMode(mode)) {
+  const attrGrid=document.getElementById("player-openlegend-attributes-grid");
+  attrGrid?.addEventListener("input",(event)=>{
+    const input=event.target.closest("[data-ol-attribute]"); if(!input)return;
+    const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); builder.attributes[input.dataset.olAttribute]=Math.max(0,Number(input.value||0)); currentOpenLegendBuilderData=builder;
+    const die=input.closest(".ol-attribute-card")?.querySelector(".ol-attribute-die"); if(die)die.textContent=getOpenLegendAttributeDie(builder.attributes[input.dataset.olAttribute])||"—";
+    scheduleOlBuilderAutoSave(false);
+  });
+  const profile=document.getElementById("player-openlegend-profile-content");
+  profile?.addEventListener("input",()=>scheduleOlBuilderAutoSave(true));
+  profile?.addEventListener("change",()=>scheduleOlBuilderAutoSave(true));
+  profile?.addEventListener("click",async(event)=>{
+    if(event.target.closest("[data-ol-add-perk]")){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.perks.push("New Perk");await saveOpenLegendBuilderAndPlayer(builder,"Perk added.");return;}
+    if(event.target.closest("[data-ol-add-flaw]")){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.flaws.push("New Flaw");await saveOpenLegendBuilderAndPlayer(builder,"Flaw added.");return;}
+    const perk=event.target.closest("[data-ol-remove-perk]");if(perk){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.perks.splice(Number(perk.dataset.olRemovePerk),1);await saveOpenLegendBuilderAndPlayer(builder,"Perk removed.");return;}
+    const flaw=event.target.closest("[data-ol-remove-flaw]");if(flaw){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.flaws.splice(Number(flaw.dataset.olRemoveFlaw),1);await saveOpenLegendBuilderAndPlayer(builder,"Flaw removed.");return;}
+  });
+  document.getElementById("ol-add-weapon-button")?.addEventListener("click",()=>openOlWeaponEditor());
+  document.getElementById("ol-add-feat-button")?.addEventListener("click",()=>openOlFeatEditor());
+  document.getElementById("player-openlegend-weapons-list")?.addEventListener("click",async(event)=>{const edit=event.target.closest("[data-ol-edit-weapon]");if(edit){openOlWeaponEditor(Number(edit.dataset.olEditWeapon));return;}const remove=event.target.closest("[data-ol-remove-weapon]");if(remove){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.weapons.splice(Number(remove.dataset.olRemoveWeapon),1);await saveOpenLegendBuilderAndPlayer(builder,"Weapon removed.");}});
+  document.getElementById("player-openlegend-feats-list")?.addEventListener("click",async(event)=>{const edit=event.target.closest("[data-ol-edit-feat]");if(edit){openOlFeatEditor(Number(edit.dataset.olEditFeat));return;}const remove=event.target.closest("[data-ol-remove-feat]");if(remove){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.feats.splice(Number(remove.dataset.olRemoveFeat),1);await saveOpenLegendBuilderAndPlayer(builder,"Feat removed.");}});
+  document.getElementById("ol-weapon-preset")?.addEventListener("change",applyOlWeaponPreset);
+  ["ol-weapon-attribute","ol-weapon-bonus-dice","ol-weapon-flat-bonus"].forEach((id)=>document.getElementById(id)?.addEventListener("input",refreshOlWeaponPreview));
+  document.getElementById("ol-save-weapon-button")?.addEventListener("click",saveOlWeapon);
+  document.getElementById("ol-feat-select")?.addEventListener("change",refreshOlFeatDetail);
+  document.getElementById("ol-feat-level")?.addEventListener("input",refreshOlFeatDetail);
+  document.getElementById("ol-save-feat-button")?.addEventListener("click",saveOlFeat);
+  document.querySelectorAll("[data-ol-close]").forEach((button)=>button.addEventListener("click",()=>document.getElementById(button.dataset.olClose)?.setAttribute("aria-hidden","true")));
+  document.addEventListener("focusout",()=>setTimeout(flushOlDeferredLiveRender,80));
+}
+
 document.getElementById("create-tracker-btn")?.addEventListener("click", createTracker);
 
 document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
@@ -3370,6 +3627,9 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 ].forEach((id) => {
   document.getElementById(id)?.addEventListener("input", () => {
     scheduleAutoSave("Character auto-saved.");
+    if (isOpenLegendMode(mode) && id === "player-name") {
+      const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); builder.name=document.getElementById("player-name")?.value?.trim()||builder.name; currentOpenLegendBuilderData=builder; scheduleOlBuilderAutoSave(false);
+    }
   });
 });
 

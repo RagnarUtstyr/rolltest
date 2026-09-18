@@ -1452,3 +1452,115 @@ body.player-mode-openlegend {
   background:linear-gradient(180deg,#87372f,#5f2621);
   color:#fff;
 }
+
+
+/* === 2026-09-18 expanded Open Legend player sheet === */
+body.player-mode-openlegend #dnd-sheet-app,
+body.player-mode-openlegend #player-dnd-section { display:none !important; }
+body.player-mode-openlegend #player-openlegend-section { display:none !important; }
+
+.player-mode-openlegend .ol-mobile-carousel.is-carousel-active,
+.player-mode-openlegend .ol-mobile-carousel.is-carousel-active * { box-sizing:border-box; }
+.player-mode-openlegend .ol-mobile-carousel.is-carousel-active .ol-carousel-track { max-width:100%; overflow-x:auto; overflow-y:hidden; }
+.player-mode-openlegend .ol-mobile-carousel.is-carousel-active .ol-carousel-slide { min-width:100%; max-width:100%; overflow-x:hidden; }
+.player-mode-openlegend .ol-mobile-carousel.is-carousel-active .ol-carousel-slot,
+.player-mode-openlegend .ol-mobile-carousel.is-carousel-active .ol-carousel-slot > * { min-width:0; max-width:100%; }
+
+.player-mode-openlegend :where(.field-stack input,input[type="text"],input[type="number"],select,textarea) {
+  min-height:42px;
+  width:100%;
+  max-width:100%;
+  padding:8px 10px;
+  border:1px solid rgba(114,157,142,.55);
+  border-radius:8px;
+  background:rgba(4,25,22,.88);
+  color:#efe5c5;
+  font:inherit;
+  line-height:1.2;
+  box-sizing:border-box;
+}
+.player-mode-openlegend textarea { min-height:96px; resize:vertical; }
+.player-mode-openlegend :where(.field-stack input,input[type="text"],input[type="number"],select,textarea):focus {
+  outline:none;
+  border-color:#d9c17e;
+  box-shadow:0 0 0 2px rgba(217,193,126,.13);
+  background:rgba(8,39,33,.96);
+}
+.player-mode-openlegend #player-initiative-panel input,
+.player-mode-openlegend .tracker-form input,
+.player-mode-openlegend #ol-damage-input { min-height:44px !important; padding:9px 10px !important; font-size:.95rem !important; }
+.player-mode-openlegend .tracker-form { grid-template-columns:minmax(160px,1fr) 110px auto !important; align-items:end; gap:9px; }
+.player-mode-openlegend #tracker-name { min-width:0; }
+.player-mode-openlegend #tracker-amount { min-width:90px; width:100%; }
+
+.player-mode-openlegend .ol-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.player-mode-openlegend .ol-panel-heading h2,
+.player-mode-openlegend .ol-panel-heading h3 { margin:0; }
+.player-mode-openlegend .ol-builder-panel { min-width:0; }
+.player-mode-openlegend .ol-overview-meta { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:10px; }
+.player-mode-openlegend .ol-overview-meta > div,
+.player-mode-openlegend .ol-builder-summary { display:grid; gap:3px; padding:9px 10px; border:1px solid rgba(126,171,150,.23); border-radius:8px; background:rgba(2,27,23,.64); }
+.player-mode-openlegend .ol-overview-meta span,
+.player-mode-openlegend .ol-builder-summary span { color:#a8b7ad; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+.player-mode-openlegend .ol-overview-meta strong,
+.player-mode-openlegend .ol-builder-summary strong { color:#f3e6b9; }
+.player-mode-openlegend .ol-attributes-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.player-mode-openlegend .ol-attribute-card--editable { display:grid; grid-template-columns:minmax(0,1fr) 70px auto; align-items:center; gap:8px; text-align:left; }
+.player-mode-openlegend .ol-attribute-card--editable input { min-height:38px; text-align:center; padding:6px; }
+.player-mode-openlegend .ol-attribute-card--editable .ol-attribute-die { min-width:48px; text-align:right; }
+.player-mode-openlegend .ol-weapons-list,
+.player-mode-openlegend .ol-feats-list { display:grid; gap:10px; }
+.player-mode-openlegend .ol-weapon-card,
+.player-mode-openlegend .ol-feat-card { border:1px solid rgba(126,171,150,.25); border-radius:10px; padding:12px; background:rgba(3,29,25,.72); min-width:0; }
+.player-mode-openlegend .ol-card-heading { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+.player-mode-openlegend .ol-card-heading h3 { margin:2px 0 0; color:#f0dfab; }
+.player-mode-openlegend .ol-card-heading small { color:#96aa9e; }
+.player-mode-openlegend .ol-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.player-mode-openlegend .ol-weapon-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin-top:10px; }
+.player-mode-openlegend .ol-weapon-stats > div { padding:8px; border-radius:7px; background:rgba(255,255,255,.035); display:grid; gap:2px; }
+.player-mode-openlegend .ol-weapon-stats span { color:#98aaa0; font-size:.69rem; text-transform:uppercase; }
+.player-mode-openlegend .ol-weapon-stats strong { color:#ece3c6; overflow-wrap:anywhere; }
+.player-mode-openlegend .ol-card-tags { margin-top:8px; color:#c5d2ca; font-size:.8rem; }
+.player-mode-openlegend .ol-feat-card p { margin:8px 0 0; color:#cbd7cf; line-height:1.45; }
+.player-mode-openlegend .ol-form-grid { display:grid; gap:10px; }
+.player-mode-openlegend .ol-form-grid--2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.player-mode-openlegend .ol-form-grid--3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.player-mode-openlegend .ol-form-grid label,
+.player-mode-openlegend .ol-modal-field { display:grid; gap:5px; color:#b8c5bc; font-size:.79rem; }
+.player-mode-openlegend .ol-profile-two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+.player-mode-openlegend .ol-profile-two-col > section { border:1px solid rgba(126,171,150,.2); border-radius:9px; padding:10px; background:rgba(1,20,17,.55); }
+.player-mode-openlegend .ol-simple-list { display:grid; gap:7px; }
+.player-mode-openlegend .ol-simple-list > div { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; }
+.player-mode-openlegend .ol-profile-legacy-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+.player-mode-openlegend .ol-builder-modal { width:min(760px,calc(100vw - 24px)); }
+.player-mode-openlegend .ol-feat-detail { margin-top:12px; max-height:48vh; overflow:auto; padding:10px; border:1px solid rgba(126,171,150,.2); border-radius:8px; color:#d3ddd7; }
+.player-mode-openlegend .ol-feat-detail h4 { margin:0 0 8px; color:#f0dfab; }
+.player-mode-openlegend .ol-modal-actions { display:flex; justify-content:flex-end; margin-top:12px; }
+
+@media (max-width: 760px) {
+  .player-mode-openlegend .ol-attributes-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .player-mode-openlegend .ol-overview-meta { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .player-mode-openlegend .ol-form-grid--3 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .player-mode-openlegend .ol-profile-two-col { grid-template-columns:1fr; }
+  .player-mode-openlegend .ol-weapon-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .player-mode-openlegend .tracker-form { grid-template-columns:minmax(0,1fr) 90px !important; }
+  .player-mode-openlegend .tracker-form #create-tracker-btn { grid-column:1 / -1; width:100% !important; }
+}
+@media (max-width: 430px) {
+  .player-mode-openlegend .ol-form-grid--2,
+  .player-mode-openlegend .ol-form-grid--3 { grid-template-columns:1fr; }
+  .player-mode-openlegend .ol-attribute-card--editable { grid-template-columns:minmax(0,1fr) 58px 44px; gap:5px; }
+}
+
+@media (max-width: 720px) {
+  .player-mode-openlegend .ol-hp-control-panel { grid-template-columns:minmax(120px,1fr) minmax(150px,1fr) !important; }
+  .player-mode-openlegend .ol-hp-control-panel #ol-damage-input { width:100% !important; max-width:none !important; min-width:0 !important; min-height:44px !important; }
+}
+@media (max-width: 420px) {
+  .player-mode-openlegend .ol-hp-control-panel { grid-template-columns:1fr !important; }
+  .player-mode-openlegend .ol-hp-control-panel .damage-options,
+  .player-mode-openlegend .ol-hp-control-panel .ol-hp-buttons { grid-column:1 !important; }
+}
+.player-mode-openlegend .ol-overview-meta { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.player-mode-openlegend .is-over-budget { color:#ffb1a9 !important; }
+@media (max-width:760px){.player-mode-openlegend .ol-overview-meta{grid-template-columns:repeat(2,minmax(0,1fr));}}
