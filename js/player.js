@@ -5,6 +5,7 @@ import { BANES } from "./banes.js";
 import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
 import { FATIGUE_DATA, clampFatigueLevel, getFatigueLevels, hasFatigueSlowedLink } from "./fatigue.js";
+import { DND_SPELLS, loadDndSpellLibrary, getDndSpellLibraryState, findDndSpell } from "./dnd_spells.js?v=20260918spells1";
 import {
   ref,
   get,
@@ -103,6 +104,10 @@ if (!game) {
 }
 
 const mode = String(game.mode || "").toLowerCase();
+if (mode === "dnd") {
+  try { await loadDndSpellLibrary(); }
+  catch (error) { console.warn("Full D&D spell library unavailable; using bundled fallback.", error); }
+}
 const returnToLobbyLink = document.getElementById("return-to-lobby-link");
 if (returnToLobbyLink) returnToLobbyLink.href = `lobby.html?code=${encodeURIComponent(code)}`;
 
@@ -459,12 +464,6 @@ const DND_WEAPON_ICON = {
   Rapier:"longsword.png", Scimitar:"longsword.png", Shortbow:"shortbow.png", Shortsword:"longsword.png", Spear:"spear.png",
   Warhammer:"warhammer.png", CrossbowLight:"crossbow.png"
 };
-const DND_SPELLS = [
-  {name:"Acid Splash",level:0,classes:["Sorcerer","Wizard"]},{name:"Blade Ward",level:0,classes:["Bard","Sorcerer","Warlock","Wizard"]},{name:"Chill Touch",level:0,classes:["Sorcerer","Warlock","Wizard"]},{name:"Dancing Lights",level:0,classes:["Bard","Sorcerer","Wizard"]},{name:"Eldritch Blast",level:0,classes:["Warlock"]},{name:"Fire Bolt",level:0,classes:["Sorcerer","Wizard"]},{name:"Guidance",level:0,classes:["Cleric","Druid"]},{name:"Light",level:0,classes:["Bard","Cleric","Sorcerer","Wizard"]},{name:"Mage Hand",level:0,classes:["Bard","Sorcerer","Warlock","Wizard"]},{name:"Minor Illusion",level:0,classes:["Bard","Sorcerer","Warlock","Wizard"]},{name:"Poison Spray",level:0,classes:["Druid","Sorcerer","Warlock","Wizard"]},{name:"Prestidigitation",level:0,classes:["Bard","Sorcerer","Warlock","Wizard"]},{name:"Resistance",level:0,classes:["Cleric","Druid"]},{name:"Sacred Flame",level:0,classes:["Cleric"]},{name:"Shillelagh",level:0,classes:["Druid"]},{name:"Shocking Grasp",level:0,classes:["Sorcerer","Wizard"]},{name:"Spare the Dying",level:0,classes:["Cleric"]},{name:"Thaumaturgy",level:0,classes:["Cleric"]},{name:"True Strike",level:0,classes:["Bard","Sorcerer","Warlock","Wizard"]},
-  {name:"Bless",level:1,classes:["Cleric","Paladin"]},{name:"Burning Hands",level:1,classes:["Sorcerer","Wizard"]},{name:"Charm Person",level:1,classes:["Bard","Druid","Sorcerer","Warlock","Wizard"]},{name:"Cure Wounds",level:1,classes:["Bard","Cleric","Druid","Paladin","Ranger"]},{name:"Detect Magic",level:1,classes:["Bard","Cleric","Druid","Paladin","Ranger","Sorcerer","Warlock","Wizard"]},{name:"Disguise Self",level:1,classes:["Bard","Sorcerer","Warlock","Wizard"]},{name:"Faerie Fire",level:1,classes:["Bard","Druid"]},{name:"Feather Fall",level:1,classes:["Bard","Sorcerer","Wizard"]},{name:"Find Familiar",level:1,classes:["Wizard"]},{name:"Guiding Bolt",level:1,classes:["Cleric"]},{name:"Healing Word",level:1,classes:["Bard","Cleric","Druid"]},{name:"Hex",level:1,classes:["Warlock"]},{name:"Mage Armor",level:1,classes:["Sorcerer","Wizard"]},{name:"Magic Missile",level:1,classes:["Sorcerer","Wizard"]},{name:"Shield",level:1,classes:["Sorcerer","Wizard"]},{name:"Sleep",level:1,classes:["Bard","Sorcerer","Wizard"]},{name:"Thunderwave",level:1,classes:["Bard","Druid","Wizard"]},
-  {name:"Aid",level:2,classes:["Cleric","Paladin"]},{name:"Darkness",level:2,classes:["Sorcerer","Warlock","Wizard"]},{name:"Hold Person",level:2,classes:["Bard","Cleric","Druid","Sorcerer","Warlock","Wizard"]},{name:"Invisibility",level:2,classes:["Bard","Sorcerer","Warlock","Wizard"]},{name:"Lesser Restoration",level:2,classes:["Bard","Cleric","Druid","Paladin","Ranger"]},{name:"Misty Step",level:2,classes:["Sorcerer","Warlock","Wizard"]},{name:"Scorching Ray",level:2,classes:["Sorcerer","Wizard"]},{name:"Shatter",level:2,classes:["Bard","Sorcerer","Wizard"]},{name:"Spiritual Weapon",level:2,classes:["Cleric"]},{name:"Suggestion",level:2,classes:["Bard","Sorcerer","Warlock","Wizard"]},
-  {name:"Counterspell",level:3,classes:["Sorcerer","Warlock","Wizard"]},{name:"Dispel Magic",level:3,classes:["Bard","Cleric","Druid","Paladin","Sorcerer","Warlock","Wizard"]},{name:"Fireball",level:3,classes:["Sorcerer","Wizard"]},{name:"Fly",level:3,classes:["Sorcerer","Warlock","Wizard"]},{name:"Haste",level:3,classes:["Sorcerer","Wizard"]},{name:"Revivify",level:3,classes:["Cleric","Paladin"]},{name:"Spirit Guardians",level:3,classes:["Cleric"]}
-];
 const DND_CANTRIPS_KNOWN = {
   Bard:[2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], Cleric:[3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5], Druid:[2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], Sorcerer:[4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6], Warlock:[2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], Wizard:[3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5]
 };
@@ -559,10 +558,34 @@ function dndSpellCapacity(builder = {}) {
   if (prepared) labels.push(`Prepared ${prepared}`);
   return { cantrips, spells, prepared, labels };
 }
+function dndWarlockLevel(builder = {}) {
+  return (builder.classes || []).filter((c)=>c?.name === "Warlock").reduce((sum,c)=>sum + Number(c?.level || 0), 0);
+}
+function dndPactMagicProfile(builder = {}) {
+  const level = dndWarlockLevel(builder);
+  if (!level) return { warlockLevel:0, slotLevel:0, count:0 };
+  const slotLevel = level <= 2 ? 1 : level <= 4 ? 2 : level <= 6 ? 3 : level <= 8 ? 4 : 5;
+  const count = level === 1 ? 1 : level <= 10 ? 2 : level <= 16 ? 3 : 4;
+  return { warlockLevel:level, slotLevel, count };
+}
+function dndWarlockArcanumLevels(builder = {}) {
+  const level = dndWarlockLevel(builder);
+  const result = [];
+  if (level >= 11) result.push(6);
+  if (level >= 13) result.push(7);
+  if (level >= 15) result.push(8);
+  if (level >= 17) result.push(9);
+  return result;
+}
+function dndIsArcanumEntry(builder = {}, spell = {}) {
+  if (spell?.castingMode === "arcanum" || spell?.kind === "arcanum") return true;
+  const level = Number(spell?.level || 0);
+  return level >= 6 && dndWarlockArcanumLevels(builder).includes(level) && Boolean(findDndSpell(spell?.name)?.classes?.includes("Warlock"));
+}
 function dndMaxSpellLevel(builder = {}) {
-  const slots = dndSpellSlots(builder);
   let level = 0;
-  slots.forEach((count, i)=>{ if (Number(count)>0) level=i+1; });
+  dndStandardSpellSlots(builder).forEach((count, i)=>{ if (Number(count)>0) level=i+1; });
+  level = Math.max(level, dndPactMagicProfile(builder).slotLevel, ...dndWarlockArcanumLevels(builder), 0);
   return level;
 }
 function dndClassNames(builder = {}) { return (builder.classes || []).map((c)=>c?.name).filter(Boolean); }
@@ -572,21 +595,32 @@ function dndClassMaxSpellLevel(className, classLevel) {
   if (!casting || !level) return 0;
   if (casting === "full") return Math.min(9, Math.ceil(level / 2));
   if (casting === "half") return level < 2 ? 0 : Math.min(5, Math.floor((level + 3) / 4));
-  if (casting === "pact") return Math.min(5, Math.ceil(level / 2));
+  if (casting === "pact") return dndPactMagicProfile({classes:[{name:"Warlock",level}]}).slotLevel;
   return 0;
 }
-function dndAvailableSpells(builder = {}, kind = "spell") {
+function dndSpellAccessMode(builder = {}, spell = {}) {
   const classLevels = new Map((builder.classes || []).filter((c)=>c?.name).map((c)=>[c.name, Number(c.level || 0)]));
+  const level = Number(spell?.level || 0);
+  if (level === 0) return (spell.classes || []).some((name)=>classLevels.has(name)) ? "cantrip" : null;
+  const regular = (spell.classes || []).some((className)=> {
+    const classLevel = classLevels.get(className);
+    if (!classLevel) return false;
+    return level <= dndClassMaxSpellLevel(className, classLevel);
+  });
+  if (regular) return "regular";
+  if ((spell.classes || []).includes("Warlock") && dndWarlockArcanumLevels(builder).includes(level)) return "arcanum";
+  return null;
+}
+function dndAvailableSpells(builder = {}, kind = "spell") {
   const selected = new Set((builder.spells || []).map((s)=>String(s?.name||"")));
-  return DND_SPELLS.filter((s)=> {
-    const eligibleClass = s.classes.some((className)=> {
-      if (!classLevels.has(className)) return false;
-      if (s.level === 0) return true;
-      return s.level <= dndClassMaxSpellLevel(className, classLevels.get(className));
-    });
-    if (!eligibleClass || selected.has(s.name)) return false;
-    if (kind === "cantrip") return s.level === 0;
-    return s.level > 0;
+  const existingArcanumLevels = new Set((builder.spells || []).filter((s)=>dndIsArcanumEntry(builder,s)).map((s)=>Number(s.level||0)));
+  return DND_SPELLS.filter((spell)=> {
+    if (selected.has(spell.name)) return false;
+    const access = dndSpellAccessMode(builder, spell);
+    if (kind === "cantrip") return spell.level === 0 && access === "cantrip";
+    if (spell.level <= 0 || !access) return false;
+    if (access === "arcanum" && existingArcanumLevels.has(Number(spell.level))) return false;
+    return true;
   });
 }
 function dndTrackedResourceForAction(builder = {}, actionName = "") {
@@ -626,12 +660,34 @@ function dndEnsureResourceDefaults(builder = {}) {
     const res=dndTrackedResourceForAction(builder,row.name);
     if (res && !Number.isFinite(Number(builder.resourceTracker[res.key]))) builder.resourceTracker[res.key]=res.max;
   });
-  const slots=dndSpellSlots(builder);
+  const slots=dndStandardSpellSlots(builder);
   slots.forEach((max,i)=>{
     if (!max) return;
     const key=`spellslot-${i+1}`;
     if (!Number.isFinite(Number(builder.resourceTracker[key]))) builder.resourceTracker[key]=max;
     else builder.resourceTracker[key]=Math.max(0,Math.min(max,Number(builder.resourceTracker[key])));
+  });
+  const pact=dndPactMagicProfile(builder);
+  if (pact.count) {
+    const key="pactslot-warlock";
+    if (!Number.isFinite(Number(builder.resourceTracker[key]))) {
+      // Migrate the old player-sheet format, which stored pure Pact Magic uses
+      // in the generic spellslot-N key. Only use that value when this
+      // character has no standard slot pool at the Pact slot level.
+      const legacyKey=`spellslot-${pact.slotLevel}`;
+      const standardAtPactLevel=Number(slots[pact.slotLevel-1]||0);
+      const legacyValue=Number(builder.resourceTracker[legacyKey]);
+      builder.resourceTracker[key]=standardAtPactLevel===0 && Number.isFinite(legacyValue)
+        ? Math.max(0,Math.min(pact.count,legacyValue))
+        : pact.count;
+    } else {
+      builder.resourceTracker[key]=Math.max(0,Math.min(pact.count,Number(builder.resourceTracker[key])));
+    }
+  }
+  dndWarlockArcanumLevels(builder).forEach((level)=>{
+    const key=`arcanum-${level}`;
+    if (!Number.isFinite(Number(builder.resourceTracker[key]))) builder.resourceTracker[key]=1;
+    else builder.resourceTracker[key]=Math.max(0,Math.min(1,Number(builder.resourceTracker[key])));
   });
   return builder;
 }
@@ -725,23 +781,16 @@ function dndActionRows(builder = {}) {
   const seen = new Set();
   return rows.filter((row)=> { const key = row.name; if (seen.has(key)) return false; seen.add(key); return true; });
 }
-function dndSpellSlots(builder = {}) {
+function dndStandardSpellSlots(builder = {}) {
   let caster = 0;
-  let pactLevel = 0;
   (builder.classes || []).forEach((c)=> {
     const kind=DND_CLASS_CASTING[c?.name];
     if(kind==="full") caster+=Number(c?.level||0);
     else if(kind==="half") caster+=Math.floor(Number(c?.level||0)/2);
-    else if(kind==="pact") pactLevel=Math.max(pactLevel,Number(c?.level||0));
   });
-  const slots = caster > 0 ? [...(DND_SPELL_SLOTS_FULL[Math.max(1,Math.min(20,caster))] || [0,0,0,0,0,0,0,0,0])] : [0,0,0,0,0,0,0,0,0];
-  if (pactLevel > 0) {
-    const pactSlotLevel = pactLevel <= 2 ? 1 : pactLevel <= 4 ? 2 : pactLevel <= 6 ? 3 : pactLevel <= 8 ? 4 : 5;
-    const pactCount = pactLevel === 1 ? 1 : pactLevel <= 10 ? 2 : pactLevel <= 16 ? 3 : 4;
-    slots[pactSlotLevel - 1] = Number(slots[pactSlotLevel - 1] || 0) + pactCount;
-  }
-  return slots;
+  return caster > 0 ? [...(DND_SPELL_SLOTS_FULL[Math.max(1,Math.min(20,caster))] || [0,0,0,0,0,0,0,0,0])] : [0,0,0,0,0,0,0,0,0];
 }
+function dndSpellSlots(builder = {}) { return dndStandardSpellSlots(builder); }
 function dndWeaponAttackMod(meta, abilities, prof, magic) {
   const mods = String(meta?.ability || "Strength").split("/").map((a)=>dndMod(abilities[a]));
   return Math.max(...mods) + prof + Number(magic || 0);
@@ -790,21 +839,85 @@ function renderDndWeapons(builder, sheet) {
     return `<article class="dnd-weapon-card"><div class="dnd-weapon-card-head"><div class="dnd-weapon-mark"><img src="../icons/gear/${escapeHtml(icon)}" alt="" onerror="this.hidden=true"></div><div class="dnd-weapon-main"><h3>${escapeHtml(meta.label||weapon?.name||"Weapon")}${Number(weapon?.magic||0)?` +${Number(weapon.magic)}`:""}</h3><div class="dnd-weapon-tags">${(meta.properties||[]).map((p)=>`<span>${escapeHtml(p)}</span>`).join("")}</div></div><div class="dnd-weapon-actions"><button type="button" class="dnd-card-edit" data-dnd-edit-weapon="${index}">Edit</button><button type="button" class="dnd-card-remove" data-dnd-remove-weapon="${index}">Remove</button></div></div><div class="dnd-weapon-stats"><div class="dnd-weapon-stat"><span>Attack</span><strong>${dndSigned(attack)}</strong></div><div class="dnd-weapon-stat"><span>Damage</span><strong>${escapeHtml(dndWeaponDamage(meta,abilities,weapon?.magic))}</strong></div><div class="dnd-weapon-stat"><span>Type</span><strong>${escapeHtml(meta.type||"—")}</strong>${meta.range?`<small>${escapeHtml(meta.range)}</small>`:""}</div></div></article>`;
   }).join("") : `<div class="dnd-empty-card">No weapons</div>`;
 }
+function dndSpellDisplayMeta(spell = {}) {
+  const library = findDndSpell(spell?.name) || {};
+  const override = DND_SPELL_META[spell?.name] || {};
+  return {
+    school: override.school || library.school || "Spell",
+    time: override.time || library.time || "—",
+    range: override.range || library.range || "—",
+    tags: [
+      ...(override.tags || []),
+      library.ritual ? "Ritual" : "",
+      library.concentration ? "Concentration" : ""
+    ].filter(Boolean)
+  };
+}
 function renderDndSpells(builder) {
-  const slotsTarget=document.getElementById("dnd-spell-slots"); const listTarget=document.getElementById("dnd-spells-list"); const capacityTarget=document.getElementById("dnd-spell-capacity"); if(!slotsTarget||!listTarget)return;
+  const slotsTarget=document.getElementById("dnd-spell-slots");
+  const listTarget=document.getElementById("dnd-spells-list");
+  const capacityTarget=document.getElementById("dnd-spell-capacity");
+  if(!slotsTarget||!listTarget)return;
   dndEnsureResourceDefaults(builder);
-  const slots=dndSpellSlots(builder); const active=slots.map((n,i)=>({level:i+1,count:n})).filter((x)=>x.count>0);
-  slotsTarget.innerHTML = active.length ? active.map((x)=>{ const key=`spellslot-${x.level}`; const current=Number(builder.resourceTracker?.[key] ?? x.count); return `<div class="dnd-slot-card"><span>Level ${x.level}</span><div class="dnd-slot-diamonds">${Array.from({length:x.count},(_,i)=>`<b class="${i<current?"is-filled":""}">◆</b>`).join("")}</div><strong>${current} / ${x.count} uses</strong><div class="dnd-slot-actions"><button type="button" data-dnd-slot-use="${x.level}">Use</button><button type="button" data-dnd-slot-restore="${x.level}">Restore</button></div></div>`; }).join("") : `<div class="dnd-empty-card">No spell slots</div>`;
-  const spells=Array.isArray(builder.spells)?builder.spells:[]; const grouped={}; spells.forEach((spell)=>{ const lvl=Number(spell?.level||0); (grouped[lvl] ||= []).push(spell); });
-  const cap=dndSpellCapacity(builder); const cantripCount=(grouped[0]||[]).length; const spellCount=spells.filter((spell)=>Number(spell?.level||0)>0).length;
-  if(capacityTarget) capacityTarget.innerHTML=`<div><span>Cantrips Known</span><strong>${cantripCount}${cap.cantrips?` / ${cap.cantrips}`:""}</strong></div><div><span>Leveled Spells</span><strong>${spellCount}${cap.spells?` / ${cap.spells}`:""}</strong></div>${cap.prepared?`<div><span>Prepared Capacity</span><strong>${Math.min(spellCount,cap.prepared)} / ${cap.prepared}</strong></div>`:""}`;
-  const levels=new Set([0]); Object.keys(grouped).map(Number).forEach((lvl)=>levels.add(lvl)); active.forEach((slot)=>levels.add(slot.level));
+
+  const standard=dndStandardSpellSlots(builder);
+  const standardActive=standard.map((n,i)=>({level:i+1,count:Number(n||0)})).filter((x)=>x.count>0);
+  const pact=dndPactMagicProfile(builder);
+  const pactCurrent=pact.count ? Number(builder.resourceTracker?.["pactslot-warlock"] ?? pact.count) : 0;
+  const arcanumLevels=dndWarlockArcanumLevels(builder);
+
+  const slotCards=[];
+  standardActive.forEach((x)=>{
+    const key=`spellslot-${x.level}`;
+    const current=Number(builder.resourceTracker?.[key] ?? x.count);
+    slotCards.push(`<div class="dnd-slot-card"><span>Level ${x.level}</span><div class="dnd-slot-diamonds">${Array.from({length:x.count},(_,i)=>`<b class="${i<current?"is-filled":""}">◆</b>`).join("")}</div><strong>${current} / ${x.count} uses</strong><div class="dnd-slot-actions"><button type="button" data-dnd-slot-use="${x.level}">Use</button><button type="button" data-dnd-slot-restore="${x.level}">Restore</button></div></div>`);
+  });
+  if(pact.count){
+    slotCards.push(`<div class="dnd-slot-card dnd-slot-card--pact"><span>Pact Magic · Level ${pact.slotLevel}</span><div class="dnd-slot-diamonds">${Array.from({length:pact.count},(_,i)=>`<b class="${i<pactCurrent?"is-filled":""}">◆</b>`).join("")}</div><strong>${pactCurrent} / ${pact.count} uses</strong><small>Short or Long Rest</small><div class="dnd-slot-actions"><button type="button" data-dnd-pact-use="-1">Use</button><button type="button" data-dnd-pact-use="1">Restore</button></div></div>`);
+  }
+  arcanumLevels.forEach((level)=>{
+    const key=`arcanum-${level}`;
+    const current=Number(builder.resourceTracker?.[key] ?? 1);
+    const chosen=(builder.spells||[]).find((spell)=>Number(spell?.level||0)===level && dndIsArcanumEntry(builder,spell));
+    slotCards.push(`<div class="dnd-slot-card dnd-slot-card--arcanum"><span>Mystic Arcanum · Level ${level}</span><strong>${chosen?escapeHtml(chosen.name):"Not chosen"}</strong><div class="dnd-slot-diamonds"><b class="${current>0?"is-filled":""}">◆</b></div><small>${current} / 1 use · Long Rest</small><div class="dnd-slot-actions"><button type="button" data-dnd-arcanum-use="${level}" data-dnd-delta="-1" ${chosen?"":"disabled"}>Use</button><button type="button" data-dnd-arcanum-use="${level}" data-dnd-delta="1">Restore</button></div></div>`);
+  });
+  slotsTarget.innerHTML=slotCards.length?slotCards.join(""):`<div class="dnd-empty-card">No spell slots</div>`;
+
+  const spells=Array.isArray(builder.spells)?builder.spells:[];
+  const grouped={};
+  spells.forEach((spell)=>{const lvl=Number(spell?.level||0);(grouped[lvl] ||= []).push(spell);});
+  const regularSpells=spells.filter((spell)=>Number(spell?.level||0)>0 && !dndIsArcanumEntry(builder,spell));
+  const arcanumSpells=spells.filter((spell)=>dndIsArcanumEntry(builder,spell));
+  const cap=dndSpellCapacity(builder);
+  const cantripCount=(grouped[0]||[]).length;
+  const library=getDndSpellLibraryState();
+  if(capacityTarget) capacityTarget.innerHTML=`
+    <div><span>Cantrips</span><strong>${cantripCount}${cap.cantrips?` / ${cap.cantrips}`:""}</strong></div>
+    <div><span>Class Spells</span><strong>${regularSpells.length}${cap.spells?` / ${cap.spells}`:""}</strong></div>
+    ${cap.prepared?`<div><span>Prepared Capacity</span><strong>${Math.min(regularSpells.length,cap.prepared)} / ${cap.prepared}</strong></div>`:""}
+    ${arcanumLevels.length?`<div><span>Mystic Arcanum</span><strong>${arcanumSpells.length} / ${arcanumLevels.length}</strong></div>`:""}
+    <div class="dnd-spell-library-state"><span>Spell Library</span><strong>${library.count} ${library.complete?"SRD spells":"fallback spells"}</strong></div>`;
+
+  const levels=new Set([0]);
+  Object.keys(grouped).map(Number).forEach((lvl)=>levels.add(lvl));
+  standardActive.forEach((slot)=>levels.add(slot.level));
+  arcanumLevels.forEach((lvl)=>levels.add(lvl));
   const ordered=[...levels].sort((a,b)=>a-b);
-  listTarget.innerHTML = ordered.map((lvl)=>{
-    const items=grouped[lvl]||[]; const label=lvl===0?"Cantrips":`Level ${lvl} Spells`; const maxSlots=lvl===0?0:Number(slots[lvl-1]||0); const currentSlots=lvl===0?0:Number(builder.resourceTracker?.[`spellslot-${lvl}`]??maxSlots);
-    const usage=lvl===0?`${items.length} known`:`${items.length} known · Slots ${currentSlots} / ${maxSlots}`;
-    const cards=items.length?items.map((spell)=>{ const index=spells.indexOf(spell); const meta=DND_SPELL_META[spell?.name]||{school:"Spell",time:"—",range:"—",tags:[]}; return `<article class="dnd-spell-card"><h4>${escapeHtml(spell?.name||"Spell")}</h4><small>${escapeHtml(meta.school)}</small><div class="dnd-spell-meta"><span>${escapeHtml(meta.time)}</span><span>${escapeHtml(meta.range)}</span></div><div class="dnd-spell-tags">${(meta.tags||[]).map((tag)=>`<span>${escapeHtml(tag)}</span>`).join("")}<span>${lvl===0?"Cantrip":`Level ${lvl}`}</span></div><button type="button" class="dnd-card-remove" data-dnd-remove-spell="${index}">Remove</button></article>`; }).join(""):`<div class="dnd-empty-inline">No spells added at this level.</div>`;
-    return `<section class="dnd-spell-group"><div class="dnd-spell-group-title"><h3>${label}</h3><span>${usage}</span></div><div class="dnd-spell-card-grid">${cards}</div></section>`;
+  listTarget.innerHTML=ordered.map((lvl)=>{
+    const items=grouped[lvl]||[];
+    const label=lvl===0?"Cantrips":`Level ${lvl} Spells`;
+    const usageParts=[`${items.length} known`];
+    if(lvl>0 && Number(standard[lvl-1]||0)>0){
+      const max=Number(standard[lvl-1]||0); const current=Number(builder.resourceTracker?.[`spellslot-${lvl}`]??max);
+      usageParts.push(`Slots ${current} / ${max}`);
+    }
+    if(lvl>0 && lvl<=5 && pact.count){ usageParts.push(`Pact L${pact.slotLevel} ${pactCurrent} / ${pact.count}`); }
+    if(arcanumLevels.includes(lvl)){ const current=Number(builder.resourceTracker?.[`arcanum-${lvl}`]??1); usageParts.push(`Arcanum ${current} / 1`); }
+    const cards=items.length?items.map((spell)=>{
+      const index=spells.indexOf(spell); const meta=dndSpellDisplayMeta(spell); const isArcanum=dndIsArcanumEntry(builder,spell);
+      return `<article class="dnd-spell-card${isArcanum?" is-arcanum":""}"><h4>${escapeHtml(spell?.name||"Spell")}</h4><small>${escapeHtml(meta.school)}</small><div class="dnd-spell-meta"><span>${escapeHtml(meta.time)}</span><span>${escapeHtml(meta.range)}</span></div><div class="dnd-spell-tags">${(meta.tags||[]).map((tag)=>`<span>${escapeHtml(tag)}</span>`).join("")}<span>${lvl===0?"Cantrip":`Level ${lvl}`}</span>${isArcanum?`<span>Mystic Arcanum</span>`:""}</div><button type="button" class="dnd-card-remove" data-dnd-remove-spell="${index}">Remove</button></article>`;
+    }).join(""):`<div class="dnd-empty-inline">No spells added at this level.</div>`;
+    return `<section class="dnd-spell-group"><div class="dnd-spell-group-title"><h3>${label}</h3><span>${usageParts.join(" · ")}</span></div><div class="dnd-spell-card-grid">${cards}</div></section>`;
   }).join("");
 }
 function renderDndProfile(builder, sheet) {
@@ -1137,13 +1250,139 @@ async function saveDndWeapon() {
   currentDndWeaponEditIndex=null; await saveDndBuilderAndPlayer(builder,editing?"Weapon updated.":"Weapon added."); dndCloseModal("dnd-weapon-modal");
 }
 async function removeDndWeapon(index) { const builder=dndNormalizeBuilder(currentDndBuilderData||{}); if(!Array.isArray(builder.weapons)||!builder.weapons[index])return; builder.weapons.splice(index,1); await saveDndBuilderAndPlayer(builder,"Weapon removed."); }
-function openDndSpellPicker(kind) {
-  currentDndSpellPickerKind=kind; const builder=dndNormalizeBuilder(currentDndBuilderData||{}); const choices=dndAvailableSpells(builder,kind); const select=document.getElementById("dnd-spell-select"); select.innerHTML=choices.map((spell)=>`<option value="${escapeHtml(spell.name)}">${escapeHtml(spell.name)}${spell.level?` — Level ${spell.level}`:""}</option>`).join("");
-  const cap=dndSpellCapacity(builder); const current=(builder.spells||[]).filter((s)=>kind==="cantrip"?Number(s.level||0)===0:Number(s.level||0)>0).length; const max=kind==="cantrip"?cap.cantrips:(cap.spells||cap.prepared||0); document.getElementById("dnd-spell-modal-title").textContent=kind==="cantrip"?"Add Cantrip":"Add Spell"; document.getElementById("dnd-spell-picker-count").textContent=max?`${current} / ${max}`:`${current}`; document.getElementById("dnd-save-spell-button").disabled=!choices.length || (max>0&&current>=max); dndOpenModal("dnd-spell-modal");
+function dndRegularSpellCount(builder = {}) {
+  return (builder.spells || []).filter((spell)=>Number(spell?.level||0)>0 && !dndIsArcanumEntry(builder,spell)).length;
 }
-async function addDndSpell() { const name=document.getElementById("dnd-spell-select").value; const spell=DND_SPELLS.find((s)=>s.name===name); if(!spell)return; const builder=dndNormalizeBuilder(currentDndBuilderData||{}); builder.spells=Array.isArray(builder.spells)?builder.spells:[]; if(!builder.spells.some((s)=>s?.name===name))builder.spells.push({name:spell.name,level:spell.level}); await saveDndBuilderAndPlayer(builder,`${spell.name} added.`); dndCloseModal("dnd-spell-modal"); }
-async function removeDndSpell(index) { const builder=dndNormalizeBuilder(currentDndBuilderData||{}); if(!Array.isArray(builder.spells)||!builder.spells[index])return; builder.spells.splice(index,1); await saveDndBuilderAndPlayer(builder,"Spell removed."); }
-async function changeDndSpellSlot(level,delta) { const builder=dndNormalizeBuilder(currentDndBuilderData||{}); const slots=dndSpellSlots(builder); const max=Number(slots[level-1]||0); const key=`spellslot-${level}`; const current=Number(builder.resourceTracker?.[key]??max); builder.resourceTracker[key]=Math.max(0,Math.min(max,current+delta)); await saveDndBuilderAndPlayer(builder,"Spell slots updated."); }
+function openDndSpellPicker(kind) {
+  currentDndSpellPickerKind=kind;
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  const cap=dndSpellCapacity(builder);
+  const regularCount=dndRegularSpellCount(builder);
+  const regularMax=Number(cap.spells||cap.prepared||0);
+  const arcanumLevels=dndWarlockArcanumLevels(builder);
+  const selectedArcanum=new Set((builder.spells||[]).filter((s)=>dndIsArcanumEntry(builder,s)).map((s)=>Number(s.level||0)));
+  let choices=dndAvailableSpells(builder,kind);
+  if(kind!=="cantrip" && regularMax>0 && regularCount>=regularMax){
+    choices=choices.filter((spell)=>dndSpellAccessMode(builder,spell)==="arcanum");
+  }
+  const select=document.getElementById("dnd-spell-select");
+  const groupedChoices=new Map();
+  choices.forEach((spell)=>{
+    const access=dndSpellAccessMode(builder,spell);
+    const key=spell.level===0?"0-cantrips":access==="arcanum"?`${String(spell.level).padStart(2,"0")}-arcanum`:`${String(spell.level).padStart(2,"0")}-regular`;
+    if(!groupedChoices.has(key))groupedChoices.set(key,[]); groupedChoices.get(key).push(spell);
+  });
+  select.innerHTML=[...groupedChoices.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,group])=>{
+    const first=group[0]; const access=dndSpellAccessMode(builder,first);
+    const label=first.level===0?"Cantrips":access==="arcanum"?`Mystic Arcanum — Level ${first.level}`:`Level ${first.level}`;
+    return `<optgroup label="${escapeHtml(label)}">${group.map((spell)=>`<option value="${escapeHtml(spell.name)}">${escapeHtml(spell.name)}${spell.school?` — ${escapeHtml(spell.school)}`:""}</option>`).join("")}</optgroup>`;
+  }).join("");
+  const current=(builder.spells||[]).filter((s)=>kind==="cantrip"?Number(s.level||0)===0:(Number(s.level||0)>0&&!dndIsArcanumEntry(builder,s))).length;
+  const max=kind==="cantrip"?cap.cantrips:regularMax;
+  const arcanumCount=selectedArcanum.size;
+  document.getElementById("dnd-spell-modal-title").textContent=kind==="cantrip"?"Add Cantrip":"Add Spell";
+  document.getElementById("dnd-spell-picker-count").textContent=kind==="cantrip"
+    ? (max?`${current} / ${max} cantrips`:`${current} cantrips`)
+    : `${max?`${current} / ${max} regular spells`:`${current} regular spells`}${arcanumLevels.length?` · Mystic Arcanum ${arcanumCount} / ${arcanumLevels.length}`:""}`;
+  document.getElementById("dnd-save-spell-button").disabled=!choices.length;
+  dndOpenModal("dnd-spell-modal");
+}
+async function addDndSpell() {
+  const name=document.getElementById("dnd-spell-select").value;
+  const spell=findDndSpell(name);
+  if(!spell)return;
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  builder.spells=Array.isArray(builder.spells)?builder.spells:[];
+  if(builder.spells.some((s)=>s?.name===name))return;
+  const access=dndSpellAccessMode(builder,spell);
+  if(!access)return;
+  const entry={name:spell.name,level:spell.level};
+  if(access==="arcanum") entry.castingMode="arcanum";
+  builder.spells.push(entry);
+  await saveDndBuilderAndPlayer(builder,`${spell.name} added.`);
+  dndCloseModal("dnd-spell-modal");
+}
+async function removeDndSpell(index) {
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  if(!Array.isArray(builder.spells)||!builder.spells[index])return;
+  builder.spells.splice(index,1);
+  await saveDndBuilderAndPlayer(builder,"Spell removed.");
+}
+async function changeDndSpellSlot(level,delta) {
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  const slots=dndStandardSpellSlots(builder); const max=Number(slots[level-1]||0);
+  if(!max)return;
+  const key=`spellslot-${level}`; const current=Number(builder.resourceTracker?.[key]??max);
+  builder.resourceTracker[key]=Math.max(0,Math.min(max,current+delta));
+  await saveDndBuilderAndPlayer(builder,"Spell slots updated.");
+}
+async function changeDndPactSlot(delta) {
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{}); const pact=dndPactMagicProfile(builder); if(!pact.count)return;
+  const key="pactslot-warlock"; const current=Number(builder.resourceTracker?.[key]??pact.count);
+  builder.resourceTracker[key]=Math.max(0,Math.min(pact.count,current+delta));
+  await saveDndBuilderAndPlayer(builder,"Pact Magic slots updated.");
+}
+async function changeDndArcanumUse(level,delta) {
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{}); if(!dndWarlockArcanumLevels(builder).includes(Number(level)))return;
+  const key=`arcanum-${Number(level)}`; const current=Number(builder.resourceTracker?.[key]??1);
+  builder.resourceTracker[key]=Math.max(0,Math.min(1,current+delta));
+  await saveDndBuilderAndPlayer(builder,"Mystic Arcanum updated.");
+}
+function dndResourceRestType(builder = {}, actionName = "") {
+  if (["Channel Divinity","Wild Shape","Second Wind","Action Surge","Ki"].includes(actionName)) return "short";
+  if (actionName === "Bardic Inspiration") {
+    const bard=(builder.classes||[]).find((c)=>c?.name==="Bard");
+    return Number(bard?.level||0)>=5 ? "short" : "long";
+  }
+  if (["Rage","Lay on Hands","Font of Magic","Arcane Recovery"].includes(actionName)) return "long";
+  return null;
+}
+function openDndRestModal() {
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  const pact=dndPactMagicProfile(builder);
+  const shortItems=[];
+  if(pact.count)shortItems.push("Pact Magic slots");
+  dndActionRows(builder).forEach((row)=>{if(dndResourceRestType(builder,row.name)==="short"&&!shortItems.includes(row.name))shortItems.push(row.name);});
+  const longItems=["HP","Hit Dice","standard spell slots"];
+  if(pact.count)longItems.push("Pact Magic slots");
+  if(dndWarlockArcanumLevels(builder).length)longItems.push("Mystic Arcanum");
+  dndActionRows(builder).forEach((row)=>{const type=dndResourceRestType(builder,row.name);if(type&&!longItems.includes(row.name))longItems.push(row.name);});
+  const short=document.getElementById("dnd-rest-short-summary"); if(short)short.textContent=shortItems.length?shortItems.join(" · "):"No tracked short-rest resources for this character.";
+  const long=document.getElementById("dnd-rest-long-summary"); if(long)long.textContent=longItems.join(" · ");
+  dndOpenModal("dnd-rest-modal");
+}
+function restoreDndTrackedActionResources(builder, restType) {
+  dndActionRows(builder).forEach((row)=>{
+    const type=dndResourceRestType(builder,row.name);
+    if(!type)return;
+    if(restType==="short" && type!=="short")return;
+    const res=dndTrackedResourceForAction(builder,row.name);
+    if(res)builder.resourceTracker[res.key]=res.max;
+  });
+}
+async function applyDndRest(restType) {
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  builder.resourceTracker=builder.resourceTracker||{};
+  const pact=dndPactMagicProfile(builder);
+  if(restType==="short") {
+    if(pact.count)builder.resourceTracker["pactslot-warlock"]=pact.count;
+    restoreDndTrackedActionResources(builder,"short");
+    await saveDndBuilderAndPlayer(builder,"Short Rest completed.");
+  } else {
+    dndHitDicePools(builder) && Object.entries(dndHitDicePools(builder)).forEach(([die,total])=>builder.resourceTracker[`hitdice-d${die}`]=total);
+    dndStandardSpellSlots(builder).forEach((max,i)=>{if(max)builder.resourceTracker[`spellslot-${i+1}`]=max;});
+    if(pact.count)builder.resourceTracker["pactslot-warlock"]=pact.count;
+    dndWarlockArcanumLevels(builder).forEach((level)=>builder.resourceTracker[`arcanum-${level}`]=1);
+    restoreDndTrackedActionResources(builder,"long");
+    const result=await saveDndBuilderAndPlayer(builder,"Long Rest completed.");
+    const maxHp=dndMaxHpFromBuilder(result.builder,result.sheet);
+    const updated={...result.sheet,currentHp:maxHp,hp:maxHp,tempHp:0};
+    await set(ref(db,playerSheetPath()),updated);
+    setCurrentSheetCache(updated);
+    updateDndHpView(result.builder,updated);
+  }
+  dndCloseModal("dnd-rest-modal");
+}
 function applyDndProfileFields(builder) {
   const val=(id)=>document.getElementById(id)?.value;
   if(val("dnd-profile-name")!==undefined) builder.name=(val("dnd-profile-name")||"").trim()||builder.name;
@@ -1264,6 +1503,10 @@ function setupDndUnifiedControls() {
   document.getElementById("dnd-edit-character-button")?.addEventListener("click",openDndCharacterSetup);
   document.getElementById("dnd-level-up-button")?.addEventListener("click",()=>openDndLevelUp(false));
   document.getElementById("dnd-multiclass-button")?.addEventListener("click",()=>openDndLevelUp(true));
+  document.getElementById("dnd-rest-button")?.addEventListener("click",openDndRestModal);
+  document.getElementById("dnd-menu-rest")?.addEventListener("click",()=>{dndCloseModal("dnd-character-menu-modal");openDndRestModal();});
+  document.getElementById("dnd-short-rest-button")?.addEventListener("click",()=>applyDndRest("short"));
+  document.getElementById("dnd-long-rest-button")?.addEventListener("click",()=>applyDndRest("long"));
 
   const setupModal=document.getElementById("dnd-character-setup-modal");
   setupModal?.addEventListener("input",(event)=>{ if(event.target.matches("input,textarea")) scheduleDndSetupAutoSave(false); });
@@ -1310,6 +1553,8 @@ function setupDndUnifiedControls() {
     const removeSpell=event.target.closest("[data-dnd-remove-spell]"); if(removeSpell){await removeDndSpell(Number(removeSpell.dataset.dndRemoveSpell));return;}
     const useSlot=event.target.closest("[data-dnd-slot-use]"); if(useSlot){await changeDndSpellSlot(Number(useSlot.dataset.dndSlotUse),-1);return;}
     const restoreSlot=event.target.closest("[data-dnd-slot-restore]"); if(restoreSlot){await changeDndSpellSlot(Number(restoreSlot.dataset.dndSlotRestore),1);return;}
+    const pactSlot=event.target.closest("[data-dnd-pact-use]"); if(pactSlot){await changeDndPactSlot(Number(pactSlot.dataset.dndPactUse));return;}
+    const arcanum=event.target.closest("[data-dnd-arcanum-use]"); if(arcanum){await changeDndArcanumUse(Number(arcanum.dataset.dndArcanumUse),Number(arcanum.dataset.dndDelta||0));return;}
     if(event.target.id==="dnd-profile-level-up"){openDndLevelUp(false);return;}
     if(event.target.id==="dnd-profile-manage-skills"){openDndSkillProficiencyModal();return;}
     if(event.target.id==="dnd-profile-manage-proficiencies"){openDndProficiencyModal();return;}

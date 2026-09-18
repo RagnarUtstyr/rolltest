@@ -6,12 +6,12 @@
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918sheet2" disabled />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918spellsrest1" disabled />
   <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918sheet2" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260918sheet2" defer></script>
+  <script type="module" src="../js/player.js?v=20260918spellsrest1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -581,6 +581,7 @@
         </div>
         <div class="dnd-header-actions">
           <a id="dnd-return-lobby" class="dnd-lobby-button" href="lobby.html">Lobby</a>
+          <button id="dnd-rest-button" class="dnd-header-rest-button" type="button">Rest</button>
           <button id="dnd-character-menu-button" class="dnd-more-button" type="button" aria-label="Character menu">•••</button>
         </div>
       </header>
@@ -684,6 +685,7 @@
           <section class="dnd-sheet-page" data-dnd-page="spells" aria-label="Spells">
             <div class="dnd-page-heading dnd-heading-with-action"><h2>Spells</h2><div class="dnd-heading-actions"><button id="dnd-add-cantrip-button" class="dnd-compact-manage-button" type="button">Add Cantrip</button><button id="dnd-add-spell-button" class="dnd-compact-manage-button" type="button">Add Spell</button></div></div>
             <div id="dnd-spell-capacity" class="dnd-spell-capacity"></div>
+            <div class="dnd-spell-source-note">Spell index: SRD 5.2.1 · grouped by class and spell level.</div>
             <div id="dnd-spell-slots" class="dnd-spell-slots"></div>
             <div id="dnd-spells-list" class="dnd-spells-list"></div>
           </section>
@@ -957,6 +959,7 @@
           <button id="dnd-menu-edit-character" type="button">Edit Character</button>
           <button id="dnd-menu-level-up" type="button">Level Up</button>
           <button id="dnd-menu-multiclass" type="button">Multiclass</button>
+          <button id="dnd-menu-rest" type="button">Short / Long Rest</button>
           <a id="dnd-menu-return-lobby" class="dnd-legacy-link" href="lobby.html">Return to Lobby</a>
           <a id="dnd-legacy-builder-link" class="dnd-legacy-link" href="dnd_character_builder_firebase.html">Legacy Builder</a>
         </div>
@@ -1043,6 +1046,27 @@
           <label>Magic Bonus<select id="dnd-weapon-magic"><option value="0">+0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></label>
         </div>
         <button id="dnd-save-weapon-button" type="button">Save Weapon</button>
+      </div>
+    </div>
+
+    <div id="dnd-rest-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dnd-rest-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-rest-modal" aria-label="Close">×</button>
+        <h3 id="dnd-rest-title">Rest</h3>
+        <div class="dnd-rest-grid">
+          <section class="dnd-rest-card">
+            <h4>Short Rest</h4>
+            <p>Restores tracked short-rest class resources and Warlock Pact Magic slots. It does not automatically heal HP or spend Hit Dice.</p>
+            <div id="dnd-rest-short-summary" class="dnd-rest-summary"></div>
+            <button id="dnd-short-rest-button" type="button">Complete Short Rest</button>
+          </section>
+          <section class="dnd-rest-card">
+            <h4>Long Rest</h4>
+            <p>Restores HP, Hit Dice, spell slots and tracked class resources that recharge on a Long Rest.</p>
+            <div id="dnd-rest-long-summary" class="dnd-rest-summary"></div>
+            <button id="dnd-long-rest-button" type="button">Complete Long Rest</button>
+          </section>
+        </div>
       </div>
     </div>
 
