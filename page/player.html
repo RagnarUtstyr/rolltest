@@ -611,11 +611,15 @@
               <div class="dnd-hp-track" role="progressbar" aria-label="Hit points" aria-valuemin="0" aria-valuenow="0"><div id="dnd-hp-fill" class="dnd-hp-fill"></div></div><small id="dnd-temp-hp-display" class="dnd-temp-hp-display" hidden></small>
             </div>
 
+            <button id="dnd-ac-button" class="dnd-ac-feature-card" type="button">
+              <div class="dnd-ac-feature-main"><span>Armor Class</span><strong id="dnd-view-ac">—</strong></div>
+              <div class="dnd-ac-feature-equipment"><span>Equipped</span><strong id="dnd-view-ac-equipment">—</strong><small>Edit armor &amp; AC</small></div>
+            </button>
+
             <div class="dnd-core-stat-grid">
               <div class="dnd-core-stat"><span>Initiative</span><strong id="dnd-view-initiative">—</strong></div>
               <div class="dnd-core-stat"><span>Speed</span><strong id="dnd-view-speed">—</strong></div>
               <button id="dnd-hit-dice-button" class="dnd-core-stat dnd-core-stat-button" type="button"><span>Hit Dice</span><strong id="dnd-view-hit-dice">—</strong><small id="dnd-view-hit-dice-remaining"></small></button>
-              <button id="dnd-ac-button" class="dnd-core-stat dnd-core-stat-button" type="button"><span>Armor Class</span><strong id="dnd-view-ac">—</strong><small>Edit</small></button>
               <div class="dnd-core-stat"><span>Proficiency</span><strong id="dnd-view-prof">—</strong></div>
             </div>
 
@@ -982,7 +986,8 @@
           <label>Die<select id="dnd-hit-die-select"></select></label>
           <label>Amount<input id="dnd-hit-dice-amount" type="number" min="1" value="1" /></label>
         </div>
-        <div class="dnd-modal-button-row"><button id="dnd-spend-hit-dice" type="button">Use Hit Dice</button><button id="dnd-restore-hit-dice" type="button">Restore All</button></div>
+        <div class="dnd-modal-kicker">This only tracks Hit Dice used and remaining. It does not change HP.</div>
+        <div class="dnd-modal-button-row"><button id="dnd-spend-hit-dice" type="button">Mark Used</button><button id="dnd-restore-hit-dice" type="button">Restore All</button></div>
         <div id="dnd-hit-dice-result" class="dnd-result-line"></div>
       </div>
     </div>
@@ -991,8 +996,15 @@
       <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--small" role="dialog" aria-modal="true" aria-labelledby="dnd-ac-title">
         <button class="dnd-sheet-modal-close" data-dnd-close="dnd-ac-modal" aria-label="Close">×</button>
         <h3 id="dnd-ac-title">Armor Class</h3>
-        <label class="dnd-modal-field">AC<input id="dnd-ac-edit-input" type="number" min="0" inputmode="numeric" /></label>
-        <button id="dnd-save-ac-button" type="button">Save AC</button>
+        <div class="dnd-form-grid dnd-form-grid--2">
+          <label>Armor<select id="dnd-ac-armor-select"></select></label>
+          <label>Armor Magic<select id="dnd-ac-armor-magic"><option value="0">+0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></label>
+          <label>Shield<select id="dnd-ac-shield-select"></select></label>
+          <label>Shield Magic<select id="dnd-ac-shield-magic"><option value="0">+0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></label>
+        </div>
+        <label class="dnd-modal-field">Manual AC override <input id="dnd-ac-edit-input" type="number" min="0" inputmode="numeric" placeholder="Leave blank to calculate from equipment" /></label>
+        <div id="dnd-ac-calculated-preview" class="dnd-modal-kicker"></div>
+        <button id="dnd-save-ac-button" type="button">Save Armor Class</button>
       </div>
     </div>
 
@@ -1006,15 +1018,31 @@
       </div>
     </div>
 
+    <div id="dnd-proficiency-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dnd-proficiency-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-proficiency-modal" aria-label="Close">×</button>
+        <h3 id="dnd-proficiency-title">Manage Proficiencies</h3>
+        <div class="dnd-modal-kicker">Granted proficiencies update automatically from class, multiclass, species and background. Add any extra proficiencies below.</div>
+        <div id="dnd-proficiency-auto" class="dnd-auto-proficiency-grid"></div>
+        <div class="dnd-form-grid dnd-form-grid--2">
+          <label>Additional Armor<textarea id="dnd-proficiency-extra-armor"></textarea></label>
+          <label>Additional Weapons<textarea id="dnd-proficiency-extra-weapons"></textarea></label>
+          <label>Additional Tools<textarea id="dnd-proficiency-extra-tools"></textarea></label>
+          <label>Additional Languages<textarea id="dnd-proficiency-extra-languages"></textarea></label>
+        </div>
+        <div class="dnd-autosave-footer"><span id="dnd-proficiency-autosave-status">Changes save automatically.</span><button id="dnd-proficiency-manage-skills" type="button">Manage Skills</button><button id="dnd-proficiency-done" type="button">Done</button></div>
+      </div>
+    </div>
+
     <div id="dnd-weapon-modal" class="dnd-sheet-modal" aria-hidden="true">
       <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-weapon-modal-title">
         <button class="dnd-sheet-modal-close" data-dnd-close="dnd-weapon-modal" aria-label="Close">×</button>
-        <h3 id="dnd-weapon-modal-title">Add Weapon</h3>
+        <h3 id="dnd-weapon-modal-title">Weapon</h3>
         <div class="dnd-form-grid dnd-form-grid--2">
           <label>Weapon<select id="dnd-weapon-select"></select></label>
           <label>Magic Bonus<select id="dnd-weapon-magic"><option value="0">+0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></label>
         </div>
-        <button id="dnd-save-weapon-button" type="button">Add Weapon</button>
+        <button id="dnd-save-weapon-button" type="button">Save Weapon</button>
       </div>
     </div>
 

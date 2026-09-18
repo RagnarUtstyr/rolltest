@@ -1429,3 +1429,26 @@ body.player-mode-openlegend {
     max-width: 64px;
   }
 }
+
+/* Keep Open Legend controls on the same visual system as the sheet. */
+.player-mode-openlegend .player-page button,
+.player-mode-openlegend .ol-mobile-carousel button {
+  border:1px solid rgba(189,179,130,.52);
+  border-radius:8px;
+  background:linear-gradient(180deg,rgba(20,53,58,.96),rgba(10,37,39,.98));
+  color:#e3cf95;
+  font-family:'MedievalSharp',cursive;
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 5px 14px rgba(0,0,0,.16);
+}
+.player-mode-openlegend .player-page button:hover,
+.player-mode-openlegend .ol-mobile-carousel button:hover {
+  border-color:#e3cf95;
+  background:linear-gradient(180deg,rgba(30,69,74,.98),rgba(15,48,51,.99));
+  color:#fff3cc;
+}
+.player-mode-openlegend .player-page .remove-button {
+  border-color:#a84a42;
+  background:linear-gradient(180deg,#87372f,#5f2621);
+  color:#fff;
+}
