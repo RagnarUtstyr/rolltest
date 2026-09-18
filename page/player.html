@@ -6,12 +6,12 @@
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918dndsheet1" disabled />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918dndunified1" disabled />
   <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918batch1" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260918dndsheet1" defer></script>
+  <script type="module" src="../js/player.js?v=20260918dndunified1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -579,7 +579,7 @@
           <h1 id="dnd-character-title">Character</h1>
           <div id="dnd-character-subtitle" class="dnd-character-subtitle">D&amp;D Character</div>
         </div>
-        <a id="dnd-builder-link" class="dnd-more-button" href="dnd_character_builder_firebase.html" aria-label="Open character builder">•••</a>
+        <button id="dnd-character-menu-button" class="dnd-more-button" type="button" aria-label="Character menu">•••</button>
       </header>
 
       <nav class="dnd-sheet-tabs" role="tablist" aria-label="Character sheet pages">
@@ -605,14 +605,14 @@
             <div class="dnd-hp-card">
               <div class="dnd-hp-title"><span class="dnd-section-icon">♥</span><h2>Hit Points</h2></div>
               <div class="dnd-hp-readout"><strong id="dnd-current-hp-display">—</strong><span>/</span><strong id="dnd-max-hp-display">—</strong></div>
-              <div class="dnd-hp-track" role="progressbar" aria-label="Hit points" aria-valuemin="0" aria-valuenow="0"><div id="dnd-hp-fill" class="dnd-hp-fill"></div></div>
+              <div class="dnd-hp-track" role="progressbar" aria-label="Hit points" aria-valuemin="0" aria-valuenow="0"><div id="dnd-hp-fill" class="dnd-hp-fill"></div></div><small id="dnd-temp-hp-display" class="dnd-temp-hp-display" hidden></small>
             </div>
 
             <div class="dnd-core-stat-grid">
               <div class="dnd-core-stat"><span>Initiative</span><strong id="dnd-view-initiative">—</strong></div>
               <div class="dnd-core-stat"><span>Speed</span><strong id="dnd-view-speed">—</strong></div>
-              <div class="dnd-core-stat"><span>Hit Dice</span><strong id="dnd-view-hit-dice">—</strong></div>
-              <div class="dnd-core-stat"><span>Armor Class</span><strong id="dnd-view-ac">—</strong></div>
+              <button id="dnd-hit-dice-button" class="dnd-core-stat dnd-core-stat-button" type="button"><span>Hit Dice</span><strong id="dnd-view-hit-dice">—</strong><small id="dnd-view-hit-dice-remaining"></small></button>
+              <button id="dnd-ac-button" class="dnd-core-stat dnd-core-stat-button" type="button"><span>Armor Class</span><strong id="dnd-view-ac">—</strong><small>Edit</small></button>
               <div class="dnd-core-stat"><span>Proficiency</span><strong id="dnd-view-prof">—</strong></div>
             </div>
 
@@ -621,6 +621,7 @@
               <input type="number" id="dnd-hp-adjust-input" min="0" inputmode="numeric" placeholder="0" />
               <button id="dnd-apply-damage-btn" class="dnd-damage-button" type="button">Damage</button>
               <button id="dnd-heal-btn" class="dnd-heal-button" type="button">Heal</button>
+              <label class="dnd-temp-hp-inline"><input id="dnd-temp-hp-toggle" type="checkbox" /> Temp HP</label>
             </div>
             <div id="dnd-calc-result" class="dnd-result-line" aria-live="polite"></div>
 
@@ -639,7 +640,7 @@
               <div class="dnd-panel-heading"><h2>Shared Note</h2><button type="button" class="dnd-jump-link" data-dnd-go="notes">Edit</button></div>
               <div id="dnd-overview-note-preview" class="dnd-note-preview">—</div>
             </section>
-            <button id="dnd-overview-text-dm" type="button" class="dnd-text-dm-button" data-dnd-go="notes">Text DM</button>
+
           </section>
 
           <section class="dnd-sheet-page" data-dnd-page="actions" aria-label="Action">
@@ -648,7 +649,7 @@
               <section class="dnd-detail-card">
                 <h3>Initiative</h3>
                 <div class="dnd-inline-control"><input id="dnd-initiative-input" type="number" inputmode="numeric" placeholder="0" /><button id="dnd-save-initiative-button" type="button">Save</button></div>
-                <button id="dnd-reset-hp-btn" class="dnd-action-reset" type="button">Reset HP</button>
+                <div class="dnd-action-tools"><button id="dnd-reset-hp-btn" class="dnd-action-reset" type="button">Reset HP</button><button id="dnd-level-up-button" type="button">Level Up</button><button id="dnd-edit-character-button" type="button">Edit Character</button></div>
               </section>
               <section class="dnd-detail-card"><h3>Actions</h3><div id="dnd-actions-full" class="dnd-action-preview"></div></section>
             </div>
@@ -668,13 +669,15 @@
 
           <section class="dnd-sheet-page" data-dnd-page="weapons" aria-label="Weapons">
             <div class="dnd-page-heading"><h2>Weapon Attacks</h2></div>
+            <div class="dnd-page-actions"><button id="dnd-add-weapon-button" type="button">Add Weapon</button></div>
             <div id="dnd-weapons-summary" class="dnd-weapon-summary"></div>
             <div id="dnd-weapons-list" class="dnd-weapons-list"></div>
-            <button type="button" class="dnd-builder-shortcut" data-open-dnd-builder>Manage Equipment</button>
           </section>
 
           <section class="dnd-sheet-page" data-dnd-page="spells" aria-label="Spells">
             <div class="dnd-page-heading"><h2>Spells</h2></div>
+            <div class="dnd-page-actions"><button id="dnd-add-cantrip-button" type="button">Add Cantrip</button><button id="dnd-add-spell-button" type="button">Add Spell</button></div>
+            <div id="dnd-spell-capacity" class="dnd-spell-capacity"></div>
             <div id="dnd-spell-slots" class="dnd-spell-slots"></div>
             <div id="dnd-spells-list" class="dnd-spells-list"></div>
           </section>
@@ -682,7 +685,6 @@
           <section class="dnd-sheet-page" data-dnd-page="profile" aria-label="Profile">
             <div class="dnd-page-heading"><h2>Profile</h2></div>
             <div id="dnd-profile-content" class="dnd-profile-content"></div>
-            <button type="button" class="dnd-builder-shortcut" data-open-dnd-builder>Edit Character</button>
           </section>
 
           <section class="dnd-sheet-page" data-dnd-page="notes" aria-label="Notes">
@@ -949,6 +951,115 @@
           <h4>Special</h4>
           <p id="player-fatigue-special-text"></p>
         </div>
+      </div>
+    </div>
+
+
+    <div id="dnd-character-menu-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--small" role="dialog" aria-modal="true" aria-labelledby="dnd-character-menu-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-character-menu-modal" aria-label="Close">×</button>
+        <h3 id="dnd-character-menu-title">Character</h3>
+        <div class="dnd-modal-button-stack">
+          <button id="dnd-menu-edit-character" type="button">Edit Character</button>
+          <button id="dnd-menu-level-up" type="button">Level Up</button>
+          <a id="dnd-legacy-builder-link" class="dnd-legacy-link" href="dnd_character_builder_firebase.html">Legacy Builder</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="dnd-action-info-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-action-info-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-action-info-modal" aria-label="Close">×</button>
+        <h3 id="dnd-action-info-title">Action</h3>
+        <div id="dnd-action-info-type" class="dnd-modal-kicker"></div>
+        <div id="dnd-action-info-body" class="dnd-modal-copy"></div>
+        <div id="dnd-action-resource-controls" class="dnd-resource-controls" hidden>
+          <div><span>Uses</span><strong id="dnd-action-resource-value">0 / 0</strong></div>
+          <button id="dnd-action-resource-use" type="button">Use</button>
+          <button id="dnd-action-resource-restore" type="button">Restore</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="dnd-hit-dice-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-hit-dice-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-hit-dice-modal" aria-label="Close">×</button>
+        <h3 id="dnd-hit-dice-title">Hit Dice</h3>
+        <div id="dnd-hit-dice-pools" class="dnd-hit-dice-pools"></div>
+        <div class="dnd-form-grid dnd-form-grid--2">
+          <label>Die<select id="dnd-hit-die-select"></select></label>
+          <label>Amount<input id="dnd-hit-dice-amount" type="number" min="1" value="1" /></label>
+        </div>
+        <div class="dnd-modal-button-row"><button id="dnd-spend-hit-dice" type="button">Use Hit Dice</button><button id="dnd-restore-hit-dice" type="button">Restore All</button></div>
+        <div id="dnd-hit-dice-result" class="dnd-result-line"></div>
+      </div>
+    </div>
+
+    <div id="dnd-ac-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--small" role="dialog" aria-modal="true" aria-labelledby="dnd-ac-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-ac-modal" aria-label="Close">×</button>
+        <h3 id="dnd-ac-title">Armor Class</h3>
+        <label class="dnd-modal-field">AC<input id="dnd-ac-edit-input" type="number" min="0" inputmode="numeric" /></label>
+        <button id="dnd-save-ac-button" type="button">Save AC</button>
+      </div>
+    </div>
+
+    <div id="dnd-weapon-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-weapon-modal-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-weapon-modal" aria-label="Close">×</button>
+        <h3 id="dnd-weapon-modal-title">Add Weapon</h3>
+        <div class="dnd-form-grid dnd-form-grid--2">
+          <label>Weapon<select id="dnd-weapon-select"></select></label>
+          <label>Magic Bonus<select id="dnd-weapon-magic"><option value="0">+0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></label>
+        </div>
+        <button id="dnd-save-weapon-button" type="button">Add Weapon</button>
+      </div>
+    </div>
+
+    <div id="dnd-spell-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-spell-modal-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-spell-modal" aria-label="Close">×</button>
+        <h3 id="dnd-spell-modal-title">Add Spell</h3>
+        <label class="dnd-modal-field">Spell<select id="dnd-spell-select"></select></label>
+        <div id="dnd-spell-picker-count" class="dnd-modal-kicker"></div>
+        <button id="dnd-save-spell-button" type="button">Add</button>
+      </div>
+    </div>
+
+    <div id="dnd-character-setup-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dnd-character-setup-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-character-setup-modal" aria-label="Close">×</button>
+        <h3 id="dnd-character-setup-title">Character</h3>
+        <div class="dnd-form-grid dnd-form-grid--3">
+          <label>Name<input id="dnd-setup-name" type="text" /></label>
+          <label>Species<select id="dnd-setup-species"></select></label>
+          <label>Background<select id="dnd-setup-background"></select></label>
+          <label>Class<select id="dnd-setup-class"></select></label>
+          <label>Subclass<select id="dnd-setup-subclass"></select></label>
+          <label>Alignment<input id="dnd-setup-alignment" type="text" /></label>
+          <label>Armor<select id="dnd-setup-armor"></select></label>
+          <label>Shield<select id="dnd-setup-shield"></select></label>
+        </div>
+        <h4>Attributes</h4>
+        <div id="dnd-setup-attributes" class="dnd-setup-attributes"></div>
+        <button id="dnd-save-character-setup" type="button">Save Character</button>
+      </div>
+    </div>
+
+    <div id="dnd-level-up-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-level-up-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-level-up-modal" aria-label="Close">×</button>
+        <h3 id="dnd-level-up-title">Level Up</h3>
+        <div class="dnd-form-grid dnd-form-grid--2">
+          <label>Class<select id="dnd-level-class"></select></label>
+          <label>HP Gain<input id="dnd-level-hp-gain" type="number" min="1" /></label>
+          <label id="dnd-level-subclass-wrap">Subclass<select id="dnd-level-subclass"></select></label>
+          <label id="dnd-level-asi-one-wrap">Ability +1<select id="dnd-level-asi-one"></select></label>
+          <label id="dnd-level-asi-two-wrap">Ability +1<select id="dnd-level-asi-two"></select></label>
+          <label id="dnd-level-feat-wrap">Feat<input id="dnd-level-feat" type="text" placeholder="Optional feat" /></label>
+        </div>
+        <div id="dnd-level-features" class="dnd-level-features"></div>
+        <button id="dnd-confirm-level-up" type="button">Level Up</button>
       </div>
     </div>
 
