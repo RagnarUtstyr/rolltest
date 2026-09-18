@@ -6,12 +6,12 @@
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918vnext2" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918vnext2" disabled />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918vnext4" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918vnext4" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260918vnext2" defer></script>
+  <script type="module" src="../js/player.js?v=20260918vnext4" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -539,10 +539,9 @@
   <div class="container auth-shell player-shell player-page">
     <div class="top-row">
       <h1 id="player-page-title">Player Sheet</h1>
+      <div id="player-game-meta" class="player-panel"></div>
       <a id="return-to-lobby-link" class="button-link" href="lobby.html">Return to Lobby</a>
     </div>
-
-    <div id="player-game-meta" class="player-panel"></div>
 
     <div id="ol-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel" hidden aria-label="Open Legend player sections">
       <div class="ol-carousel-tabs" role="tablist" aria-label="Player sections">
@@ -720,12 +719,15 @@
       </div>
 
       <div id="player-initiative-panel" class="player-panel compact-panel initiative-panel">
-        <h2>Initiative</h2>
+        <div class="ol-initiative-heading">
+          <h2>Initiative</h2>
+          <div id="player-initiative-formula" class="initiative-formula" aria-label="Initiative dice formula">—</div>
+        </div>
         <div class="field-stack">
-          <label for="player-initiative">Initiative</label>
+          <label for="player-initiative">Result</label>
           <input type="number" id="player-initiative" placeholder="17" />
         </div>
-        <button id="save-initiative-button" type="button">Initiative</button>
+        <button id="save-initiative-button" type="button">Set</button>
       </div>
 
       <div id="player-effects-panel" class="player-panel compact-panel player-banes-panel hidden">
@@ -787,10 +789,6 @@
 
     <section id="player-openlegend-section" class="hidden">
       <div id="player-openlegend-overview-panel" class="player-panel ol-overview-panel">
-        <div class="builder-link-row">
-          <h2>Open Legend Sheet</h2>
-        </div>
-
         <div class="ol-summary-wrap">
           <div class="ol-summary-top-row">
             <div class="summary-card hp-card hp-card-large ol-current-hp-card">
@@ -805,9 +803,27 @@
               </div>
             </div>
 
-            <div class="summary-card ol-lethal-card">
-              <label class="summary-label" for="player-ol-lethal">Lethal</label>
-              <input type="number" id="player-ol-lethal" class="summary-input ol-lethal-input" min="0" placeholder="0" />
+            <div id="player-openlegend-damage-panel" class="damage-panel ol-hp-control-panel ol-combat-card">
+              <div class="field-stack ol-hp-amount-field">
+                <label for="ol-damage-input">HP Amount</label>
+                <input type="number" id="ol-damage-input" min="0" placeholder="0" />
+              </div>
+
+              <div class="field-stack ol-defense-picker">
+                <label>Damage defense</label>
+                <div class="damage-options">
+                  <label><span>GRD</span><input type="checkbox" class="ol-defense-choice" value="grd" /></label>
+                  <label><span>RES</span><input type="checkbox" class="ol-defense-choice" value="res" /></label>
+                  <label><span>TGH</span><input type="checkbox" class="ol-defense-choice" value="tgh" /></label>
+                </div>
+              </div>
+
+              <div class="button-row damage-button-row ol-hp-buttons" style="margin-top:0;">
+                <button id="ol-apply-damage-btn" type="button">Damage</button>
+                <button id="ol-heal-btn" type="button">Heal</button>
+                <button id="ol-reset-hp-btn" type="button">Reset HP</button>
+              </div>
+              <div id="ol-calc-result" class="calc-result muted"></div>
             </div>
           </div>
 
@@ -827,9 +843,15 @@
               <div id="player-ol-tgh-view" class="summary-value">—</div>
             </div>
           </div>
-          <div id="player-openlegend-overview-meta" class="ol-overview-meta"></div>
-        </div>
 
+          <div class="ol-secondary-status-row">
+            <div class="summary-card ol-lethal-card">
+              <label class="summary-label" for="player-ol-lethal">Lethal</label>
+              <input type="number" id="player-ol-lethal" class="summary-input ol-lethal-input" min="0" placeholder="0" />
+            </div>
+            <div id="player-openlegend-overview-meta" class="ol-overview-meta"></div>
+          </div>
+        </div>
       </div>
 
       <div id="player-openlegend-attributes-panel" class="player-panel ol-attributes-panel">
@@ -853,37 +875,6 @@
         <div id="player-openlegend-profile-content" class="ol-profile-content"></div>
       </div>
 
-      <div id="player-openlegend-actions-panel" class="player-panel ol-actions-panel">
-        <div class="ol-actions-heading">
-          <div>
-            <h2>Combat</h2>
-          </div>
-        </div>
-
-        <div id="player-openlegend-damage-panel" class="damage-panel ol-hp-control-panel">
-          <div class="field-stack">
-            <label for="ol-damage-input">HP Amount</label>
-            <input type="number" id="ol-damage-input" min="0" placeholder="0" />
-          </div>
-
-          <div class="field-stack">
-            <label>Damage defense</label>
-            <div class="damage-options">
-              <label><span>GRD</span><input type="checkbox" class="ol-defense-choice" value="grd" /></label>
-              <label><span>RES</span><input type="checkbox" class="ol-defense-choice" value="res" /></label>
-              <label><span>TGH</span><input type="checkbox" class="ol-defense-choice" value="tgh" /></label>
-            </div>
-          </div>
-
-          <div class="button-row damage-button-row ol-hp-buttons" style="margin-top:0;">
-            <button id="ol-apply-damage-btn" type="button">Damage</button>
-            <button id="ol-heal-btn" type="button">Heal</button>
-            <button id="ol-reset-hp-btn" type="button">Reset HP</button>
-          </div>
-        </div>
-
-        <div id="ol-calc-result" class="calc-result muted"></div>
-      </div>
     </section>
 
     <div id="player-trackers-panel" class="player-panel">

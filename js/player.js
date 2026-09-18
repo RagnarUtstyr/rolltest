@@ -312,7 +312,6 @@ function setupPlayerMobileCarousels() {
           document.getElementById("player-name-panel"),
           document.getElementById("player-openlegend-overview-panel"),
           document.getElementById("player-initiative-panel"),
-          document.getElementById("player-openlegend-actions-panel"),
           document.getElementById("player-banes-panel"),
           document.getElementById("player-fatigue-panel")
         ],

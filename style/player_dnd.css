@@ -1555,3 +1555,42 @@ body.player-mode-dnd .dnd-sheet-track {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+/* === 2026-09-18 vnext4: make Armor Class unmistakably prominent === */
+.dnd-overview-feature-row .dnd-ac-feature-card,
+body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-card {
+  min-height: 214px !important;
+  grid-template-columns: 106px minmax(0, 1fr) !important;
+}
+.dnd-overview-feature-row .dnd-ac-feature-main,
+body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-main {
+  padding: 18px 12px !important;
+}
+.dnd-overview-feature-row .dnd-ac-feature-equipment,
+body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-equipment {
+  padding: 18px 14px !important;
+}
+.dnd-overview-feature-row .dnd-ac-feature-main strong,
+body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-main strong {
+  font-size: 3.1rem !important;
+  line-height: .95 !important;
+}
+.dnd-overview-feature-row .dnd-ac-feature-main span,
+body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-main span {
+  font-size: .8rem !important;
+}
+.dnd-overview-feature-row .dnd-ac-feature-equipment strong,
+body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-equipment strong {
+  font-size: 1.06rem !important;
+}
+@media (max-width: 800px) {
+  .dnd-overview-feature-row .dnd-ac-feature-card,
+  body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-card {
+    min-height: 188px !important;
+    grid-template-columns: 112px minmax(0, 1fr) !important;
+  }
+  .dnd-overview-feature-row .dnd-ac-feature-main strong,
+  body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-main strong {
+    font-size: 3rem !important;
+  }
+}
