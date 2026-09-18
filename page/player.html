@@ -6,12 +6,12 @@
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918batch1" disabled />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918dndsheet1" disabled />
   <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918batch1" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260918batch1" defer></script>
+  <script type="module" src="../js/player.js?v=20260918dndsheet1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -572,31 +572,128 @@
       </div>
     </div>
 
-    <div id="dnd-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel dnd-mobile-carousel" hidden aria-label="D&D player sections">
-      <div class="ol-carousel-tabs" role="tablist" aria-label="Player sections">
-        <button type="button" class="ol-carousel-tab is-active" data-carousel-tab="overview" aria-selected="true">Overview</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="actions" aria-selected="false">Action</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="attributes" aria-selected="false">Attributes</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Tracker</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="effects" aria-selected="false">Effects</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="notes" aria-selected="false">Notes</button>
-      </div>
-      <div id="dnd-carousel-track" class="ol-carousel-track">
-        <section class="ol-carousel-slide" data-carousel-slide="overview" aria-label="Overview"><div class="ol-carousel-slot" data-carousel-slot="overview"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="actions" aria-label="Action"><div class="ol-carousel-slot" data-carousel-slot="actions"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="attributes" aria-label="Attributes"><div class="ol-carousel-slot" data-carousel-slot="attributes"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Tracker"><div class="ol-carousel-slot" data-carousel-slot="trackers"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="effects" aria-label="Effects"><div class="ol-carousel-slot" data-carousel-slot="effects"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="Notes"><div class="ol-carousel-slot" data-carousel-slot="notes"></div></section>
-      </div>
-      <div class="ol-carousel-controls" aria-label="Carousel controls">
-        <button id="dnd-carousel-prev" type="button" class="ol-carousel-arrow" aria-label="Previous section">‹</button>
-        <div class="ol-carousel-dots" aria-hidden="true">
-          <span class="ol-carousel-dot is-active"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
-          <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
+    <div id="dnd-sheet-app" class="dnd-sheet-app" hidden aria-label="D&D character sheet">
+      <header class="dnd-sheet-header">
+        <div class="dnd-sheet-mark" aria-hidden="true">◇</div>
+        <div class="dnd-sheet-identity">
+          <h1 id="dnd-character-title">Character</h1>
+          <div id="dnd-character-subtitle" class="dnd-character-subtitle">D&amp;D Character</div>
         </div>
-        <button id="dnd-carousel-next" type="button" class="ol-carousel-arrow" aria-label="Next section">›</button>
+        <a id="dnd-builder-link" class="dnd-more-button" href="dnd_character_builder_firebase.html" aria-label="Open character builder">•••</a>
+      </header>
+
+      <nav class="dnd-sheet-tabs" role="tablist" aria-label="Character sheet pages">
+        <button type="button" class="dnd-sheet-tab is-active" data-dnd-tab="overview" aria-selected="true">Overview</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="actions" aria-selected="false">Action</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="attributes" aria-selected="false">Attributes</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="skills" aria-selected="false">Skills</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="weapons" aria-selected="false">Weapons</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="spells" aria-selected="false">Spells</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="profile" aria-selected="false">Profile</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="notes" aria-selected="false">Notes</button>
+      </nav>
+
+      <div class="dnd-sheet-dots" aria-hidden="true">
+        <span class="dnd-sheet-dot is-active"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span>
+        <span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span>
+        <span class="dnd-sheet-loop">∞</span>
       </div>
+
+      <div class="dnd-sheet-viewport">
+        <div id="dnd-sheet-track" class="dnd-sheet-track">
+          <section class="dnd-sheet-page is-active" data-dnd-page="overview" aria-label="Overview">
+            <div class="dnd-hp-card">
+              <div class="dnd-hp-title"><span class="dnd-section-icon">♥</span><h2>Hit Points</h2></div>
+              <div class="dnd-hp-readout"><strong id="dnd-current-hp-display">—</strong><span>/</span><strong id="dnd-max-hp-display">—</strong></div>
+              <div class="dnd-hp-track" role="progressbar" aria-label="Hit points" aria-valuemin="0" aria-valuenow="0"><div id="dnd-hp-fill" class="dnd-hp-fill"></div></div>
+            </div>
+
+            <div class="dnd-core-stat-grid">
+              <div class="dnd-core-stat"><span>Initiative</span><strong id="dnd-view-initiative">—</strong></div>
+              <div class="dnd-core-stat"><span>Speed</span><strong id="dnd-view-speed">—</strong></div>
+              <div class="dnd-core-stat"><span>Hit Dice</span><strong id="dnd-view-hit-dice">—</strong></div>
+              <div class="dnd-core-stat"><span>Armor Class</span><strong id="dnd-view-ac">—</strong></div>
+              <div class="dnd-core-stat"><span>Proficiency</span><strong id="dnd-view-prof">—</strong></div>
+            </div>
+
+            <div class="dnd-hp-adjust-card">
+              <label for="dnd-hp-adjust-input">HP</label>
+              <input type="number" id="dnd-hp-adjust-input" min="0" inputmode="numeric" placeholder="0" />
+              <button id="dnd-apply-damage-btn" class="dnd-damage-button" type="button">Damage</button>
+              <button id="dnd-heal-btn" class="dnd-heal-button" type="button">Heal</button>
+            </div>
+            <div id="dnd-calc-result" class="dnd-result-line" aria-live="polite"></div>
+
+            <div class="dnd-overview-columns">
+              <section class="dnd-overview-panel">
+                <div class="dnd-panel-heading"><h2>Actions</h2><button type="button" class="dnd-jump-link" data-dnd-go="actions">See All</button></div>
+                <div id="dnd-overview-actions" class="dnd-action-preview"></div>
+              </section>
+              <section class="dnd-overview-panel">
+                <div class="dnd-panel-heading"><h2>Attributes</h2><button type="button" class="dnd-jump-link" data-dnd-go="attributes">See All</button></div>
+                <div id="dnd-overview-attributes" class="dnd-attribute-preview"></div>
+              </section>
+            </div>
+
+            <section class="dnd-note-preview-card">
+              <div class="dnd-panel-heading"><h2>Shared Note</h2><button type="button" class="dnd-jump-link" data-dnd-go="notes">Edit</button></div>
+              <div id="dnd-overview-note-preview" class="dnd-note-preview">—</div>
+            </section>
+            <button id="dnd-overview-text-dm" type="button" class="dnd-text-dm-button" data-dnd-go="notes">Text DM</button>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="actions" aria-label="Action">
+            <div class="dnd-page-heading"><h2>Action</h2></div>
+            <div class="dnd-action-page-grid">
+              <section class="dnd-detail-card">
+                <h3>Initiative</h3>
+                <div class="dnd-inline-control"><input id="dnd-initiative-input" type="number" inputmode="numeric" placeholder="0" /><button id="dnd-save-initiative-button" type="button">Save</button></div>
+                <button id="dnd-reset-hp-btn" class="dnd-action-reset" type="button">Reset HP</button>
+              </section>
+              <section class="dnd-detail-card"><h3>Actions</h3><div id="dnd-actions-full" class="dnd-action-preview"></div></section>
+            </div>
+            <div id="dnd-effects-mount" class="dnd-source-mount"></div>
+            <div id="dnd-trackers-mount" class="dnd-source-mount"></div>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="attributes" aria-label="Attributes">
+            <div class="dnd-page-heading"><h2>Attributes</h2></div>
+            <div id="dnd-attributes-full" class="dnd-attributes-full"></div>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="skills" aria-label="Skills">
+            <div class="dnd-page-heading"><h2>Skills</h2></div>
+            <div id="dnd-skills-groups" class="dnd-skills-groups"></div>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="weapons" aria-label="Weapons">
+            <div class="dnd-page-heading"><h2>Weapon Attacks</h2></div>
+            <div id="dnd-weapons-summary" class="dnd-weapon-summary"></div>
+            <div id="dnd-weapons-list" class="dnd-weapons-list"></div>
+            <button type="button" class="dnd-builder-shortcut" data-open-dnd-builder>Manage Equipment</button>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="spells" aria-label="Spells">
+            <div class="dnd-page-heading"><h2>Spells</h2></div>
+            <div id="dnd-spell-slots" class="dnd-spell-slots"></div>
+            <div id="dnd-spells-list" class="dnd-spells-list"></div>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="profile" aria-label="Profile">
+            <div class="dnd-page-heading"><h2>Profile</h2></div>
+            <div id="dnd-profile-content" class="dnd-profile-content"></div>
+            <button type="button" class="dnd-builder-shortcut" data-open-dnd-builder>Edit Character</button>
+          </section>
+
+          <section class="dnd-sheet-page" data-dnd-page="notes" aria-label="Notes">
+            <div class="dnd-page-heading"><h2>Notes</h2></div>
+            <div id="dnd-notes-mount" class="dnd-source-mount"></div>
+          </section>
+        </div>
+      </div>
+
+      <button id="dnd-sheet-prev" type="button" class="dnd-sheet-arrow dnd-sheet-arrow-prev" aria-label="Previous page">‹</button>
+      <button id="dnd-sheet-next" type="button" class="dnd-sheet-arrow dnd-sheet-arrow-next" aria-label="Next page">›</button>
     </div>
 
     <div class="top-character-row">
@@ -664,52 +761,16 @@
       <div id="player-shared-notes-meta" class="muted"></div>
     </div>
 
-    <section id="player-dnd-section" class="hidden">
-      <div id="player-dnd-overview-panel" class="player-panel dnd-overview-panel">
-        <div class="builder-link-row">
-          <h2>Overview</h2>
-          <a id="dnd-builder-link" class="button-link" href="dnd_character_builder_firebase.html">Builder</a>
-        </div>
-        <div class="dnd-overview-grid">
-          <div class="summary-card hp-card hp-card-large">
-            <label class="summary-label" for="player-hp">HP</label>
-            <input type="number" id="player-hp" placeholder="24" />
-          </div>
-          <div class="summary-card"><label class="summary-label" for="player-ac">AC</label><input type="number" id="player-ac" placeholder="16" /></div>
-          <div class="summary-card"><label class="summary-label" for="player-prof">Prof</label><input type="number" id="player-prof" placeholder="2" /></div>
-        </div>
-      </div>
-
-      <div id="player-dnd-actions-panel" class="player-panel dnd-actions-panel">
-        <h2>Action</h2>
-        <div class="dnd-action-grid">
-          <div class="dnd-action-card">
-            <div class="field-stack"><label for="dnd-damage-input">Damage</label><input type="number" id="dnd-damage-input" min="0" placeholder="Damage" /></div>
-            <button id="dnd-apply-damage-btn" class="dnd-action-btn" type="button">Apply</button>
-          </div>
-          <div class="dnd-action-card">
-            <div class="field-stack"><label for="dnd-heal-amount">Heal</label><input type="number" id="dnd-heal-amount" min="0" placeholder="Heal" /></div>
-            <label class="dnd-temp-toggle"><input type="checkbox" id="dnd-temp-heal" />Temp</label>
-            <button id="dnd-heal-btn" class="dnd-action-btn" type="button">Heal</button>
-          </div>
-          <div class="dnd-action-card">
-            <button id="dnd-reset-hp-btn" class="dnd-action-btn" type="button">Reset HP</button>
-          </div>
-        </div>
-        <div id="dnd-calc-result" class="calc-result muted"></div>
-      </div>
-
-      <div id="player-dnd-attributes-panel" class="player-panel dnd-attributes-panel">
-        <h2>Attributes</h2>
-        <div class="dnd-attribute-grid">
-          <div class="field-stack"><label for="player-str">STR</label><input type="number" id="player-str" placeholder="10" /></div>
-          <div class="field-stack"><label for="player-dex">DEX</label><input type="number" id="player-dex" placeholder="14" /></div>
-          <div class="field-stack"><label for="player-con">CON</label><input type="number" id="player-con" placeholder="12" /></div>
-          <div class="field-stack"><label for="player-int">INT</label><input type="number" id="player-int" placeholder="8" /></div>
-          <div class="field-stack"><label for="player-wis">WIS</label><input type="number" id="player-wis" placeholder="13" /></div>
-          <div class="field-stack"><label for="player-cha">CHA</label><input type="number" id="player-cha" placeholder="15" /></div>
-        </div>
-      </div>
+    <section id="player-dnd-section" class="hidden dnd-data-source" aria-hidden="true">
+      <input type="hidden" id="player-hp" />
+      <input type="hidden" id="player-ac" />
+      <input type="hidden" id="player-prof" />
+      <input type="hidden" id="player-str" />
+      <input type="hidden" id="player-dex" />
+      <input type="hidden" id="player-con" />
+      <input type="hidden" id="player-int" />
+      <input type="hidden" id="player-wis" />
+      <input type="hidden" id="player-cha" />
     </section>
 
     <section id="player-openlegend-section" class="hidden">
