@@ -9,15 +9,15 @@
   <title>Initiative</title>
   <link rel="preload" as="image" href="../background.jpg">
   <script type="module" src="../js/server.js?v=20260917ui1" defer></script>
-  <script type="module" src="../js/health.js?v=20260917npc4" defer></script>
+  <script type="module" src="../js/health.js?v=20260918batch1" defer></script>
   <script type="module" src="../js/turn.js?v=20260416a" defer></script>
-  <script type="module" src="../js/participants.js?v=20260917notes2" defer></script>
+  <script type="module" src="../js/participants.js?v=20260918batch1" defer></script>
   <script type="module" src="../js/dm_tracker.js?v=20260917a" defer></script>
 
   <link rel="stylesheet" href="../style/style.css" />
   <link rel="stylesheet" href="../style/turn.css" />
   <link rel="stylesheet" href="../style/save.css" />
-  <link rel="stylesheet" href="../style/dm_tracker.css?v=20260917npc4" />
+  <link rel="stylesheet" href="../style/dm_tracker.css?v=20260918batch1" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=MedievalSharp&display=swap" rel="stylesheet" />
 </head>
 <style>
@@ -497,13 +497,13 @@
         <div id="participant-detail-stats" class="participant-stats-grid"></div>
 
         <div class="participant-detail-section">
-          <h4>Shared DM / Player Notes</h4>
-          <textarea id="participant-note" placeholder="Write a note that both the DM and this player can read and edit."></textarea>
+          <h4 id="participant-note-title">Text Player</h4>
+          <textarea id="participant-note" placeholder="Write a message…"></textarea>
           <div class="participant-note-actions">
             <button id="participant-note-save" type="button">Save note</button>
             <span id="participant-note-status"></span>
           </div>
-          <div id="participant-note-meta" class="participant-note-meta">Shared between DM and player.</div>
+          <div id="participant-note-meta" class="participant-note-meta"></div>
         </div>
 
         <div class="participant-detail-section">

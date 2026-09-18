@@ -64,7 +64,7 @@ body::before {
   inset: 0;
   background:
     linear-gradient(rgba(10, 8, 7, 0.88), rgba(10, 8, 7, 0.94)),
-    url("background_dnd.jpg") no-repeat center center fixed;
+    url("../background_dnd.jpg") no-repeat center center fixed;
   background-size: cover;
   z-index: -1;
   pointer-events: none;
@@ -213,7 +213,8 @@ body::before {
 
 /* Optional destructive buttons if present in the same pages */
 .remove-button,
-.delete-button {
+.delete-button,
+.delete-npc-button {
   appearance: none;
   border: 1px solid #5a3d3d;
   border-radius: var(--radius-sm);
@@ -233,7 +234,8 @@ body::before {
 }
 
 .remove-button:hover,
-.delete-button:hover {
+.delete-button:hover,
+.delete-npc-button:hover {
   background: linear-gradient(180deg, #805757 0%, #694646 100%);
   transform: translateY(-1px);
 }
@@ -311,8 +313,16 @@ body::before {
   .link-button a,
   .add-to-list-button,
   .remove-button,
-  .delete-button {
+  .delete-button,
+  .delete-npc-button {
     width: 100%;
     text-align: center;
   }
+}
+@media (max-width: 640px) {
+  .npc-summary-card {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+  .npc-summary-main { grid-column: 1 / -1; }
+  .npc-summary-card button { min-height: 38px; padding: 8px 10px; font-size: 0.88rem; }
 }

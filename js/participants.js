@@ -96,10 +96,8 @@ function noteValue(value) {
 }
 
 function formatNoteMeta(note) {
-  if (!note.updatedAt) return "Shared between DM and player.";
-  const who = note.updatedByRole === "dm" ? "DM" : note.updatedByRole === "player" ? "Player" : "Someone";
-  const when = new Date(note.updatedAt).toLocaleString();
-  return `Last updated by ${who} · ${when}`;
+  if (!note.updatedAt) return "";
+  return new Date(note.updatedAt).toLocaleString();
 }
 
 function hasActivePing(game, uid) {
@@ -158,6 +156,7 @@ function els() {
     detailName: document.getElementById("participant-detail-name"),
     stats: document.getElementById("participant-detail-stats"),
     note: document.getElementById("participant-note"),
+    noteTitle: document.getElementById("participant-note-title"),
     noteMeta: document.getElementById("participant-note-meta"),
     noteSave: document.getElementById("participant-note-save"),
     noteStatus: document.getElementById("participant-note-status"),
@@ -378,6 +377,7 @@ function renderParticipantDetail() {
     detailView,
     detailName,
     note,
+    noteTitle,
     noteMeta,
     noteStatus
   } = els();
@@ -389,6 +389,7 @@ function renderParticipantDetail() {
   detailView?.removeAttribute("hidden");
 
   if (detailName) detailName.textContent = record.characterName;
+  if (noteTitle) noteTitle.textContent = `Text ${record.characterName}`;
 
   renderStats(record);
 

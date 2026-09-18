@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Open Legend Character Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
@@ -607,6 +608,50 @@
     }
 
 </style>
+
+<style>
+  body {
+    background:
+      linear-gradient(rgba(4,18,15,.78), rgba(4,18,15,.94)),
+      url('../background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #d8d1af;
+  }
+  .container {
+    background: linear-gradient(180deg, rgba(10,31,26,.95), rgba(6,22,19,.97));
+    border: 1px solid rgba(115,156,139,.35);
+    box-shadow: 0 28px 80px rgba(0,0,0,.55);
+    border-radius: 16px;
+  }
+  .topbar {
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(115,156,139,.2);
+  }
+  .sheet-box, .category-box, .derived-box, .feat-card, .weapon-card, .bane-overview-card {
+    background: rgba(5,23,19,.58) !important;
+    border-color: rgba(115,156,139,.28) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    background: rgba(3,17,14,.72);
+    border-color: rgba(110,157,137,.52);
+    color: #eee5c5;
+  }
+  select option, select optgroup { background: #efe4bf; color: #18201a; }
+  button, .button-link {
+    border-color: rgba(115,156,139,.52);
+    background: linear-gradient(180deg, #215d47, #123d31);
+    color: #efe7c6;
+  }
+  button:hover, .button-link:hover { background: linear-gradient(180deg, #2f7c5d, #1a503d); color: #fff8de; }
+  @media (max-width: 700px) {
+    body { padding: 6px; background-attachment: scroll; }
+    .container { padding: 10px; border-radius: 12px; }
+    .topbar { align-items: flex-start; }
+    .topbar h1 { font-size: 1.55rem; }
+    input[type="text"], input[type="number"], select, textarea, button, .button-link { font-size: 16px; }
+  }
+</style>
 </head>
 <body>
   <div class="container">
@@ -617,10 +662,6 @@
       </div>
       <a id="back-to-player-link" class="button-link" href="player.html">Back to player</a>
     </div>
-
-    <p class="intro-copy">
-      Full builder with room-based autosave. Combat stats sync to your player page while the full build is stored separately.
-    </p>
 
     <div id="builder"></div>
 

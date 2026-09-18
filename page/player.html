@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
-  <link rel="stylesheet" href="../style/player.css" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260917olui2" disabled />
+  <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918batch1" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918batch1" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260917olui2" defer></script>
+  <script type="module" src="../js/player.js?v=20260918batch1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -543,45 +543,60 @@
 
     <div id="player-game-meta" class="player-panel"></div>
 
-    <div id="ol-mobile-carousel" class="ol-mobile-carousel" hidden aria-label="Open Legend player sections">
+    <div id="ol-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel" hidden aria-label="Open Legend player sections">
       <div class="ol-carousel-tabs" role="tablist" aria-label="Player sections">
         <button type="button" class="ol-carousel-tab is-active" data-carousel-tab="overview" aria-selected="true">Overview</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="actions" aria-selected="false">Action</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="attributes" aria-selected="false">Attributes</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Tracker</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="banes" aria-selected="false">Banes</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="notes" aria-selected="false">Notes</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="actions" aria-selected="false">Actions</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Trackers</button>
       </div>
 
       <div id="ol-carousel-track" class="ol-carousel-track">
-        <section class="ol-carousel-slide" data-carousel-slide="overview" aria-label="Overview">
-          <div class="ol-carousel-slot" data-carousel-slot="overview"></div>
-        </section>
-        <section class="ol-carousel-slide" data-carousel-slide="banes" aria-label="Banes and fatigue">
-          <div class="ol-carousel-slot" data-carousel-slot="banes"></div>
-        </section>
-        <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="Shared notes">
-          <div class="ol-carousel-slot" data-carousel-slot="notes"></div>
-        </section>
-        <section class="ol-carousel-slide" data-carousel-slide="actions" aria-label="Actions">
-          <div class="ol-carousel-slot" data-carousel-slot="actions"></div>
-        </section>
-        <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Trackers">
-          <div class="ol-carousel-slot" data-carousel-slot="trackers"></div>
-        </section>
+        <section class="ol-carousel-slide" data-carousel-slide="overview" aria-label="Overview"><div class="ol-carousel-slot" data-carousel-slot="overview"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="actions" aria-label="Action"><div class="ol-carousel-slot" data-carousel-slot="actions"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="attributes" aria-label="Attributes"><div class="ol-carousel-slot" data-carousel-slot="attributes"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Tracker"><div class="ol-carousel-slot" data-carousel-slot="trackers"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="banes" aria-label="Banes"><div class="ol-carousel-slot" data-carousel-slot="banes"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="Notes"><div class="ol-carousel-slot" data-carousel-slot="notes"></div></section>
       </div>
 
       <div class="ol-carousel-controls" aria-label="Carousel controls">
         <button id="ol-carousel-prev" type="button" class="ol-carousel-arrow" aria-label="Previous section">‹</button>
         <div class="ol-carousel-dots" aria-hidden="true">
-          <span class="ol-carousel-dot is-active"></span>
-          <span class="ol-carousel-dot"></span>
-          <span class="ol-carousel-dot"></span>
-          <span class="ol-carousel-dot"></span>
-          <span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot is-active"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
         </div>
         <button id="ol-carousel-next" type="button" class="ol-carousel-arrow" aria-label="Next section">›</button>
       </div>
-      <div class="ol-carousel-hint">Swipe to move between sections</div>
+    </div>
+
+    <div id="dnd-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel dnd-mobile-carousel" hidden aria-label="D&D player sections">
+      <div class="ol-carousel-tabs" role="tablist" aria-label="Player sections">
+        <button type="button" class="ol-carousel-tab is-active" data-carousel-tab="overview" aria-selected="true">Overview</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="actions" aria-selected="false">Action</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="attributes" aria-selected="false">Attributes</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Tracker</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="effects" aria-selected="false">Effects</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="notes" aria-selected="false">Notes</button>
+      </div>
+      <div id="dnd-carousel-track" class="ol-carousel-track">
+        <section class="ol-carousel-slide" data-carousel-slide="overview" aria-label="Overview"><div class="ol-carousel-slot" data-carousel-slot="overview"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="actions" aria-label="Action"><div class="ol-carousel-slot" data-carousel-slot="actions"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="attributes" aria-label="Attributes"><div class="ol-carousel-slot" data-carousel-slot="attributes"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Tracker"><div class="ol-carousel-slot" data-carousel-slot="trackers"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="effects" aria-label="Effects"><div class="ol-carousel-slot" data-carousel-slot="effects"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="Notes"><div class="ol-carousel-slot" data-carousel-slot="notes"></div></section>
+      </div>
+      <div class="ol-carousel-controls" aria-label="Carousel controls">
+        <button id="dnd-carousel-prev" type="button" class="ol-carousel-arrow" aria-label="Previous section">‹</button>
+        <div class="ol-carousel-dots" aria-hidden="true">
+          <span class="ol-carousel-dot is-active"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
+        </div>
+        <button id="dnd-carousel-next" type="button" class="ol-carousel-arrow" aria-label="Next section">›</button>
+      </div>
     </div>
 
     <div class="top-character-row">
@@ -638,111 +653,62 @@
     </div>
 
     <div id="player-shared-notes-panel" class="player-panel shared-notes-panel">
-      <h2>Shared DM / Player Notes</h2>
-      <p class="muted">Both you and the DM can read and edit this note.</p>
+      <h2>Text DM</h2>
       <textarea id="player-shared-notes" placeholder="Write a note for the DM..."></textarea>
       <div class="shared-notes-actions">
         <button id="player-shared-notes-save" type="button">Save note</button>
         <button id="player-ping-dm" type="button" disabled>Ping DM</button>
         <span id="player-shared-notes-status" class="muted"></span>
       </div>
-      <div id="player-ping-dm-status" class="muted">Save a new note before pinging the DM.</div>
-      <div id="player-shared-notes-meta" class="muted">Shared between you and the DM.</div>
+      <div id="player-ping-dm-status" class="muted"></div>
+      <div id="player-shared-notes-meta" class="muted"></div>
     </div>
 
     <section id="player-dnd-section" class="hidden">
-      <div class="player-panel">
+      <div id="player-dnd-overview-panel" class="player-panel dnd-overview-panel">
         <div class="builder-link-row">
-          <h2>Stats</h2>
-          <a id="dnd-builder-link" class="button-link" href="dnd_character_builder_firebase.html">Open Builder</a>
+          <h2>Overview</h2>
+          <a id="dnd-builder-link" class="button-link" href="dnd_character_builder_firebase.html">Builder</a>
         </div>
-
-        <div class="dnd-hp-top">
-          <div class="field-stack">
-            <label for="player-hp">HP</label>
+        <div class="dnd-overview-grid">
+          <div class="summary-card hp-card hp-card-large">
+            <label class="summary-label" for="player-hp">HP</label>
             <input type="number" id="player-hp" placeholder="24" />
           </div>
+          <div class="summary-card"><label class="summary-label" for="player-ac">AC</label><input type="number" id="player-ac" placeholder="16" /></div>
+          <div class="summary-card"><label class="summary-label" for="player-prof">Prof</label><input type="number" id="player-prof" placeholder="2" /></div>
         </div>
+      </div>
 
-        <div class="dnd-ac-prof">
-          <div class="field-stack">
-            <label for="player-ac">AC</label>
-            <input type="number" id="player-ac" placeholder="16" />
-          </div>
-
-          <div class="field-stack">
-            <label for="player-prof">Prof</label>
-            <input type="number" id="player-prof" placeholder="2" />
-          </div>
-        </div>
-
-        <div class="dnd-stats-columns">
-          <div class="dnd-stat-column">
-            <div class="field-stack">
-              <label for="player-str">STR</label>
-              <input type="number" id="player-str" placeholder="10" />
-            </div>
-
-            <div class="field-stack">
-              <label for="player-dex">DEX</label>
-              <input type="number" id="player-dex" placeholder="14" />
-            </div>
-
-            <div class="field-stack">
-              <label for="player-con">CON</label>
-              <input type="number" id="player-con" placeholder="12" />
-            </div>
-          </div>
-
-          <div class="dnd-stat-column">
-            <div class="field-stack">
-              <label for="player-int">INT</label>
-              <input type="number" id="player-int" placeholder="8" />
-            </div>
-
-            <div class="field-stack">
-              <label for="player-wis">WIS</label>
-              <input type="number" id="player-wis" placeholder="13" />
-            </div>
-
-            <div class="field-stack">
-              <label for="player-cha">CHA</label>
-              <input type="number" id="player-cha" placeholder="15" />
-            </div>
-          </div>
-        </div>
-
+      <div id="player-dnd-actions-panel" class="player-panel dnd-actions-panel">
+        <h2>Action</h2>
         <div class="dnd-action-grid">
           <div class="dnd-action-card">
-            <div class="field-stack">
-              <label for="dnd-damage-input">Damage</label>
-              <input type="number" id="dnd-damage-input" min="0" placeholder="Damage" />
-            </div>
+            <div class="field-stack"><label for="dnd-damage-input">Damage</label><input type="number" id="dnd-damage-input" min="0" placeholder="Damage" /></div>
             <button id="dnd-apply-damage-btn" class="dnd-action-btn" type="button">Apply</button>
           </div>
-
           <div class="dnd-action-card">
-            <div class="field-stack">
-              <label for="dnd-heal-amount">Heal</label>
-              <input type="number" id="dnd-heal-amount" min="0" placeholder="Heal amount" />
-            </div>
-            <label class="dnd-temp-toggle">
-              <input type="checkbox" id="dnd-temp-heal" />
-              Temp
-            </label>
+            <div class="field-stack"><label for="dnd-heal-amount">Heal</label><input type="number" id="dnd-heal-amount" min="0" placeholder="Heal" /></div>
+            <label class="dnd-temp-toggle"><input type="checkbox" id="dnd-temp-heal" />Temp</label>
             <button id="dnd-heal-btn" class="dnd-action-btn" type="button">Heal</button>
           </div>
-
           <div class="dnd-action-card">
-            <div class="field-stack">
-              <label for="dnd-reset-note">Reset</label>
-              <input type="text" id="dnd-reset-note" value="Reload all D&amp;D fields from builder" readonly />
-            </div>
             <button id="dnd-reset-hp-btn" class="dnd-action-btn" type="button">Reset HP</button>
           </div>
         </div>
-
         <div id="dnd-calc-result" class="calc-result muted"></div>
+      </div>
+
+      <div id="player-dnd-attributes-panel" class="player-panel dnd-attributes-panel">
+        <h2>Attributes</h2>
+        <div class="dnd-attribute-grid">
+          <div class="field-stack"><label for="player-str">STR</label><input type="number" id="player-str" placeholder="10" /></div>
+          <div class="field-stack"><label for="player-dex">DEX</label><input type="number" id="player-dex" placeholder="14" /></div>
+          <div class="field-stack"><label for="player-con">CON</label><input type="number" id="player-con" placeholder="12" /></div>
+          <div class="field-stack"><label for="player-int">INT</label><input type="number" id="player-int" placeholder="8" /></div>
+          <div class="field-stack"><label for="player-wis">WIS</label><input type="number" id="player-wis" placeholder="13" /></div>
+          <div class="field-stack"><label for="player-cha">CHA</label><input type="number" id="player-cha" placeholder="15" /></div>
+        </div>
       </div>
     </section>
 
@@ -793,11 +759,15 @@
 
       </div>
 
+      <div id="player-openlegend-attributes-panel" class="player-panel ol-attributes-panel">
+        <h2>Attributes</h2>
+        <div id="player-openlegend-attributes-grid" class="ol-attributes-grid"></div>
+      </div>
+
       <div id="player-openlegend-actions-panel" class="player-panel ol-actions-panel">
         <div class="ol-actions-heading">
           <div>
-            <div class="ol-section-kicker">Turn tools</div>
-            <h2>Actions</h2>
+            <h2>Action</h2>
           </div>
         </div>
 
@@ -817,7 +787,7 @@
           </div>
 
           <div class="button-row damage-button-row" style="margin-top:0;">
-            <button id="ol-apply-damage-btn" type="button">Apply Damage</button>
+            <button id="ol-apply-damage-btn" type="button">Damage</button>
           </div>
         </div>
 
@@ -841,9 +811,7 @@
 
     <div id="player-trackers-panel" class="player-panel">
       <h2>Trackers</h2>
-      <p class="muted tracker-subtitle">Saved with your character in this game.</p>
-
-      <div class="tracker-form">
+            <div class="tracker-form">
         <input type="text" id="tracker-name" placeholder="Tracker name" />
         <input type="number" id="tracker-amount" min="1" placeholder="Amount" />
         <button id="create-tracker-btn" type="button">Add tracker</button>

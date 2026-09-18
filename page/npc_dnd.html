@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Custom DnD NPC List</title>
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
   <link rel="icon" href="../favicon.ico" />
-  <link rel="stylesheet" href="../style/list.css" />
-  <link rel="stylesheet" href="../style/style.css" />
+  <link rel="stylesheet" href="../style/list_dnd.css?v=20260918batch1" />
+  <link rel="stylesheet" href="../style/style_dnd.css?v=20260918batch1" />
   <style>
     .npc-summary-card {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
       gap: 12px;
       align-items: center;
     }
@@ -263,6 +264,7 @@
 
       <div class="npc-modal-actions">
         <button type="button" id="npc-details-add-button">Add to Initiative</button>
+        <button type="button" id="npc-details-delete-button" class="delete-npc-button">Delete</button>
       </div>
     </div>
   </div>
@@ -274,7 +276,9 @@
       collection,
       getDocs,
       query,
-      orderBy
+      orderBy,
+      deleteDoc,
+      doc
     } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
     import {
       ref,
@@ -335,6 +339,30 @@
         id: doc.id,
         ...doc.data()
       }));
+    }
+
+    async function deleteNpc(npc) {
+      if (!npc?.id) return;
+      const confirmed = window.confirm(`Delete "${npc.name || "this NPC"}" from the NPC list?`);
+      if (!confirmed) return;
+
+      try {
+        const user = await requireAuth();
+        await deleteDoc(doc(
+          firestore,
+          "users",
+          user.uid,
+          "gameCustomNpcsDnd",
+          code,
+          "npcs",
+          npc.id
+        ));
+        closeNpcModal();
+        window.location.reload();
+      } catch (error) {
+        console.error("Could not delete NPC:", error);
+        alert("Could not delete NPC.");
+      }
     }
 
     async function addNpcToInitiative(npc) {
@@ -481,9 +509,18 @@
         openNpcModal(npc);
       });
 
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "delete-npc-button";
+      deleteButton.textContent = "Delete";
+      deleteButton.addEventListener("click", async () => {
+        await deleteNpc(npc);
+      });
+
       wrapper.appendChild(main);
       wrapper.appendChild(addButton);
       wrapper.appendChild(viewButton);
+      wrapper.appendChild(deleteButton);
 
       entry.appendChild(wrapper);
       return entry;
@@ -496,6 +533,7 @@
       const modal = document.getElementById("npc-details-modal");
       const modalClose = document.getElementById("npc-details-close");
       const modalAddButton = document.getElementById("npc-details-add-button");
+      const modalDeleteButton = document.getElementById("npc-details-delete-button");
 
       if (backLink) {
         backLink.href = `group_dnd.html?code=${encodeURIComponent(code)}`;
@@ -515,6 +553,11 @@
       modalAddButton?.addEventListener("click", async () => {
         if (!currentModalNpc) return;
         await addNpcToInitiative(currentModalNpc);
+      });
+
+      modalDeleteButton?.addEventListener("click", async () => {
+        if (!currentModalNpc) return;
+        await deleteNpc(currentModalNpc);
       });
 
       let npcs = [];

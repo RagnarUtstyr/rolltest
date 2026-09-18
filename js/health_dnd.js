@@ -919,7 +919,11 @@ function bindModalActions() {
     if (!input) return;
 
     const currentHealth = parseInt(input.dataset.currentHealth ?? "0", 10) || 0;
-    updateHealth(currentStatEntryId, currentHealth + healAmount, input);
+    const storedMax = Number(input.dataset.maxHealth);
+    const healedHealth = Number.isFinite(storedMax) && storedMax > 0
+      ? Math.min(currentHealth + healAmount, storedMax)
+      : currentHealth + healAmount;
+    updateHealth(currentStatEntryId, healedHealth, input);
     document.getElementById("stat-heal-amount").value = "";
   });
 

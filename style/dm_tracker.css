@@ -2565,3 +2565,71 @@ body.dm-openlegend #participant-status-select option {
     padding: 4px 5px;
   }
 }
+
+/* === 2026-09-18 compact mobile damage rows === */
+@media (max-width: 760px) {
+  .dm-openlegend #rankingList li.list-item:not(.player-entry) {
+    grid-template-columns: minmax(86px, 0.9fr) minmax(116px, 1.25fr) 58px !important;
+    grid-template-areas:
+      "name hp damage"
+      "name banes banes" !important;
+  }
+
+  .dm-openlegend #rankingList li.list-item > .column.dmg .damage-input {
+    width: 58px !important;
+    max-width: 58px !important;
+    min-width: 0 !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+
+  .dm-dnd #rankingList .list-item:not(.player-entry),
+  .dm-dnd #rankingList li:not(.player-entry) {
+    grid-template-columns: minmax(82px, 0.9fr) 44px minmax(104px, 1fr) 56px !important;
+    grid-template-areas:
+      "name ac hp damage"
+      "name effects effects effects" !important;
+  }
+
+  .dm-dnd #rankingList .list-item.defeated,
+  .dm-dnd #rankingList li.defeated {
+    grid-template-columns: minmax(82px, 0.9fr) 44px minmax(104px, 1fr) 56px !important;
+    grid-template-areas:
+      "name ac hp damage"
+      "name effects effects effects"
+      "remove remove remove remove" !important;
+  }
+
+  .dm-dnd #rankingList .damage-input {
+    width: 56px !important;
+    max-width: 56px !important;
+    min-width: 0 !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .dm-openlegend #rankingList li.list-item:not(.player-entry) {
+    grid-template-columns: minmax(78px, 0.85fr) minmax(104px, 1.2fr) 52px !important;
+    gap: 5px !important;
+  }
+
+  .dm-openlegend #rankingList li.list-item > .column.dmg .damage-input {
+    width: 52px !important;
+    max-width: 52px !important;
+  }
+
+  .dm-dnd #rankingList .list-item:not(.player-entry),
+  .dm-dnd #rankingList li:not(.player-entry),
+  .dm-dnd #rankingList .list-item.defeated,
+  .dm-dnd #rankingList li.defeated {
+    grid-template-columns: minmax(76px, 0.85fr) 40px minmax(94px, 1fr) 50px !important;
+    gap: 5px !important;
+  }
+
+  .dm-dnd #rankingList .damage-input {
+    width: 50px !important;
+    max-width: 50px !important;
+  }
+}

@@ -18,9 +18,7 @@
       <div class="lobby-brand">
         <div class="lobby-brand-mark" aria-hidden="true">✦</div>
         <div>
-          <div class="lobby-kicker">Campaign Hub</div>
           <h1>Game Lobby</h1>
-          <p class="lobby-intro">Create a room, join your group, or return to an existing campaign.</p>
         </div>
       </div>
       <button id="logout-button" type="button">Log out</button>
@@ -32,7 +30,6 @@
       <section class="panel lobby-action-card create-game-panel">
         <div class="panel-heading-row">
           <div>
-            <div class="panel-kicker">Host</div>
             <h2>Create a game</h2>
           </div>
           <span class="panel-symbol" aria-hidden="true">＋</span>
@@ -53,13 +50,11 @@
       <section class="panel lobby-action-card join-game-panel">
         <div class="panel-heading-row">
           <div>
-            <div class="panel-kicker">Join</div>
             <h2>Enter a game</h2>
           </div>
           <span class="panel-symbol" aria-hidden="true">↳</span>
         </div>
 
-        <p class="muted action-description">Enter the four-letter code shared by your GM.</p>
         <label for="join-code">Game code</label>
         <input type="text" id="join-code" maxlength="4" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="ABCD" />
         <button id="join-game-button" class="primary-action" type="button">Join game</button>
@@ -69,10 +64,8 @@
     <section class="panel games-panel">
       <div class="games-panel-heading">
         <div>
-          <div class="panel-kicker">Campaigns</div>
           <h2>Your games</h2>
         </div>
-        <div class="muted games-helper">Tap a campaign to continue.</div>
       </div>
       <div id="games-list" class="list-stack"></div>
     </section>

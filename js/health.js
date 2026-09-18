@@ -58,7 +58,7 @@ function __normalizeTextBlock(value) {
 function __normalizeAttributes(attributes) {
   if (!attributes || typeof attributes !== 'object') return [];
   return Object.entries(attributes)
-    .filter(([, value]) => value !== null && value !== undefined && value !== '' && !Number.isNaN(Number(value)))
+    .filter(([, value]) => value !== null && value !== undefined && value !== '' && !Number.isNaN(Number(value)) && Number(value) !== 0)
     .map(([name, value]) => [name, Number(value)])
     .sort((a, b) => a[0].localeCompare(b[0]));
 }
@@ -984,7 +984,11 @@ onReady(() => {
       }
 
       const current = parseInt(dmgInput.dataset.health, 10) || 0;
-      updateHealth(__currentEntryId, Math.max(current + amount, 0), dmgInput);
+      const storedMax = Number(dmgInput.dataset.maxHealth);
+      const healed = Number.isFinite(storedMax) && storedMax > 0
+        ? Math.min(current + amount, storedMax)
+        : current + amount;
+      updateHealth(__currentEntryId, Math.max(healed, 0), dmgInput);
       hpAmountInput.value = '';
     });
   }

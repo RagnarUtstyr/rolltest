@@ -1035,3 +1035,121 @@ body.player-mode-openlegend {
     max-height: 56vh;
   }
 }
+
+/* === 2026-09-18 player carousel + attribute refinements === */
+.player-mode-openlegend .ol-attributes-panel {
+  min-width: 0;
+}
+
+.player-mode-openlegend .ol-attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 9px;
+}
+
+.player-mode-openlegend .ol-attribute-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name score"
+    "die score";
+  gap: 3px 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(126, 171, 150, 0.24);
+  border-radius: 10px;
+  background: rgba(2, 17, 15, 0.46);
+}
+
+.player-mode-openlegend .ol-attribute-name {
+  grid-area: name;
+  color: #e8ddba;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.player-mode-openlegend .ol-attribute-score {
+  grid-area: score;
+  color: #f3e7bf;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.player-mode-openlegend .ol-attribute-die {
+  grid-area: die;
+  color: #8fb59f;
+  font-family: Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 720px) {
+  .player-mode-openlegend .ol-carousel-tabs {
+    grid-template-columns: repeat(6, minmax(72px, 1fr));
+  }
+
+  /* Keep damage controls on one compact line on phones. */
+  .player-mode-openlegend .damage-panel {
+    display: grid;
+    grid-template-columns: 66px minmax(108px, 1fr) 72px;
+    align-items: end;
+    gap: 6px;
+  }
+
+  .player-mode-openlegend #ol-damage-input {
+    width: 66px;
+    max-width: 66px;
+    min-height: 40px;
+    padding: 7px 5px;
+  }
+
+  .player-mode-openlegend .damage-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .player-mode-openlegend .damage-options label {
+    font-size: 0.66rem;
+  }
+
+  .player-mode-openlegend .damage-button-row {
+    display: block;
+    margin: 0;
+  }
+
+  .player-mode-openlegend .damage-button-row button {
+    width: 72px;
+    min-width: 72px;
+    min-height: 40px;
+    padding: 7px 5px;
+    font-size: 0.74rem !important;
+  }
+
+  .player-mode-openlegend .ol-carousel-arrow:disabled {
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  .player-mode-openlegend .ol-attributes-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 360px) {
+  .player-mode-openlegend .damage-panel {
+    grid-template-columns: 58px minmax(96px, 1fr) 66px;
+    gap: 4px;
+  }
+
+  .player-mode-openlegend #ol-damage-input {
+    width: 58px;
+    max-width: 58px;
+  }
+
+  .player-mode-openlegend .damage-button-row button {
+    width: 66px;
+    min-width: 66px;
+    font-size: 0.7rem !important;
+  }
+}
+.player-mode-openlegend #player-page-title::after { content: none !important; display: none !important; }

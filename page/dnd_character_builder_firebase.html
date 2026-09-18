@@ -4,9 +4,10 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>D&amp;D Character Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
 <style>
   body {
-    background: url('background_dnd.jpg') no-repeat center center fixed;
+    background: url('../background_dnd.jpg') no-repeat center center fixed;
     background-size: cover;
     position: relative;
     color: #E0D8B0;
@@ -441,13 +442,54 @@ button:hover,
     }
   }
 </style>
+
+<style>
+  body {
+    background:
+      linear-gradient(rgba(24,15,12,.78), rgba(18,11,9,.94)),
+      url('../background_dnd.jpg') no-repeat center center fixed;
+    background-size: cover;
+  }
+  body::before { background: transparent; }
+  .container {
+    max-width: 1040px;
+    background: linear-gradient(180deg, rgba(48,32,25,.95), rgba(27,18,15,.97));
+    border: 1px solid rgba(204,158,95,.3);
+    box-shadow: 0 28px 80px rgba(0,0,0,.58);
+  }
+  .top-row { padding-bottom: 12px; border-bottom: 1px solid rgba(204,158,95,.22); }
+  .section, .card, .info-box, .abilities-box, .spell-level-box {
+    background: rgba(25,16,13,.56) !important;
+    border-color: rgba(180,130,76,.34) !important;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    background: rgba(15,9,8,.72);
+    border-color: rgba(205,161,98,.58);
+    color: #f0e3c8;
+  }
+  button, #back-to-player-link {
+    background: linear-gradient(180deg, #68462f, #3f2a20);
+    border-color: #c99b5c;
+    color: #f0e3c8;
+  }
+  button:hover, #back-to-player-link:hover { background: linear-gradient(180deg, #855b3f, #563728); color: #fff5de; }
+  @media (max-width: 700px) {
+    body { padding: 6px; background-attachment: scroll; }
+    .container { padding: 10px; gap: 10px; }
+    .top-row h1 { font-size: 1.5rem; text-align: left; }
+    .grid-4, .grid-3, .grid-2, .cards { grid-template-columns: 1fr 1fr; }
+    input[type="text"], input[type="number"], select, textarea, button, #back-to-player-link { font-size: 16px; }
+  }
+  @media (max-width: 430px) {
+    .grid-4, .grid-3, .grid-2, .cards { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
 <main class="container">
   <div class="top-row">
     <div>
       <h1>Character Sheet</h1>
-      <div class="muted">2014 5e PHB</div>
     </div>
     <a id="back-to-player-link" class="button-link" href="player.html">Back to player</a>
   </div>
@@ -625,9 +667,6 @@ button:hover,
       <button id="closeSkillsModal" type="button">Close</button>
     </div>
     <div class="modal-body">
-      <div class="small muted">
-        Check any skills the character gains proficiency in outside the builder’s core rules automation.
-      </div>
       <div class="skills-grid" id="skillsModalGrid"></div>
       <div class="button-row">
         <button id="clearSkillsModalBtn" type="button">Clear Extra Skills</button>
@@ -641,9 +680,9 @@ button:hover,
 
 <script type="module">
 // Firebase test-project ready: shared config + authenticated access.
-import { requireAuth } from "./auth.js";
-import { db } from "./firebase-config.js";
-import { watchOrLoadGame } from "./game-service.js";
+import { requireAuth } from "../js/auth.js";
+import { db } from "../js/firebase-config.js";
+import { watchOrLoadGame } from "../js/game-service.js";
 import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
 const params = new URLSearchParams(window.location.search);
