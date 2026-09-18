@@ -1564,3 +1564,256 @@ body.player-mode-openlegend #player-openlegend-section { display:none !important
 .player-mode-openlegend .ol-overview-meta { grid-template-columns:repeat(3,minmax(0,1fr)); }
 .player-mode-openlegend .is-over-budget { color:#ffb1a9 !important; }
 @media (max-width:760px){.player-mode-openlegend .ol-overview-meta{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+
+/* === 2026-09-18 vnext2: Overview combat/banes and larger play controls === */
+.player-mode-openlegend #player-initiative-panel {
+  display:grid;
+  grid-template-columns:minmax(0,150px) auto;
+  align-items:end;
+  justify-content:start;
+  column-gap:12px;
+  row-gap:8px;
+}
+.player-mode-openlegend #player-initiative-panel h2 { grid-column:1 / -1; margin-bottom:0; }
+.player-mode-openlegend #player-initiative-panel .field-stack { width:132px; max-width:132px; }
+.player-mode-openlegend #player-initiative-panel input#player-initiative {
+  width:118px !important;
+  max-width:118px !important;
+  min-height:54px !important;
+  padding:10px 12px !important;
+  text-align:center;
+  font-size:1.12rem !important;
+  font-weight:700;
+}
+.player-mode-openlegend #player-initiative-panel #save-initiative-button {
+  width:136px !important;
+  min-width:136px !important;
+  min-height:54px !important;
+  padding:10px 14px !important;
+  font-size:.96rem !important;
+}
+
+.player-mode-openlegend #player-trackers-panel .tracker-form input {
+  min-height:54px !important;
+  padding:11px 13px !important;
+  font-size:1.04rem !important;
+}
+.player-mode-openlegend #player-trackers-panel #tracker-amount {
+  min-width:104px;
+  text-align:center;
+  font-weight:700;
+}
+.player-mode-openlegend #player-trackers-panel .tracker-form-inline {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:11px 0 13px;
+  font-size:.96rem;
+}
+.player-mode-openlegend #player-trackers-panel .tracker-form-inline input[type="checkbox"] {
+  width:21px;
+  height:21px;
+  min-width:21px;
+  min-height:21px;
+}
+.player-mode-openlegend #player-trackers-panel .tracker-card {
+  padding:15px !important;
+  gap:13px;
+  border-radius:11px;
+}
+.player-mode-openlegend #player-trackers-panel .tracker-name { font-size:1.08rem; }
+.player-mode-openlegend #player-trackers-panel .tracker-progress { font-size:1rem; }
+.player-mode-openlegend #player-trackers-panel .tracker-boxes { gap:7px; margin-top:9px; }
+.player-mode-openlegend #player-trackers-panel .tracker-boxes input[type="checkbox"] {
+  width:22px;
+  height:22px;
+  min-width:22px;
+  min-height:22px;
+}
+.player-mode-openlegend #player-trackers-panel .tracker-controls { gap:8px; }
+.player-mode-openlegend #player-trackers-panel .tracker-controls button {
+  min-height:43px !important;
+  padding:8px 13px !important;
+  font-size:.9rem !important;
+}
+/* Add Tracker already had an appropriate target size; do not enlarge it with the tracker controls. */
+.player-mode-openlegend #player-trackers-panel #create-tracker-btn {
+  min-height:42px !important;
+  padding:8px 13px !important;
+  font-size:.88rem !important;
+}
+
+.player-mode-openlegend .ol-carousel-slot[data-carousel-slot="overview"] #player-openlegend-actions-panel,
+.player-mode-openlegend .ol-carousel-slot[data-carousel-slot="overview"] #player-banes-panel,
+.player-mode-openlegend .ol-carousel-slot[data-carousel-slot="overview"] #player-fatigue-panel,
+.player-mode-openlegend .ol-carousel-slot[data-carousel-slot="overview"] #player-initiative-panel {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+}
+
+@media (max-width:520px) {
+  .player-mode-openlegend #player-initiative-panel {
+    grid-template-columns:126px 132px;
+  }
+  .player-mode-openlegend #player-initiative-panel .field-stack { width:118px; max-width:118px; }
+  .player-mode-openlegend #player-initiative-panel input#player-initiative { width:110px !important; max-width:110px !important; }
+  .player-mode-openlegend #player-initiative-panel #save-initiative-button { width:132px !important; min-width:132px !important; }
+}
+
+/* === 2026-09-18 vnext3: compact feats, mobile attribute layout and modal positioning === */
+.player-mode-openlegend .ol-feat-card--compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+}
+.player-mode-openlegend .ol-feat-card--compact h3 {
+  margin: 0;
+  min-width: 0;
+  color: #f0dfab;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+.player-mode-openlegend .ol-feat-card--compact button {
+  width: auto !important;
+  min-width: 64px !important;
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+}
+.player-mode-openlegend .ol-feat-tier-controls {
+  display: grid;
+  grid-template-columns: 40px minmax(64px, 86px) 40px;
+  align-items: center;
+  gap: 6px;
+}
+.player-mode-openlegend .ol-feat-tier-controls button {
+  width: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  font-size: 1.15rem !important;
+}
+.player-mode-openlegend .ol-feat-tier-controls input {
+  min-height: 40px !important;
+  text-align: center;
+}
+.player-mode-openlegend .ol-feat-detail {
+  display: grid;
+  gap: 10px;
+}
+.player-mode-openlegend .ol-feat-detail > section {
+  padding: 10px;
+  border: 1px solid rgba(126,171,150,.18);
+  border-radius: 8px;
+  background: rgba(0,14,12,.32);
+}
+.player-mode-openlegend .ol-feat-detail > section h4 { margin: 0 0 7px; }
+.player-mode-openlegend .ol-feat-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.player-mode-openlegend .ol-feat-editor-heading h4 { margin: 0 0 3px; }
+.player-mode-openlegend .ol-feat-editor-heading span { color: #9fb2a7; font-size: .76rem; }
+.player-mode-openlegend .ol-feat-editor-heading b {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid rgba(230,207,148,.28);
+  border-radius: 999px;
+  color: #f0dfab;
+  font-size: .72rem;
+}
+.player-mode-openlegend .ol-feat-richtext { line-height: 1.45; }
+.player-mode-openlegend .ol-feat-richtext ul { margin: 7px 0 0 18px; padding: 0; }
+.player-mode-openlegend .ol-feat-tier-list { display: grid; gap: 5px; }
+.player-mode-openlegend .ol-feat-tier-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0,1fr);
+  gap: 8px;
+  padding: 6px 7px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.035);
+}
+.player-mode-openlegend .ol-feat-tier-row strong { color: #f0dfab; }
+.player-mode-openlegend .ol-feat-cost-summary {
+  grid-template-columns: auto 1fr auto 1fr;
+  align-items: center;
+  margin-top: 10px;
+}
+.player-mode-openlegend .ol-modal-actions--split {
+  justify-content: space-between;
+  gap: 10px;
+}
+.player-mode-openlegend .ol-modal-actions--split > button { width: auto !important; }
+
+@media (max-width: 600px) {
+  /* Attribute names keep their full line; the score moves below on phones. */
+  .player-mode-openlegend .ol-attribute-card--editable {
+    grid-template-columns: minmax(0,1fr) auto !important;
+    grid-template-areas:
+      "name name"
+      "score die";
+    gap: 5px 7px !important;
+    align-items: center;
+    padding: 8px !important;
+  }
+  .player-mode-openlegend .ol-attribute-card--editable .ol-attribute-name {
+    grid-area: name;
+    white-space: nowrap;
+    overflow: visible;
+  }
+  .player-mode-openlegend .ol-attribute-card--editable input {
+    grid-area: score;
+    width: 66px !important;
+    min-width: 66px !important;
+    justify-self: start;
+    min-height: 40px !important;
+  }
+  .player-mode-openlegend .ol-attribute-card--editable .ol-attribute-die {
+    grid-area: die;
+    min-width: 42px !important;
+    justify-self: end;
+    text-align: right;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Builder-style editors must be positioned against the viewport, not the
+     carousel/document height. This prevents opening a weapon modal off-screen. */
+  body.player-mode-openlegend #ol-weapon-editor-modal.ol-modal,
+  body.player-mode-openlegend #ol-feat-editor-modal.ol-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)) !important;
+    overflow: hidden !important;
+    z-index: 10000 !important;
+  }
+  body.player-mode-openlegend #ol-weapon-editor-modal[aria-hidden="true"],
+  body.player-mode-openlegend #ol-feat-editor-modal[aria-hidden="true"] {
+    display: none !important;
+  }
+  body.player-mode-openlegend #ol-weapon-editor-modal .ol-modal__dialog,
+  body.player-mode-openlegend #ol-feat-editor-modal .ol-modal__dialog {
+    width: min(100%, 680px) !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom))) !important;
+    margin: 0 !important;
+    padding: 16px 12px max(16px, env(safe-area-inset-bottom)) !important;
+    border: 1px solid rgba(230,207,148,.45) !important;
+    border-radius: 14px !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .player-mode-openlegend .ol-feat-cost-summary { grid-template-columns: auto 1fr; }
+}

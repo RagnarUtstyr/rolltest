@@ -5,7 +5,7 @@ import { BANES } from "./banes.js";
 import { OPENLEGEND_BANES } from "./openlegend_banes.js";
 import { EFFECTS } from "./effects.js";
 import { FATIGUE_DATA, clampFatigueLevel, getFatigueLevels, hasFatigueSlowedLink } from "./fatigue.js";
-import { DND_SPELLS, loadDndSpellLibrary, getDndSpellLibraryState, findDndSpell } from "./dnd_spells.js?v=20260918spells1";
+import { DND_SPELLS, loadDndSpellLibrary, getDndSpellLibraryState, findDndSpell } from "./dnd_spells.js?v=20260918spells2";
 import { OPENLEGEND_FEATS } from "./openlegend_feats.js";
 import {
   OPENLEGEND_WEAPONS,
@@ -200,6 +200,45 @@ if (mode === "dnd") {
   throw new Error(`Unsupported game mode: ${game.mode}`);
 }
 
+function isCarouselGestureInteractiveTarget(target) {
+  if (!(target instanceof Element)) return false;
+  return !!target.closest("input, textarea, select, button, a, [role=\'button\'], [contenteditable=\'true\'], .ol-modal, .dnd-sheet-modal, .ol-carousel-tabs, .dnd-sheet-tabs, [data-no-carousel-swipe]");
+}
+
+function attachCarouselSwipeGesture(element, onSwipe, options = {}) {
+  if (!element || typeof onSwipe !== "function") return;
+  const threshold = Number(options.threshold || 48);
+  const dominance = Number(options.dominance || 1.15);
+  let gesture = null;
+  const reset = () => { gesture = null; };
+
+  element.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse" || isCarouselGestureInteractiveTarget(event.target)) return;
+    gesture = { id:event.pointerId, x:event.clientX, y:event.clientY, horizontal:false, vertical:false };
+  }, { passive:true });
+
+  element.addEventListener("pointermove", (event) => {
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (!gesture.horizontal && !gesture.vertical && Math.max(Math.abs(dx), Math.abs(dy)) >= 10) {
+      if (Math.abs(dx) > Math.abs(dy) * dominance) gesture.horizontal = true;
+      else if (Math.abs(dy) > Math.abs(dx)) gesture.vertical = true;
+    }
+  }, { passive:true });
+
+  element.addEventListener("pointerup", (event) => {
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    const horizontal = gesture.horizontal || Math.abs(dx) > Math.abs(dy) * dominance;
+    reset();
+    if (!horizontal || Math.abs(dx) < threshold) return;
+    onSwipe(dx < 0 ? 1 : -1);
+  }, { passive:true });
+  element.addEventListener("pointercancel", reset, { passive:true });
+}
+
 function setupPlayerMobileCarousel(config) {
   const carousel = document.getElementById(config.carouselId);
   const track = document.getElementById(config.trackId);
@@ -213,8 +252,6 @@ function setupPlayerMobileCarousel(config) {
   const nextBtn = document.getElementById(config.nextId);
   let activeIndex = 0;
   let scrollTimer = null;
-  let pointerStartX = null;
-  let pointerStartIndex = 0;
 
   Object.entries(config.placement).forEach(([key, nodes]) => {
     const slot = carousel.querySelector(`[data-carousel-slot="${key}"]`);
@@ -258,11 +295,7 @@ function setupPlayerMobileCarousel(config) {
       updateActive(nearest);
     },70);
   },{passive:true});
-  track.addEventListener("pointerdown",(event)=>{pointerStartX=event.clientX;pointerStartIndex=activeIndex;});
-  track.addEventListener("pointerup",(event)=>{
-    if(pointerStartX===null)return; const delta=event.clientX-pointerStartX; pointerStartX=null; if(Math.abs(delta)<45)return;
-    if(delta<0&&pointerStartIndex===slides.length-1)goTo(0,true); else if(delta>0&&pointerStartIndex===0)goTo(slides.length-1,true);
-  });
+  attachCarouselSwipeGesture(track,(direction)=>goTo(activeIndex+direction,true),{threshold:46,dominance:1.12});
   window.addEventListener("resize",()=>goTo(activeIndex,false),{passive:true});
   updateActive(0); requestAnimationFrame(()=>goTo(0,false));
 }
@@ -277,18 +310,17 @@ function setupPlayerMobileCarousels() {
       placement: {
         overview: [
           document.getElementById("player-name-panel"),
-          document.getElementById("player-openlegend-overview-panel")
-        ],
-        combat: [
+          document.getElementById("player-openlegend-overview-panel"),
           document.getElementById("player-initiative-panel"),
-          document.getElementById("player-openlegend-actions-panel")
+          document.getElementById("player-openlegend-actions-panel"),
+          document.getElementById("player-banes-panel"),
+          document.getElementById("player-fatigue-panel")
         ],
         attributes: [document.getElementById("player-openlegend-attributes-panel")],
         weapons: [document.getElementById("player-openlegend-weapons-panel")],
         feats: [document.getElementById("player-openlegend-feats-panel")],
         profile: [document.getElementById("player-openlegend-profile-panel")],
         trackers: [document.getElementById("player-trackers-panel")],
-        banes: [document.getElementById("player-banes-panel"), document.getElementById("player-fatigue-panel")],
         notes: [document.getElementById("player-shared-notes-panel")]
       }
     });
@@ -893,7 +925,7 @@ function renderDndWeapons(builder, sheet) {
   target.innerHTML = weapons.length ? weapons.map((weapon,index)=> {
     const meta=DND_WEAPON_META[weapon?.name]||{ability:"Strength",damage:"—",type:"Weapon",properties:[]}; const attack=dndWeaponAttackMod(meta,abilities,prof,weapon?.magic);
     const icon=DND_WEAPON_ICON[weapon?.name] || "longsword.png";
-    return `<article class="dnd-weapon-card"><div class="dnd-weapon-card-head"><div class="dnd-weapon-mark"><img src="../icons/gear/${escapeHtml(icon)}" alt="" onerror="this.hidden=true"></div><div class="dnd-weapon-main"><h3>${escapeHtml(meta.label||weapon?.name||"Weapon")}${Number(weapon?.magic||0)?` +${Number(weapon.magic)}`:""}</h3><div class="dnd-weapon-tags">${(meta.properties||[]).map((p)=>`<span>${escapeHtml(p)}</span>`).join("")}</div></div><div class="dnd-weapon-actions"><button type="button" class="dnd-card-edit" data-dnd-edit-weapon="${index}">Edit</button><button type="button" class="dnd-card-remove" data-dnd-remove-weapon="${index}">Remove</button></div></div><div class="dnd-weapon-stats"><div class="dnd-weapon-stat"><span>Attack</span><strong>${dndSigned(attack)}</strong></div><div class="dnd-weapon-stat"><span>Damage</span><strong>${escapeHtml(dndWeaponDamage(meta,abilities,weapon?.magic))}</strong></div><div class="dnd-weapon-stat"><span>Type</span><strong>${escapeHtml(meta.type||"—")}</strong>${meta.range?`<small>${escapeHtml(meta.range)}</small>`:""}</div></div></article>`;
+    return `<article class="dnd-weapon-card"><div class="dnd-weapon-card-head"><div class="dnd-weapon-mark"><img src="../icons/gear/${escapeHtml(icon)}" alt="" onerror="this.hidden=true"></div><div class="dnd-weapon-main"><h3>${escapeHtml(meta.label||weapon?.name||"Weapon")}${Number(weapon?.magic||0)?` +${Number(weapon.magic)}`:""}</h3><div class="dnd-weapon-mobile-meta"><span>ATK ${dndSigned(attack)}</span><span>DMG ${escapeHtml(dndWeaponDamage(meta,abilities,weapon?.magic))}</span><span>${escapeHtml(meta.range||meta.type||"Weapon")}</span></div><div class="dnd-weapon-tags">${(meta.properties||[]).map((p)=>`<span>${escapeHtml(p)}</span>`).join("")}</div></div><div class="dnd-weapon-actions"><button type="button" class="dnd-card-edit" data-dnd-edit-weapon="${index}">Edit</button><button type="button" class="dnd-card-remove" data-dnd-remove-weapon="${index}">Remove</button></div></div><div class="dnd-weapon-stats"><div class="dnd-weapon-stat"><span>Attack</span><strong>${dndSigned(attack)}</strong></div><div class="dnd-weapon-stat"><span>Damage</span><strong>${escapeHtml(dndWeaponDamage(meta,abilities,weapon?.magic))}</strong></div><div class="dnd-weapon-stat"><span>Type</span><strong>${escapeHtml(meta.type||"—")}</strong>${meta.range?`<small>${escapeHtml(meta.range)}</small>`:""}</div></div></article>`;
   }).join("") : `<div class="dnd-empty-card">No weapons</div>`;
 }
 function dndSpellDisplayMeta(spell = {}) {
@@ -910,6 +942,43 @@ function dndSpellDisplayMeta(spell = {}) {
     ].filter(Boolean)
   };
 }
+function dndSpellInfoHtml(spell = {}) {
+  const level=Number(spell.level||0);
+  const components=Array.isArray(spell.components) ? spell.components.join(", ") : String(spell.components||"").trim();
+  const classes=Array.isArray(spell.classes) ? spell.classes.join(", ") : "";
+  const rows=[
+    ["School", spell.school || "—"],
+    ["Casting Time", spell.time || "—"],
+    ["Range", spell.range || "—"],
+    ["Duration", spell.duration || "—"],
+    ["Components", components || "—"],
+    ["Classes", classes || "—"]
+  ];
+  const flags=[spell.ritual?"Ritual":"",spell.concentration?"Concentration":""].filter(Boolean);
+  const description=String(spell.description||"").trim();
+  const higher=String(spell.higherLevel||"").trim();
+  const material=String(spell.material||"").trim();
+  return `
+    <div class="dnd-spell-info-grid">${rows.map(([label,value])=>`<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>
+    ${flags.length?`<div class="dnd-spell-info-tags">${flags.map((flag)=>`<span>${escapeHtml(flag)}</span>`).join("")}</div>`:""}
+    ${material?`<section class="dnd-spell-info-section"><h4>Material</h4><p>${escapeHtml(material)}</p></section>`:""}
+    <section class="dnd-spell-info-section"><h4>Description</h4><p>${description?escapeHtml(description).replace(/\n/g,"<br>"):"Detailed rules text is not available in the currently loaded spell index."}</p></section>
+    ${higher?`<section class="dnd-spell-info-section"><h4>At Higher Levels</h4><p>${escapeHtml(higher).replace(/\n/g,"<br>")}</p></section>`:""}
+  `;
+}
+function openDndSpellInfo(name) {
+  const spell=findDndSpell(name) || (currentDndBuilderData?.spells||[]).find((entry)=>String(entry?.name||"").toLowerCase()===String(name||"").toLowerCase());
+  if(!spell) return;
+  const level=Number(spell.level||0);
+  const title=document.getElementById("dnd-spell-info-title");
+  const kicker=document.getElementById("dnd-spell-info-level");
+  const body=document.getElementById("dnd-spell-info-body");
+  if(title) title.textContent=spell.name || "Spell";
+  if(kicker) kicker.textContent=level===0 ? "Cantrip" : `Level ${level} ${spell.school||"Spell"}`;
+  if(body) body.innerHTML=dndSpellInfoHtml(spell);
+  dndOpenModal("dnd-spell-info-modal");
+}
+
 function renderDndSpells(builder) {
   const slotsTarget=document.getElementById("dnd-spell-slots");
   const listTarget=document.getElementById("dnd-spells-list");
@@ -970,7 +1039,7 @@ function renderDndSpells(builder) {
     if(arcanumLevels.includes(lvl)){ const current=Number(builder.resourceTracker?.[`arcanum-${lvl}`]??1); usageParts.push(`Arcanum ${current} / 1`); }
     const cards=items.length?items.map((spell)=>{
       const index=spells.indexOf(spell); const meta=dndSpellDisplayMeta(spell); const isArcanum=dndIsArcanumEntry(builder,spell);
-      return `<article class="dnd-spell-card${isArcanum?" is-arcanum":""}"><h4>${escapeHtml(spell?.name||"Spell")}</h4><small>${escapeHtml(meta.school)}</small><div class="dnd-spell-meta"><span>${escapeHtml(meta.time)}</span><span>${escapeHtml(meta.range)}</span></div><div class="dnd-spell-tags">${(meta.tags||[]).map((tag)=>`<span>${escapeHtml(tag)}</span>`).join("")}<span>${lvl===0?"Cantrip":`Level ${lvl}`}</span>${isArcanum?`<span>Mystic Arcanum</span>`:""}</div><button type="button" class="dnd-card-remove" data-dnd-remove-spell="${index}">Remove</button></article>`;
+      return `<article class="dnd-spell-card dnd-spell-card--clickable${isArcanum?" is-arcanum":""}" data-dnd-spell-info="${escapeHtml(spell?.name||"")}" tabindex="0" role="button" aria-label="View ${escapeHtml(spell?.name||"spell")} details"><h4>${escapeHtml(spell?.name||"Spell")}</h4><small>${escapeHtml(meta.school)}</small><div class="dnd-spell-meta"><span>${escapeHtml(meta.time)}</span><span>${escapeHtml(meta.range)}</span></div><div class="dnd-spell-tags">${(meta.tags||[]).map((tag)=>`<span>${escapeHtml(tag)}</span>`).join("")}<span>${lvl===0?"Cantrip":`Level ${lvl}`}</span>${isArcanum?`<span>Mystic Arcanum</span>`:""}</div><button type="button" class="dnd-card-remove" data-dnd-remove-spell="${index}">Remove</button></article>`;
     }).join(""):`<div class="dnd-empty-inline">No spells added at this level.</div>`;
     return `<section class="dnd-spell-group"><div class="dnd-spell-group-title"><h3>${label}</h3><span>${usageParts.join(" · ")}</span></div><div class="dnd-spell-card-grid">${cards}</div></section>`;
   }).join("");
@@ -1626,11 +1695,19 @@ function setupDndUnifiedControls() {
   app?.addEventListener("change",(event)=>{
     if(event.target.closest("#dnd-profile-content") && event.target.matches("select")) scheduleDndProfileAutoSave(true);
   });
+  app?.addEventListener("keydown",(event)=>{
+    if(event.key!=="Enter" && event.key!==" ") return;
+    const spellInfo=event.target.closest("[data-dnd-spell-info]");
+    if(!spellInfo || event.target.closest("button")) return;
+    event.preventDefault();
+    openDndSpellInfo(spellInfo.dataset.dndSpellInfo);
+  });
   app?.addEventListener("click",async(event)=>{
     const action=event.target.closest("[data-dnd-action]"); if(action){openDndActionInfo(action.dataset.dndAction);return;}
     const editWeapon=event.target.closest("[data-dnd-edit-weapon]"); if(editWeapon){openDndWeaponPicker(Number(editWeapon.dataset.dndEditWeapon));return;}
     const removeWeapon=event.target.closest("[data-dnd-remove-weapon]"); if(removeWeapon){await removeDndWeapon(Number(removeWeapon.dataset.dndRemoveWeapon));return;}
     const removeSpell=event.target.closest("[data-dnd-remove-spell]"); if(removeSpell){await removeDndSpell(Number(removeSpell.dataset.dndRemoveSpell));return;}
+    const spellInfo=event.target.closest("[data-dnd-spell-info]"); if(spellInfo){openDndSpellInfo(spellInfo.dataset.dndSpellInfo);return;}
     const useSlot=event.target.closest("[data-dnd-slot-use]"); if(useSlot){await changeDndSpellSlot(Number(useSlot.dataset.dndSlotUse),-1);return;}
     const restoreSlot=event.target.closest("[data-dnd-slot-restore]"); if(restoreSlot){await changeDndSpellSlot(Number(restoreSlot.dataset.dndSlotRestore),1);return;}
     const pactSlot=event.target.closest("[data-dnd-pact-use]"); if(pactSlot){await changeDndPactSlot(Number(pactSlot.dataset.dndPactUse));return;}
@@ -1653,7 +1730,7 @@ function setupDndSheetCarousel() {
   app.querySelectorAll("[data-dnd-tab]").forEach((tab)=>tab.addEventListener("click",()=>goToDndPage(tab.dataset.dndTab)));
   app.querySelectorAll("[data-dnd-go]").forEach((button)=>button.addEventListener("click",()=>goToDndPage(button.dataset.dndGo)));
   document.getElementById("dnd-sheet-prev")?.addEventListener("click",()=>goToDndPage(currentDndPageIndex-1)); document.getElementById("dnd-sheet-next")?.addEventListener("click",()=>goToDndPage(currentDndPageIndex+1));
-  let startX=null; track.addEventListener("pointerdown",(e)=>{ if(e.pointerType==="mouse" && window.innerWidth>720)return; startX=e.clientX; }); track.addEventListener("pointerup",(e)=>{ if(startX===null)return; const delta=e.clientX-startX; startX=null; if(Math.abs(delta)<45)return; goToDndPage(currentDndPageIndex+(delta<0?1:-1)); });
+  attachCarouselSwipeGesture(track,(direction)=>goToDndPage(currentDndPageIndex+direction),{threshold:46,dominance:1.12});
   document.getElementById("dnd-initiative-input")?.addEventListener("input",(e)=>{ const hidden=document.getElementById("player-initiative"); if(hidden) hidden.value=e.target.value; });
   document.getElementById("dnd-save-initiative-button")?.addEventListener("click",saveInitiativeToGame);
   window.addEventListener("resize", syncDndViewportHeight, { passive:true });
@@ -2000,7 +2077,7 @@ function renderOpenLegendFeats(builder={}){
   const target=document.getElementById("player-openlegend-feats-list"); const summary=document.getElementById("player-openlegend-feats-summary"); if(!target)return;
   const feats=builder.feats||[]; const budget=olBudgetSummary(builder); const spent=budget.featSpent;
   if(summary)summary.innerHTML=`<span>${feats.length} feat${feats.length===1?"":"s"}</span><strong class="${spent>budget.featTotal?"is-over-budget":""}">${spent} / ${budget.featTotal} feat points</strong>`;
-  target.innerHTML=feats.length?feats.map((feat,index)=>{const entry=OPENLEGEND_FEATS.find((f)=>f.name===feat.name); return `<article class="ol-feat-card"><div class="ol-card-heading"><div><small>Tier ${Number(feat.level||1)} · ${Number(entry?.costPerLevel||0)} pt / tier</small><h3>${escapeHtml(feat.name)}</h3></div><div class="ol-card-actions"><button type="button" data-ol-edit-feat="${index}">Details</button><button type="button" class="remove-button" data-ol-remove-feat="${index}">Remove</button></div></div><p>${escapeHtml(entry?.description||"")}</p></article>`;}).join(""):`<div class="empty-state">No feats added.</div>`;
+  target.innerHTML=feats.length?feats.map((feat,index)=>`<article class="ol-feat-card ol-feat-card--compact"><h3>${escapeHtml(feat.name)}</h3><button type="button" data-ol-edit-feat="${index}">Edit</button></article>`).join(""):`<div class="empty-state">No feats added.</div>`;
 }
 function renderOpenLegendProfile(builder={}){
   const target=document.getElementById("player-openlegend-profile-content"); if(!target)return;
@@ -2069,9 +2146,73 @@ function openOlWeaponEditor(index=null){
 function refreshOlWeaponPreview(){ const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); const weapon={attribute:document.getElementById("ol-weapon-attribute")?.value||"Agility",bonusDice:document.getElementById("ol-weapon-bonus-dice")?.value||"",flatBonus:Number(document.getElementById("ol-weapon-flat-bonus")?.value||0)}; const el=document.getElementById("ol-weapon-damage-preview");if(el)el.innerHTML=`<span>Computed Damage</span><strong>${escapeHtml(olWeaponDamage(builder,weapon))}</strong>`; }
 function applyOlWeaponPreset(){const key=document.getElementById("ol-weapon-preset")?.value||"";if(!key)return;const w=createOpenLegendWeapon(key);const map={"ol-weapon-name":w.name,"ol-weapon-attribute":w.attribute,"ol-weapon-vs":w.vs,"ol-weapon-range":w.range,"ol-weapon-bonus-dice":w.bonusDice,"ol-weapon-flat-bonus":w.flatBonus,"ol-weapon-boon":w.boon,"ol-weapon-bane":w.bane,"ol-weapon-tags":w.tags,"ol-weapon-notes":w.notes};Object.entries(map).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??"";});refreshOlWeaponPreview();}
 async function saveOlWeapon(){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const weapon=olNormalizeWeapon({presetKey:document.getElementById("ol-weapon-preset")?.value||"",name:document.getElementById("ol-weapon-name")?.value?.trim()||"Weapon",attribute:document.getElementById("ol-weapon-attribute")?.value||"Agility",vs:document.getElementById("ol-weapon-vs")?.value||"GRD",range:document.getElementById("ol-weapon-range")?.value?.trim()||"Melee",bonusDice:document.getElementById("ol-weapon-bonus-dice")?.value?.trim()||"",flatBonus:Number(document.getElementById("ol-weapon-flat-bonus")?.value||0),boon:Number(document.getElementById("ol-weapon-boon")?.value||0),bane:Number(document.getElementById("ol-weapon-bane")?.value||0),tags:document.getElementById("ol-weapon-tags")?.value?.trim()||"",notes:document.getElementById("ol-weapon-notes")?.value?.trim()||""});if(Number.isInteger(currentOlWeaponEditIndex)&&builder.weapons[currentOlWeaponEditIndex])builder.weapons[currentOlWeaponEditIndex]=weapon;else builder.weapons.push(weapon);currentOlWeaponEditIndex=null;await saveOpenLegendBuilderAndPlayer(builder,"Weapon saved.");document.getElementById("ol-weapon-editor-modal")?.setAttribute("aria-hidden","true");}
-function openOlFeatEditor(index=null){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const editing=Number.isInteger(index)&&!!builder.feats[index];currentOlFeatEditIndex=editing?index:null;const feat=editing?builder.feats[index]:{name:OPENLEGEND_FEATS[0]?.name||"",level:1};const select=document.getElementById("ol-feat-select");select.innerHTML=OPENLEGEND_FEATS.map((f)=>`<option ${f.name===feat.name?"selected":""}>${escapeHtml(f.name)}</option>`).join("");document.getElementById("ol-feat-level").value=String(Number(feat.level||1));document.getElementById("ol-feat-editor-title").textContent=editing?"Feat Details":"Add Feat";refreshOlFeatDetail();document.getElementById("ol-feat-editor-modal").setAttribute("aria-hidden","false");}
-function refreshOlFeatDetail(){const name=document.getElementById("ol-feat-select")?.value||"";const entry=OPENLEGEND_FEATS.find((f)=>f.name===name);const level=document.getElementById("ol-feat-level");if(level&&entry){level.max=String(entry.maxLevel||1);level.value=String(Math.max(1,Math.min(Number(entry.maxLevel||1),Number(level.value||1))));}const target=document.getElementById("ol-feat-detail");if(target)target.innerHTML=entry?`<h4>${escapeHtml(entry.displayTitle||entry.name)}</h4><p>${entry.descriptionHtml||escapeHtml(entry.description||"")}</p>${entry.effectHtml?`<div>${entry.effectHtml}</div>`:""}${entry.specialHtml?`<div><strong>Special</strong>${entry.specialHtml}</div>`:""}`:"";}
-async function saveOlFeat(){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const name=document.getElementById("ol-feat-select")?.value||"";const entry=OPENLEGEND_FEATS.find((f)=>f.name===name);if(!entry)return;const feat={key:name,name,level:Math.max(1,Math.min(Number(entry.maxLevel||1),Number(document.getElementById("ol-feat-level")?.value||1)))};if(Number.isInteger(currentOlFeatEditIndex)&&builder.feats[currentOlFeatEditIndex])builder.feats[currentOlFeatEditIndex]=feat;else if(!builder.feats.some((f)=>f.name===name))builder.feats.push(feat);currentOlFeatEditIndex=null;await saveOpenLegendBuilderAndPlayer(builder,"Feat saved.");document.getElementById("ol-feat-editor-modal")?.setAttribute("aria-hidden","true");}
+function openOlFeatEditor(index=null){
+  const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});
+  const editing=Number.isInteger(index)&&!!builder.feats[index];
+  currentOlFeatEditIndex=editing?index:null;
+  const feat=editing?builder.feats[index]:{name:OPENLEGEND_FEATS[0]?.name||"",level:1};
+  const select=document.getElementById("ol-feat-select");
+  if(select){
+    select.innerHTML=OPENLEGEND_FEATS.map((f)=>`<option ${f.name===feat.name?"selected":""}>${escapeHtml(f.name)}</option>`).join("");
+    select.value=feat.name||OPENLEGEND_FEATS[0]?.name||"";
+  }
+  const level=document.getElementById("ol-feat-level"); if(level) level.value=String(Number(feat.level||1));
+  const title=document.getElementById("ol-feat-editor-title"); if(title) title.textContent=editing?"Edit Feat":"Add Feat";
+  const deleteButton=document.getElementById("ol-delete-feat-button"); if(deleteButton) deleteButton.hidden=!editing;
+  refreshOlFeatDetail();
+  document.getElementById("ol-feat-editor-modal")?.setAttribute("aria-hidden","false");
+}
+function refreshOlFeatDetail(){
+  const name=document.getElementById("ol-feat-select")?.value||"";
+  const entry=OPENLEGEND_FEATS.find((f)=>f.name===name);
+  const levelInput=document.getElementById("ol-feat-level");
+  let currentLevel=Math.max(1,Number(levelInput?.value||1));
+  if(levelInput&&entry){
+    currentLevel=Math.max(1,Math.min(Number(entry.maxLevel||1),currentLevel));
+    levelInput.max=String(entry.maxLevel||1);
+    levelInput.value=String(currentLevel);
+  }
+  const down=document.getElementById("ol-feat-level-down"); const up=document.getElementById("ol-feat-level-up");
+  if(down) down.disabled=!entry||currentLevel<=1;
+  if(up) up.disabled=!entry||currentLevel>=Number(entry.maxLevel||1);
+  const target=document.getElementById("ol-feat-detail");
+  if(target){
+    if(!entry) target.innerHTML="";
+    else {
+      const tierRows=(entry.tiers||[]).map((tier)=>`<div class="ol-feat-tier-row"><strong>Tier ${Number(tier.level||1)}</strong><span>${escapeHtml(tier.text||"None")}</span></div>`).join("");
+      target.innerHTML=`
+        <div class="ol-feat-editor-heading"><div><h4>${escapeHtml(entry.name)}</h4><span>${escapeHtml(entry.displayTitle||entry.name)}</span></div><b>Tier ${currentLevel}/${Number(entry.maxLevel||1)}</b></div>
+        <section><h4>Description</h4><div class="ol-feat-richtext">${entry.descriptionHtml||escapeHtml(entry.description||"—")}</div></section>
+        <section><h4>Prerequisites</h4><div class="ol-feat-tier-list">${tierRows||'<div class="ol-feat-tier-row"><strong>Tier 1</strong><span>None</span></div>'}</div></section>
+        <section><h4>Effect</h4><div class="ol-feat-richtext">${entry.effectHtml||"—"}</div></section>
+        ${entry.specialHtml?`<section><h4>Special</h4><div class="ol-feat-richtext">${entry.specialHtml}</div></section>`:""}`;
+    }
+  }
+  const cost=document.getElementById("ol-feat-cost-summary");
+  if(cost) cost.innerHTML=entry?`<span>Current Cost</span><strong>${currentLevel*Number(entry.costPerLevel||0)} pt</strong><span>Cost / Tier</span><strong>${Number(entry.costPerLevel||0)} pt</strong>`:"";
+}
+function changeOlFeatLevel(delta){
+  const input=document.getElementById("ol-feat-level"); const name=document.getElementById("ol-feat-select")?.value||""; const entry=OPENLEGEND_FEATS.find((f)=>f.name===name); if(!input||!entry)return;
+  input.value=String(Math.max(1,Math.min(Number(entry.maxLevel||1),Number(input.value||1)+Number(delta||0))));
+  refreshOlFeatDetail();
+}
+async function saveOlFeat(){
+  const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); const name=document.getElementById("ol-feat-select")?.value||""; const entry=OPENLEGEND_FEATS.find((f)=>f.name===name); if(!entry)return;
+  const feat={key:name,name,level:Math.max(1,Math.min(Number(entry.maxLevel||1),Number(document.getElementById("ol-feat-level")?.value||1)))};
+  if(Number.isInteger(currentOlFeatEditIndex)&&builder.feats[currentOlFeatEditIndex]) builder.feats[currentOlFeatEditIndex]=feat;
+  else if(!builder.feats.some((f)=>f.name===name)) builder.feats.push(feat);
+  currentOlFeatEditIndex=null;
+  await saveOpenLegendBuilderAndPlayer(builder,"Feat saved.");
+  document.getElementById("ol-feat-editor-modal")?.setAttribute("aria-hidden","true");
+}
+async function deleteOlFeat(){
+  if(!Number.isInteger(currentOlFeatEditIndex))return;
+  const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); if(!builder.feats[currentOlFeatEditIndex])return;
+  builder.feats.splice(currentOlFeatEditIndex,1);
+  currentOlFeatEditIndex=null;
+  await saveOpenLegendBuilderAndPlayer(builder,"Feat removed.");
+  document.getElementById("ol-feat-editor-modal")?.setAttribute("aria-hidden","true");
+}
 
 const OPEN_LEGEND_ATTRIBUTE_ORDER = [
   "Agility", "Fortitude", "Might", "Learning", "Logic", "Perception",
@@ -3590,12 +3731,15 @@ if (isOpenLegendMode(mode)) {
   document.getElementById("ol-add-weapon-button")?.addEventListener("click",()=>openOlWeaponEditor());
   document.getElementById("ol-add-feat-button")?.addEventListener("click",()=>openOlFeatEditor());
   document.getElementById("player-openlegend-weapons-list")?.addEventListener("click",async(event)=>{const edit=event.target.closest("[data-ol-edit-weapon]");if(edit){openOlWeaponEditor(Number(edit.dataset.olEditWeapon));return;}const remove=event.target.closest("[data-ol-remove-weapon]");if(remove){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.weapons.splice(Number(remove.dataset.olRemoveWeapon),1);await saveOpenLegendBuilderAndPlayer(builder,"Weapon removed.");}});
-  document.getElementById("player-openlegend-feats-list")?.addEventListener("click",async(event)=>{const edit=event.target.closest("[data-ol-edit-feat]");if(edit){openOlFeatEditor(Number(edit.dataset.olEditFeat));return;}const remove=event.target.closest("[data-ol-remove-feat]");if(remove){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});builder.feats.splice(Number(remove.dataset.olRemoveFeat),1);await saveOpenLegendBuilderAndPlayer(builder,"Feat removed.");}});
+  document.getElementById("player-openlegend-feats-list")?.addEventListener("click",(event)=>{const edit=event.target.closest("[data-ol-edit-feat]");if(edit)openOlFeatEditor(Number(edit.dataset.olEditFeat));});
   document.getElementById("ol-weapon-preset")?.addEventListener("change",applyOlWeaponPreset);
   ["ol-weapon-attribute","ol-weapon-bonus-dice","ol-weapon-flat-bonus"].forEach((id)=>document.getElementById(id)?.addEventListener("input",refreshOlWeaponPreview));
   document.getElementById("ol-save-weapon-button")?.addEventListener("click",saveOlWeapon);
   document.getElementById("ol-feat-select")?.addEventListener("change",refreshOlFeatDetail);
   document.getElementById("ol-feat-level")?.addEventListener("input",refreshOlFeatDetail);
+  document.getElementById("ol-feat-level-down")?.addEventListener("click",()=>changeOlFeatLevel(-1));
+  document.getElementById("ol-feat-level-up")?.addEventListener("click",()=>changeOlFeatLevel(1));
+  document.getElementById("ol-delete-feat-button")?.addEventListener("click",deleteOlFeat);
   document.getElementById("ol-save-feat-button")?.addEventListener("click",saveOlFeat);
   document.querySelectorAll("[data-ol-close]").forEach((button)=>button.addEventListener("click",()=>document.getElementById(button.dataset.olClose)?.setAttribute("aria-hidden","true")));
   document.addEventListener("focusout",()=>setTimeout(flushOlDeferredLiveRender,80));

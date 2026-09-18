@@ -6,12 +6,12 @@
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918vnext1" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918vnext1" disabled />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918vnext2" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918vnext2" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260918vnext1" defer></script>
+  <script type="module" src="../js/player.js?v=20260918vnext2" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -547,25 +547,21 @@
     <div id="ol-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel" hidden aria-label="Open Legend player sections">
       <div class="ol-carousel-tabs" role="tablist" aria-label="Player sections">
         <button type="button" class="ol-carousel-tab is-active" data-carousel-tab="overview" aria-selected="true">Overview</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="combat" aria-selected="false">Combat</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="attributes" aria-selected="false">Attributes</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="weapons" aria-selected="false">Weapons</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="feats" aria-selected="false">Feats</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="profile" aria-selected="false">Profile</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Tracker</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="banes" aria-selected="false">Banes</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="notes" aria-selected="false">Notes</button>
       </div>
 
       <div id="ol-carousel-track" class="ol-carousel-track">
         <section class="ol-carousel-slide" data-carousel-slide="overview" aria-label="Overview"><div class="ol-carousel-slot" data-carousel-slot="overview"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="combat" aria-label="Combat"><div class="ol-carousel-slot" data-carousel-slot="combat"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="attributes" aria-label="Attributes"><div class="ol-carousel-slot" data-carousel-slot="attributes"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="weapons" aria-label="Weapons"><div class="ol-carousel-slot" data-carousel-slot="weapons"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="feats" aria-label="Feats"><div class="ol-carousel-slot" data-carousel-slot="feats"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="profile" aria-label="Profile"><div class="ol-carousel-slot" data-carousel-slot="profile"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Tracker"><div class="ol-carousel-slot" data-carousel-slot="trackers"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="banes" aria-label="Banes"><div class="ol-carousel-slot" data-carousel-slot="banes"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="Notes"><div class="ol-carousel-slot" data-carousel-slot="notes"></div></section>
       </div>
 
@@ -574,7 +570,7 @@
         <div class="ol-carousel-dots" aria-hidden="true">
           <span class="ol-carousel-dot is-active"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
           <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
-          <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span>
         </div>
         <button id="ol-carousel-next" type="button" class="ol-carousel-arrow" aria-label="Next section">›</button>
       </div>
@@ -860,7 +856,7 @@
       <div id="player-openlegend-actions-panel" class="player-panel ol-actions-panel">
         <div class="ol-actions-heading">
           <div>
-            <h2>Action</h2>
+            <h2>Combat</h2>
           </div>
         </div>
 
@@ -999,12 +995,22 @@
       <div class="ol-modal__dialog ol-modal__dialog--wide ol-builder-modal" role="dialog" aria-modal="true" aria-labelledby="ol-feat-editor-title">
         <button class="ol-modal__close" data-ol-close="ol-feat-editor-modal" aria-label="Close">×</button>
         <h3 id="ol-feat-editor-title">Feat</h3>
-        <div class="ol-form-grid ol-form-grid--2">
+        <div class="ol-form-grid ol-form-grid--2 ol-feat-editor-fields">
           <label>Feat<select id="ol-feat-select"></select></label>
-          <label>Tier<input id="ol-feat-level" type="number" min="1" value="1" /></label>
+          <label>Tier
+            <div class="ol-feat-tier-controls">
+              <button id="ol-feat-level-down" type="button" aria-label="Lower feat tier">−</button>
+              <input id="ol-feat-level" type="number" min="1" value="1" />
+              <button id="ol-feat-level-up" type="button" aria-label="Raise feat tier">+</button>
+            </div>
+          </label>
         </div>
         <div id="ol-feat-detail" class="ol-feat-detail"></div>
-        <div class="ol-modal-actions"><button id="ol-save-feat-button" type="button">Save Feat</button></div>
+        <div id="ol-feat-cost-summary" class="ol-builder-summary ol-feat-cost-summary"></div>
+        <div class="ol-modal-actions ol-modal-actions--split">
+          <button id="ol-delete-feat-button" class="remove-button" type="button" hidden>Delete Feat</button>
+          <button id="ol-save-feat-button" type="button">Save Feat</button>
+        </div>
       </div>
     </div>
 
@@ -1134,6 +1140,15 @@
         <label class="dnd-modal-field">Spell<select id="dnd-spell-select"></select></label>
         <div id="dnd-spell-picker-count" class="dnd-modal-kicker"></div>
         <button id="dnd-save-spell-button" type="button">Add</button>
+      </div>
+    </div>
+
+    <div id="dnd-spell-info-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dnd-spell-info-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-spell-info-modal" aria-label="Close">×</button>
+        <div id="dnd-spell-info-level" class="dnd-modal-kicker"></div>
+        <h3 id="dnd-spell-info-title">Spell</h3>
+        <div id="dnd-spell-info-body" class="dnd-spell-info-body"></div>
       </div>
     </div>
 

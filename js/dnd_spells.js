@@ -7,13 +7,14 @@
   Creative Commons Attribution 4.0 International License, available at
   https://creativecommons.org/licenses/by/4.0/legalcode.
 
-  The application only keeps compact spell-index metadata (name, level,
-  school, class lists and basic casting metadata). The complete SRD spell
-  index is loaded from a public SRD 5.2.1 JSON mirror and cached locally.
-  A bundled fallback keeps the sheet usable if the mirror is unavailable.
+  The application keeps spell-index metadata and, when supplied by the SRD
+  source, components and rules text used by the in-sheet spell detail modal.
+  The complete SRD spell index is loaded from a public SRD 5.2.1 JSON mirror
+  and cached locally. A bundled fallback keeps the sheet usable if the mirror
+  is unavailable.
 */
 
-const CACHE_KEY = "rpg-dnd-srd-5.2.1-spell-index-v1";
+const CACHE_KEY = "rpg-dnd-srd-5.2.1-spell-index-v2";
 const SOURCE_URLS = [
   "https://cdn.jsdelivr.net/gh/rschaeff/srd@master/spells.json",
   "https://raw.githubusercontent.com/rschaeff/srd/refs/heads/master/spells.json"
@@ -32,12 +33,24 @@ function titleCaseClass(value) {
 function normalizeSpell(raw = {}) {
   const level = Number(raw.level ?? 0);
   const classes = Array.isArray(raw.classes)
-    ? raw.classes.map(titleCaseClass).filter(Boolean)
+    ? raw.classes.map((entry) => titleCaseClass(typeof entry === "string" ? entry : (entry?.name || entry?.class || ""))).filter(Boolean)
     : [];
-  const school = String(raw.school || "Spell").trim();
+  const schoolRaw = typeof raw.school === "object" ? (raw.school?.name || raw.school?.index || "Spell") : (raw.school || "Spell");
+  const school = String(schoolRaw).trim();
   const time = String(raw.casting_time ?? raw.castingTime ?? raw.actionType ?? raw.time ?? "—").trim();
   const range = String(raw.range ?? "—").trim();
   const duration = String(raw.duration ?? "").trim();
+  const componentSource = raw.components ?? raw.component ?? "";
+  const components = Array.isArray(componentSource)
+    ? componentSource.map((entry) => typeof entry === "string" ? entry : (entry?.name || entry?.index || "")).filter(Boolean)
+    : typeof componentSource === "object" && componentSource
+      ? Object.entries(componentSource).filter(([,value]) => Boolean(value)).map(([key]) => key.toUpperCase())
+      : String(componentSource || "").split(/[,/]/).map((item) => item.trim()).filter(Boolean);
+  const material = String(raw.material ?? raw.materials ?? raw.material_component ?? "").trim();
+  const descriptionSource = raw.desc ?? raw.description ?? raw.text ?? "";
+  const higherSource = raw.higher_level ?? raw.higherLevel ?? raw.at_higher_levels ?? "";
+  const description = Array.isArray(descriptionSource) ? descriptionSource.join("\n\n") : String(descriptionSource || "").trim();
+  const higherLevel = Array.isArray(higherSource) ? higherSource.join("\n\n") : String(higherSource || "").trim();
   return {
     name: String(raw.name || "").trim(),
     level: Number.isFinite(level) ? Math.max(0, Math.min(9, level)) : 0,
@@ -47,7 +60,11 @@ function normalizeSpell(raw = {}) {
     range,
     ritual: Boolean(raw.ritual),
     concentration: Boolean(raw.concentration) || /^concentration/i.test(duration),
-    duration
+    duration,
+    components,
+    material,
+    description,
+    higherLevel
   };
 }
 
