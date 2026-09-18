@@ -769,3 +769,149 @@ body.player-mode-dnd .dnd-skill-card.is-proficient::before {
 .dnd-temp-hp-display { display:block; margin-top:7px; color:#d7ae68; font-size:.76rem; text-align:right; }
 .dnd-modal-button-row { display:flex; gap:8px; margin-top:10px; }
 .dnd-modal-button-row button { flex:1; }
+
+/* Unified player sheet follow-up */
+.dnd-sheet-header {
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+}
+.dnd-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+.dnd-lobby-button,
+body.player-mode-dnd .dnd-lobby-button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid rgba(215,174,104,.58);
+  border-radius: 9px;
+  background: rgba(10,25,35,.78);
+  color: var(--dnd-gold-soft);
+  text-decoration: none;
+  font-size: .86rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+.dnd-lobby-button:hover { border-color: var(--dnd-gold); background: rgba(26,48,61,.96); }
+
+.dnd-heading-with-action { align-items: center; }
+.dnd-heading-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+body.player-mode-dnd .dnd-compact-manage-button,
+.dnd-compact-manage-button {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  flex: 0 0 auto !important;
+  padding: 6px 11px !important;
+  border: 1px solid rgba(215,174,104,.55) !important;
+  border-radius: 8px !important;
+  background: rgba(18,42,56,.82) !important;
+  color: var(--dnd-gold-soft) !important;
+  font-size: .76rem !important;
+  line-height: 1.1;
+  box-shadow: none !important;
+}
+body.player-mode-dnd .dnd-compact-manage-button:hover { background: rgba(34,59,73,.96) !important; border-color: var(--dnd-gold) !important; }
+
+.dnd-proficiency-summary {
+  display:grid;
+  grid-template-columns:auto auto auto auto;
+  justify-content:start;
+  gap:6px 9px;
+  align-items:center;
+  margin:-4px 0 12px;
+  color:var(--dnd-muted);
+  font-size:.76rem;
+}
+.dnd-proficiency-summary strong { color:var(--dnd-gold-soft); font-size:.86rem; }
+body.player-mode-dnd .dnd-skill-card { cursor: default; }
+body.player-mode-dnd .dnd-skill-card:hover { border-color: rgba(114,148,172,.28); background: rgba(17,42,57,.52); }
+
+.dnd-skill-proficiency-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.dnd-skill-choice-group { padding:12px; border:1px solid var(--dnd-border); border-radius:10px; background:rgba(8,27,39,.72); }
+.dnd-skill-choice-group h4 { margin:0 0 9px; color:#eef1f3; }
+.dnd-skill-choice { display:flex !important; grid-template-columns:none !important; flex-direction:row !important; align-items:center; gap:9px !important; min-height:38px; padding:5px 2px; }
+.dnd-skill-choice input { width:18px !important; min-height:18px !important; height:18px; flex:0 0 18px; }
+.dnd-skill-choice > span { display:grid; gap:1px; }
+.dnd-skill-choice strong { color:#e9eef1; font-size:.88rem; }
+.dnd-skill-choice small { color:#8fa2af; font-size:.68rem; }
+.dnd-skill-choice.is-automatic { opacity:.78; }
+.dnd-autosave-footer,
+.dnd-profile-autosave-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(114,148,172,.22);
+  color:#91a5b2;
+  font-size:.76rem;
+}
+.dnd-autosave-footer button { min-width:92px; }
+
+.dnd-auto-proficiency-grid {
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px;
+  margin-bottom:10px;
+}
+.dnd-auto-proficiency-grid > div {
+  min-height:78px;
+  padding:9px;
+  border:1px solid rgba(114,148,172,.23);
+  border-radius:8px;
+  background:rgba(17,42,57,.42);
+}
+.dnd-auto-proficiency-grid span { display:block; margin-bottom:5px; color:#92a8b6; font-size:.7rem; text-transform:uppercase; }
+.dnd-auto-proficiency-grid strong { display:block; color:#e8eef1; font-size:.8rem; line-height:1.35; font-weight:600; }
+.dnd-extra-proficiency-grid { margin-top:8px; }
+.dnd-empty-inline { grid-column:1/-1; padding:10px 12px; color:#8fa1ae; border:1px dashed rgba(114,148,172,.24); border-radius:8px; }
+.dnd-spell-group-title { gap:12px; }
+.dnd-spell-group-title > span { text-align:right; font-size:.78rem; white-space:nowrap; }
+
+/* Desktop is also a true carousel: arrows remain available in addition to tabs. */
+.dnd-sheet-arrow {
+  display:grid;
+  place-items:center;
+  position:absolute;
+  top:132px;
+  z-index:8;
+  width:34px;
+  height:54px;
+  padding:0;
+  border:1px solid rgba(114,148,172,.25) !important;
+  border-radius:9px;
+  background:rgba(7,22,31,.78) !important;
+  color:#cbd5db !important;
+  font-size:2rem;
+  box-shadow:0 5px 20px rgba(0,0,0,.22) !important;
+}
+.dnd-sheet-arrow-prev { left:-15px; }
+.dnd-sheet-arrow-next { right:-15px; }
+.dnd-sheet-arrow:hover { border-color:rgba(215,174,104,.58) !important; color:var(--dnd-gold-soft) !important; }
+
+@media (max-width:720px) {
+  .dnd-sheet-header { grid-template-columns:50px minmax(0,1fr) auto; }
+  .dnd-header-actions { gap:5px; }
+  .dnd-lobby-button, body.player-mode-dnd .dnd-lobby-button { min-height:38px; padding:0 9px; font-size:.72rem; }
+  .dnd-heading-with-action { align-items:flex-start; }
+  .dnd-heading-actions { gap:5px; }
+  body.player-mode-dnd .dnd-compact-manage-button { min-height:32px !important; padding:5px 8px !important; font-size:.68rem !important; }
+  .dnd-skill-proficiency-options { grid-template-columns:1fr; }
+  .dnd-auto-proficiency-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  .dnd-sheet-arrow { top:87px; width:24px; height:42px; border:0 !important; border-radius:0; background:transparent !important; box-shadow:none !important; }
+  .dnd-sheet-arrow-prev { left:0; }
+  .dnd-sheet-arrow-next { right:0; }
+}
+
+@media (max-width:420px) {
+  .dnd-lobby-button, body.player-mode-dnd .dnd-lobby-button { padding:0 7px; font-size:.68rem; }
+  .dnd-auto-proficiency-grid { grid-template-columns:1fr !important; }
+  .dnd-spell-group-title { align-items:flex-start; }
+  .dnd-spell-group-title > span { white-space:normal; }
+}

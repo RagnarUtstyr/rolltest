@@ -6,12 +6,12 @@
   <title>Player Sheet</title>
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
-  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918dndunified1" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918batch1" disabled />
+  <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260918sheet2" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260918sheet2" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260918dndunified1" defer></script>
+  <script type="module" src="../js/player.js?v=20260918sheet2" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -538,7 +538,7 @@
   <div class="container auth-shell player-shell player-page">
     <div class="top-row">
       <h1 id="player-page-title">Player Sheet</h1>
-      <a class="button-link" href="lobby.html">Back to lobby</a>
+      <a id="return-to-lobby-link" class="button-link" href="lobby.html">Return to Lobby</a>
     </div>
 
     <div id="player-game-meta" class="player-panel"></div>
@@ -579,7 +579,10 @@
           <h1 id="dnd-character-title">Character</h1>
           <div id="dnd-character-subtitle" class="dnd-character-subtitle">D&amp;D Character</div>
         </div>
-        <button id="dnd-character-menu-button" class="dnd-more-button" type="button" aria-label="Character menu">•••</button>
+        <div class="dnd-header-actions">
+          <a id="dnd-return-lobby" class="dnd-lobby-button" href="lobby.html">Lobby</a>
+          <button id="dnd-character-menu-button" class="dnd-more-button" type="button" aria-label="Character menu">•••</button>
+        </div>
       </header>
 
       <nav class="dnd-sheet-tabs" role="tablist" aria-label="Character sheet pages">
@@ -649,7 +652,7 @@
               <section class="dnd-detail-card">
                 <h3>Initiative</h3>
                 <div class="dnd-inline-control"><input id="dnd-initiative-input" type="number" inputmode="numeric" placeholder="0" /><button id="dnd-save-initiative-button" type="button">Save</button></div>
-                <div class="dnd-action-tools"><button id="dnd-reset-hp-btn" class="dnd-action-reset" type="button">Reset HP</button><button id="dnd-level-up-button" type="button">Level Up</button><button id="dnd-edit-character-button" type="button">Edit Character</button></div>
+                <div class="dnd-action-tools"><button id="dnd-reset-hp-btn" class="dnd-action-reset" type="button">Reset HP</button><button id="dnd-level-up-button" type="button">Level Up</button><button id="dnd-multiclass-button" type="button">Multiclass</button><button id="dnd-edit-character-button" type="button">Edit Character</button></div>
               </section>
               <section class="dnd-detail-card"><h3>Actions</h3><div id="dnd-actions-full" class="dnd-action-preview"></div></section>
             </div>
@@ -663,20 +666,19 @@
           </section>
 
           <section class="dnd-sheet-page" data-dnd-page="skills" aria-label="Skills">
-            <div class="dnd-page-heading"><h2>Skills</h2></div>
+            <div class="dnd-page-heading dnd-heading-with-action"><h2>Skills</h2><button id="dnd-manage-skill-proficiencies" class="dnd-compact-manage-button" type="button">Manage Proficiencies</button></div>
+            <div id="dnd-skill-proficiency-summary" class="dnd-proficiency-summary"></div>
             <div id="dnd-skills-groups" class="dnd-skills-groups"></div>
           </section>
 
           <section class="dnd-sheet-page" data-dnd-page="weapons" aria-label="Weapons">
-            <div class="dnd-page-heading"><h2>Weapon Attacks</h2></div>
-            <div class="dnd-page-actions"><button id="dnd-add-weapon-button" type="button">Add Weapon</button></div>
+            <div class="dnd-page-heading dnd-heading-with-action"><h2>Weapon Attacks</h2><button id="dnd-add-weapon-button" class="dnd-compact-manage-button" type="button">Add Weapon</button></div>
             <div id="dnd-weapons-summary" class="dnd-weapon-summary"></div>
             <div id="dnd-weapons-list" class="dnd-weapons-list"></div>
           </section>
 
           <section class="dnd-sheet-page" data-dnd-page="spells" aria-label="Spells">
-            <div class="dnd-page-heading"><h2>Spells</h2></div>
-            <div class="dnd-page-actions"><button id="dnd-add-cantrip-button" type="button">Add Cantrip</button><button id="dnd-add-spell-button" type="button">Add Spell</button></div>
+            <div class="dnd-page-heading dnd-heading-with-action"><h2>Spells</h2><div class="dnd-heading-actions"><button id="dnd-add-cantrip-button" class="dnd-compact-manage-button" type="button">Add Cantrip</button><button id="dnd-add-spell-button" class="dnd-compact-manage-button" type="button">Add Spell</button></div></div>
             <div id="dnd-spell-capacity" class="dnd-spell-capacity"></div>
             <div id="dnd-spell-slots" class="dnd-spell-slots"></div>
             <div id="dnd-spells-list" class="dnd-spells-list"></div>
@@ -779,7 +781,7 @@
       <div id="player-openlegend-overview-panel" class="player-panel ol-overview-panel">
         <div class="builder-link-row">
           <h2>Open Legend Sheet</h2>
-          <a id="openlegend-builder-link" class="button-link" href="openlegend_character_builder.html">Open Builder</a>
+          <a id="openlegend-builder-link" class="button-link" href="openlegend_character_builder.html">Legacy Builder</a>
         </div>
 
         <div class="ol-summary-wrap">
@@ -834,14 +836,14 @@
           </div>
         </div>
 
-        <div id="player-openlegend-damage-panel" class="damage-panel">
+        <div id="player-openlegend-damage-panel" class="damage-panel ol-hp-control-panel">
           <div class="field-stack">
-            <label for="ol-damage-input">DMG</label>
-            <input type="number" id="ol-damage-input" min="0" placeholder="Damage" />
+            <label for="ol-damage-input">HP Amount</label>
+            <input type="number" id="ol-damage-input" min="0" placeholder="0" />
           </div>
 
           <div class="field-stack">
-            <label>Reduce with</label>
+            <label>Damage defense</label>
             <div class="damage-options">
               <label><span>GRD</span><input type="checkbox" class="ol-defense-choice" value="grd" /></label>
               <label><span>RES</span><input type="checkbox" class="ol-defense-choice" value="res" /></label>
@@ -849,21 +851,9 @@
             </div>
           </div>
 
-          <div class="button-row damage-button-row" style="margin-top:0;">
+          <div class="button-row damage-button-row ol-hp-buttons" style="margin-top:0;">
             <button id="ol-apply-damage-btn" type="button">Damage</button>
-          </div>
-        </div>
-
-        <div class="ol-recovery-area">
-          <div class="button-row ol-recovery-row">
-            <div class="field-stack compact-heal-field">
-              <label for="ol-heal-amount">Heal Amount</label>
-              <input type="number" id="ol-heal-amount" min="0" placeholder="Heal" />
-            </div>
             <button id="ol-heal-btn" type="button">Heal</button>
-          </div>
-
-          <div class="button-row ol-reset-row">
             <button id="ol-reset-hp-btn" type="button">Reset HP</button>
           </div>
         </div>
@@ -962,6 +952,8 @@
         <div class="dnd-modal-button-stack">
           <button id="dnd-menu-edit-character" type="button">Edit Character</button>
           <button id="dnd-menu-level-up" type="button">Level Up</button>
+          <button id="dnd-menu-multiclass" type="button">Multiclass</button>
+          <a id="dnd-menu-return-lobby" class="dnd-legacy-link" href="lobby.html">Return to Lobby</a>
           <a id="dnd-legacy-builder-link" class="dnd-legacy-link" href="dnd_character_builder_firebase.html">Legacy Builder</a>
         </div>
       </div>
@@ -1004,6 +996,16 @@
       </div>
     </div>
 
+    <div id="dnd-skill-proficiency-modal" class="dnd-sheet-modal" aria-hidden="true">
+      <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="dnd-skill-proficiency-title">
+        <button class="dnd-sheet-modal-close" data-dnd-close="dnd-skill-proficiency-modal" aria-label="Close">×</button>
+        <h3 id="dnd-skill-proficiency-title">Manage Skill Proficiencies</h3>
+        <div id="dnd-skill-proficiency-help" class="dnd-modal-kicker"></div>
+        <div id="dnd-skill-proficiency-options" class="dnd-skill-proficiency-options"></div>
+        <div class="dnd-autosave-footer"><span id="dnd-skill-proficiency-status">Changes save automatically.</span><button id="dnd-skill-proficiency-done" type="button">Done</button></div>
+      </div>
+    </div>
+
     <div id="dnd-weapon-modal" class="dnd-sheet-modal" aria-hidden="true">
       <div class="dnd-sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dnd-weapon-modal-title">
         <button class="dnd-sheet-modal-close" data-dnd-close="dnd-weapon-modal" aria-label="Close">×</button>
@@ -1042,7 +1044,7 @@
         </div>
         <h4>Attributes</h4>
         <div id="dnd-setup-attributes" class="dnd-setup-attributes"></div>
-        <button id="dnd-save-character-setup" type="button">Save Character</button>
+        <div class="dnd-autosave-footer"><span id="dnd-setup-autosave-status">Changes save automatically.</span><button id="dnd-setup-done" type="button">Done</button></div>
       </div>
     </div>
 
