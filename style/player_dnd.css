@@ -1614,3 +1614,17 @@ body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-equipment strong 
 @media(max-width:430px){
   .dnd-overview-feature-row:has(.dnd-overview-features.is-empty){grid-template-columns:minmax(0,1.25fr) minmax(112px,.75fr)}
 }
+
+/* === 2026-09-20 combined Game page === */
+.dnd-game-sections {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+.dnd-game-sections > .dnd-source-mount,
+.dnd-game-sections > .dnd-source-mount > .player-panel {
+  width: 100%;
+  min-width: 0;
+}

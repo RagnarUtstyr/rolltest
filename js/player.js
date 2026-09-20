@@ -120,6 +120,8 @@ if (mode === "dnd") {
 }
 const returnToLobbyLink = document.getElementById("return-to-lobby-link");
 if (returnToLobbyLink) returnToLobbyLink.href = `lobby.html?code=${encodeURIComponent(code)}`;
+const olMenuReturnLobbyLink = document.getElementById("ol-menu-return-lobby");
+if (olMenuReturnLobbyLink) olMenuReturnLobbyLink.href = `lobby.html?code=${encodeURIComponent(code)}`;
 
 function isOpenLegendMode(value) {
   const normalized = String(value || "").toLowerCase();
@@ -320,9 +322,11 @@ function setupPlayerMobileCarousels() {
         feats: [document.getElementById("player-openlegend-feats-panel")],
         profile: [document.getElementById("player-openlegend-profile-panel")],
         trackers: [document.getElementById("player-trackers-panel")],
-        notes: [document.getElementById("player-shared-notes-panel")],
-        documents: [document.getElementById("player-documents-panel")],
-        players: [document.getElementById("player-messages-panel")]
+        game: [
+          document.getElementById("player-shared-notes-panel"),
+          document.getElementById("player-documents-panel"),
+          document.getElementById("player-messages-panel")
+        ]
       }
     });
     return;
@@ -1747,7 +1751,7 @@ function setupDndUnifiedControls() {
   document.addEventListener("focusout",()=>setTimeout(flushDndDeferredLiveRender,80));
 
   const lobbyHref=`lobby.html?code=${encodeURIComponent(code)}`;
-  ["return-to-lobby-link","dnd-return-lobby","dnd-menu-return-lobby"].forEach((id)=>{const link=document.getElementById(id); if(link) link.href=lobbyHref;});
+  ["dnd-return-lobby","dnd-menu-return-lobby","ol-menu-return-lobby"].forEach((id)=>{const link=document.getElementById(id); if(link) link.href=lobbyHref;});
   const legacy=document.getElementById("dnd-legacy-builder-link"); if(legacy) legacy.href=`dnd_character_builder_firebase.html?code=${encodeURIComponent(code)}`;
 }
 
@@ -3874,37 +3878,9 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 
 document.getElementById("player-openlegend-weapons-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-weapon]");if(card)openOlWeaponEditor(Number(card.dataset.olOpenWeapon));});
 document.getElementById("player-openlegend-feats-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-feat]");if(card)openOlFeatEditor(Number(card.dataset.olOpenFeat));});
-// Open Legend has a compact three-dot header menu. Keep the existing character
-// manager and lobby link rather than creating a second copy of either action.
-const olCharacterMenu = document.getElementById("ol-character-menu-modal");
-const olCharacterMenuButton = document.getElementById("ol-character-menu-button");
-function closeOlCharacterMenu(restoreFocus = false) {
-  if (!olCharacterMenu) return;
-  const wasOpen = olCharacterMenu.getAttribute("aria-hidden") === "false";
-  olCharacterMenu.setAttribute("aria-hidden", "true");
-  olCharacterMenuButton?.setAttribute("aria-expanded", "false");
-  if (restoreFocus && wasOpen) olCharacterMenuButton?.focus();
-}
-olCharacterMenuButton?.addEventListener("click", () => {
-  if (!isOpenLegendMode(mode) || !olCharacterMenu) return;
-  olCharacterMenu.setAttribute("aria-hidden", "false");
-  olCharacterMenuButton.setAttribute("aria-expanded", "true");
-  document.getElementById("open-character-manager")?.focus();
-});
-document.getElementById("ol-character-menu-close")?.addEventListener("click", () => closeOlCharacterMenu(true));
-olCharacterMenu?.addEventListener("click", event => {
-  if (event.target === olCharacterMenu) closeOlCharacterMenu(true);
-});
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && olCharacterMenu?.getAttribute("aria-hidden") === "false") {
-    event.preventDefault();
-    closeOlCharacterMenu(true);
-  }
-});
-document.getElementById("open-character-manager")?.addEventListener("click", () => {
-  closeOlCharacterMenu();
-  void openCharacterManager();
-});
+document.getElementById("ol-character-menu-button")?.addEventListener("click",()=>document.getElementById("ol-character-menu-modal")?.setAttribute("aria-hidden","false"));
+document.getElementById("ol-character-menu-close")?.addEventListener("click",()=>document.getElementById("ol-character-menu-modal")?.setAttribute("aria-hidden","true"));
+document.getElementById("ol-menu-manage-characters")?.addEventListener("click",async()=>{document.getElementById("ol-character-menu-modal")?.setAttribute("aria-hidden","true");await openCharacterManager();});
 document.getElementById("character-manager-close")?.addEventListener("click",()=>document.getElementById("character-manager-modal")?.setAttribute("aria-hidden","true"));
 document.getElementById("character-manager-new")?.addEventListener("click",createNewCharacterSlot);
 document.getElementById("character-manager-list")?.addEventListener("click",async(e)=>{const load=e.target.closest("[data-character-load]");if(load){await loadCharacterSlot(load.dataset.characterLoad);return;}const del=e.target.closest("[data-character-delete]");if(del){await deleteCharacterSlot(del.dataset.characterDelete);return;}});

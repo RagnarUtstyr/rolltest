@@ -2929,101 +2929,61 @@ body.player-mode-openlegend #player-openlegend-section { display:none !important
 /* Avoid the mobile pseudo/shadow looking like a second checked box. */
 .player-page .damage-options input[type="checkbox"],.player-page .damage-options input[type="checkbox"]:checked{box-shadow:none!important;appearance:none!important;-webkit-appearance:none!important;background-image:none!important}.player-page .damage-options input[type="checkbox"]:checked::before,.player-page .damage-options input[type="checkbox"]:checked::after{display:none!important;content:none!important}.player-page .damage-options input[type="checkbox"]:checked{background:#237768!important;position:relative}.player-page .damage-options label{overflow:hidden}
 
-/* 2026-09-20: compact Open Legend header menu, shared on desktop and mobile. */
-body.player-mode-openlegend .player-page > .top-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 42px;
-  gap: 9px;
-  align-items: center;
-  padding: 6px 4px 10px;
-}
-body.player-mode-openlegend .player-page > .top-row #player-game-meta {
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  margin: 0;
-  box-sizing: border-box;
-}
-body.player-mode-openlegend #ol-character-menu-button {
-  display: grid;
-  place-items: center;
+/* === 2026-09-20 compact Open Legend header menu + combined Game page === */
+.player-mode-openlegend .ol-header-menu-button {
   width: 42px;
   min-width: 42px;
-  max-width: 42px;
-  height: 42px;
-  min-height: 42px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid rgba(230,207,148,.53);
-  border-radius: 10px;
-  color: var(--ol-gold);
-  background: rgba(7,34,29,.94);
-  font-size: 1.08rem;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(230, 207, 148, 0.42);
+  background: rgba(8, 38, 31, 0.92);
+  color: #e6cf94;
+  font-size: 1.1rem;
   line-height: 1;
-  letter-spacing: .02em;
-  cursor: pointer;
+  letter-spacing: .08em;
 }
-body.player-mode-openlegend #ol-character-menu-button:hover,
-body.player-mode-openlegend #ol-character-menu-button:focus-visible {
-  border-color: var(--ol-gold);
-  background: rgba(23,78,62,.98);
-  outline-offset: 2px;
+.player-mode-openlegend .ol-header-menu-button:hover,
+.player-mode-openlegend .ol-header-menu-button:focus-visible {
+  background: rgba(24, 74, 62, 0.96);
+  border-color: rgba(230, 207, 148, 0.72);
 }
-body.player-mode-openlegend #ol-character-menu-modal {
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
+.player-mode-openlegend .ol-character-menu-dialog {
+  width: min(360px, calc(100vw - 30px));
 }
-body.player-mode-openlegend #ol-character-menu-modal[aria-hidden="true"] {
-  display: none !important;
-}
-body.player-mode-openlegend #ol-character-menu-modal .ol-character-menu-dialog {
-  width: min(340px, 100%);
-  max-width: 340px;
-  max-height: calc(100dvh - 24px);
-  margin: auto;
-  padding: 20px;
-  border: 1px solid rgba(230,207,148,.45);
-  border-radius: 14px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-body.player-mode-openlegend #ol-character-menu-title {
-  margin: 0 0 17px;
-  padding-right: 34px;
-}
-body.player-mode-openlegend .ol-character-menu-actions {
+.player-mode-openlegend .ol-character-menu-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
-body.player-mode-openlegend .ol-character-menu-actions > button,
-body.player-mode-openlegend .ol-character-menu-actions > .button-link {
+.player-mode-openlegend .ol-character-menu-actions > button,
+.player-mode-openlegend .ol-character-menu-actions > .button-link {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-width: 0;
   min-height: 44px;
   margin: 0;
-  padding: 9px 12px;
-  box-sizing: border-box;
-  font: inherit;
-  font-size: .95rem;
-  text-align: center;
   text-decoration: none;
-  white-space: normal;
+  box-sizing: border-box;
 }
-@media (max-width: 390px) {
-  body.player-mode-openlegend .player-page > .top-row {
-    grid-template-columns: minmax(0, 1fr) 40px;
-    gap: 6px;
-  }
-  body.player-mode-openlegend #ol-character-menu-button {
+.player-mode-openlegend .ol-game-slot {
+  display: grid;
+  grid-template-columns: 1fr !important;
+  align-items: start;
+  gap: 14px;
+}
+.player-mode-openlegend .ol-game-slot > .player-panel {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .player-mode-openlegend .ol-header-menu-button {
     width: 40px;
     min-width: 40px;
-    max-width: 40px;
-    height: 40px;
-    min-height: 40px;
+    height: 34px;
+    min-height: 34px;
   }
 }
