@@ -3874,7 +3874,37 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 
 document.getElementById("player-openlegend-weapons-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-weapon]");if(card)openOlWeaponEditor(Number(card.dataset.olOpenWeapon));});
 document.getElementById("player-openlegend-feats-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-feat]");if(card)openOlFeatEditor(Number(card.dataset.olOpenFeat));});
-document.getElementById("open-character-manager")?.addEventListener("click",openCharacterManager);
+// Open Legend has a compact three-dot header menu. Keep the existing character
+// manager and lobby link rather than creating a second copy of either action.
+const olCharacterMenu = document.getElementById("ol-character-menu-modal");
+const olCharacterMenuButton = document.getElementById("ol-character-menu-button");
+function closeOlCharacterMenu(restoreFocus = false) {
+  if (!olCharacterMenu) return;
+  const wasOpen = olCharacterMenu.getAttribute("aria-hidden") === "false";
+  olCharacterMenu.setAttribute("aria-hidden", "true");
+  olCharacterMenuButton?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && wasOpen) olCharacterMenuButton?.focus();
+}
+olCharacterMenuButton?.addEventListener("click", () => {
+  if (!isOpenLegendMode(mode) || !olCharacterMenu) return;
+  olCharacterMenu.setAttribute("aria-hidden", "false");
+  olCharacterMenuButton.setAttribute("aria-expanded", "true");
+  document.getElementById("open-character-manager")?.focus();
+});
+document.getElementById("ol-character-menu-close")?.addEventListener("click", () => closeOlCharacterMenu(true));
+olCharacterMenu?.addEventListener("click", event => {
+  if (event.target === olCharacterMenu) closeOlCharacterMenu(true);
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && olCharacterMenu?.getAttribute("aria-hidden") === "false") {
+    event.preventDefault();
+    closeOlCharacterMenu(true);
+  }
+});
+document.getElementById("open-character-manager")?.addEventListener("click", () => {
+  closeOlCharacterMenu();
+  void openCharacterManager();
+});
 document.getElementById("character-manager-close")?.addEventListener("click",()=>document.getElementById("character-manager-modal")?.setAttribute("aria-hidden","true"));
 document.getElementById("character-manager-new")?.addEventListener("click",createNewCharacterSlot);
 document.getElementById("character-manager-list")?.addEventListener("click",async(e)=>{const load=e.target.closest("[data-character-load]");if(load){await loadCharacterSlot(load.dataset.characterLoad);return;}const del=e.target.closest("[data-character-delete]");if(del){await deleteCharacterSlot(del.dataset.characterDelete);return;}});

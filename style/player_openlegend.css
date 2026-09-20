@@ -2928,3 +2928,102 @@ body.player-mode-openlegend #player-openlegend-section { display:none !important
 .ol-clickable-list-card{width:100%;text-align:left;cursor:pointer}.ol-list-chevron{font-size:1.5rem;opacity:.75;align-self:center}.ol-feat-list-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:12px 14px;border:1px solid rgba(45,61,115,.8);border-radius:10px;background:rgba(11,38,33,.72);color:#e3cf95}.ol-feat-list-item strong{font-size:.88rem;color:#bdb382}.ol-weapon-available-banes{margin-top:12px;padding:10px;border:1px solid rgba(45,61,115,.65);border-radius:10px}.ol-weapon-available-banes h4{margin:0 0 8px}.ol-weapon-bane-list{display:flex;flex-wrap:wrap;gap:6px}.ol-weapon-bane-list span{padding:5px 8px;border-radius:999px;background:rgba(35,119,104,.16);border:1px solid rgba(35,119,104,.5)}
 /* Avoid the mobile pseudo/shadow looking like a second checked box. */
 .player-page .damage-options input[type="checkbox"],.player-page .damage-options input[type="checkbox"]:checked{box-shadow:none!important;appearance:none!important;-webkit-appearance:none!important;background-image:none!important}.player-page .damage-options input[type="checkbox"]:checked::before,.player-page .damage-options input[type="checkbox"]:checked::after{display:none!important;content:none!important}.player-page .damage-options input[type="checkbox"]:checked{background:#237768!important;position:relative}.player-page .damage-options label{overflow:hidden}
+
+/* 2026-09-20: compact Open Legend header menu, shared on desktop and mobile. */
+body.player-mode-openlegend .player-page > .top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 9px;
+  align-items: center;
+  padding: 6px 4px 10px;
+}
+body.player-mode-openlegend .player-page > .top-row #player-game-meta {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+body.player-mode-openlegend #ol-character-menu-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(230,207,148,.53);
+  border-radius: 10px;
+  color: var(--ol-gold);
+  background: rgba(7,34,29,.94);
+  font-size: 1.08rem;
+  line-height: 1;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+body.player-mode-openlegend #ol-character-menu-button:hover,
+body.player-mode-openlegend #ol-character-menu-button:focus-visible {
+  border-color: var(--ol-gold);
+  background: rgba(23,78,62,.98);
+  outline-offset: 2px;
+}
+body.player-mode-openlegend #ol-character-menu-modal {
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+body.player-mode-openlegend #ol-character-menu-modal[aria-hidden="true"] {
+  display: none !important;
+}
+body.player-mode-openlegend #ol-character-menu-modal .ol-character-menu-dialog {
+  width: min(340px, 100%);
+  max-width: 340px;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid rgba(230,207,148,.45);
+  border-radius: 14px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+body.player-mode-openlegend #ol-character-menu-title {
+  margin: 0 0 17px;
+  padding-right: 34px;
+}
+body.player-mode-openlegend .ol-character-menu-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+body.player-mode-openlegend .ol-character-menu-actions > button,
+body.player-mode-openlegend .ol-character-menu-actions > .button-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding: 9px 12px;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: .95rem;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+}
+@media (max-width: 390px) {
+  body.player-mode-openlegend .player-page > .top-row {
+    grid-template-columns: minmax(0, 1fr) 40px;
+    gap: 6px;
+  }
+  body.player-mode-openlegend #ol-character-menu-button {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+}

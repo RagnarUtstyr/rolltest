@@ -7,11 +7,11 @@
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
   <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260919player1" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260919player1" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260920olmenu1" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260919player1" defer></script>
+  <script type="module" src="../js/player.js?v=20260920olmenu1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -542,8 +542,7 @@
     <div class="top-row">
       <h1 id="player-page-title">Player Sheet</h1>
       <div id="player-game-meta" class="player-panel"></div>
-      <button id="open-character-manager" class="button-link character-manager-open" type="button">Characters</button>
-      <a id="return-to-lobby-link" class="button-link" href="lobby.html">Return to Lobby</a>
+      <button id="ol-character-menu-button" class="ol-header-menu-button" type="button" aria-label="Open character menu" aria-haspopup="dialog" aria-controls="ol-character-menu-modal" aria-expanded="false">•••</button>
     </div>
 
     <div id="ol-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel" hidden aria-label="Open Legend player sections">
@@ -1207,6 +1206,17 @@
           <label class="dnd-profile-field-wide">Or choose a feat<select id="dnd-asi-feat-choice"><option value="">No feat — use ability increases</option></select></label>
         </div>
         <button id="dnd-confirm-asi-choice" type="button">Apply &amp; Level Up</button>
+      </div>
+    </div>
+
+    <div id="ol-character-menu-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-character-menu-dialog" role="dialog" aria-modal="true" aria-labelledby="ol-character-menu-title">
+        <button id="ol-character-menu-close" class="ol-modal__close" type="button" aria-label="Close character menu">×</button>
+        <h3 id="ol-character-menu-title">Menu</h3>
+        <div class="ol-character-menu-actions">
+          <button id="open-character-manager" class="character-manager-open" type="button">Characters</button>
+          <a id="return-to-lobby-link" class="button-link" href="lobby.html">Return to Lobby</a>
+        </div>
       </div>
     </div>
 
