@@ -7,11 +7,11 @@
   <link rel="preload" as="image" href="../background.jpg">
   <link rel="stylesheet" href="../style/player.css?v=20260918batch1" />
   <link rel="stylesheet" id="player-dnd-style" href="../style/player_dnd.css?v=20260919player1" disabled />
-  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260919player1" disabled />
+  <link rel="stylesheet" id="player-ol-style" href="../style/player_openlegend.css?v=20260920olmenu1" disabled />
   <link rel="stylesheet" href="../style/auth.css" />
   <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet" />
 
-  <script type="module" src="../js/player.js?v=20260919player1" defer></script>
+  <script type="module" src="../js/player.js?v=20260920compat1" defer></script>
 
 <style>
   .dnd-action-grid {
@@ -542,7 +542,7 @@
     <div class="top-row">
       <h1 id="player-page-title">Player Sheet</h1>
       <div id="player-game-meta" class="player-panel"></div>
-      <button id="ol-character-menu-button" class="ol-header-menu-button" type="button" aria-label="Game menu" aria-haspopup="dialog">•••</button>
+      <button id="ol-character-menu-button" class="ol-header-menu-button" type="button" aria-label="Open character menu" aria-haspopup="dialog" aria-controls="ol-character-menu-modal" aria-expanded="false">•••</button>
     </div>
 
     <div id="ol-mobile-carousel" class="ol-mobile-carousel player-mobile-carousel" hidden aria-label="Open Legend player sections">
@@ -553,7 +553,9 @@
         <button type="button" class="ol-carousel-tab" data-carousel-tab="feats" aria-selected="false">Feats</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="profile" aria-selected="false">Profile</button>
         <button type="button" class="ol-carousel-tab" data-carousel-tab="trackers" aria-selected="false">Tracker</button>
-        <button type="button" class="ol-carousel-tab" data-carousel-tab="game" aria-selected="false">Game</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="notes" aria-selected="false">DM</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="documents" aria-selected="false">Documents</button>
+        <button type="button" class="ol-carousel-tab" data-carousel-tab="players" aria-selected="false">Players</button>
       </div>
 
       <div id="ol-carousel-track" class="ol-carousel-track">
@@ -563,7 +565,9 @@
         <section class="ol-carousel-slide" data-carousel-slide="feats" aria-label="Feats"><div class="ol-carousel-slot" data-carousel-slot="feats"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="profile" aria-label="Profile"><div class="ol-carousel-slot" data-carousel-slot="profile"></div></section>
         <section class="ol-carousel-slide" data-carousel-slide="trackers" aria-label="Tracker"><div class="ol-carousel-slot" data-carousel-slot="trackers"></div></section>
-        <section class="ol-carousel-slide" data-carousel-slide="game" aria-label="Game"><div class="ol-carousel-slot ol-game-slot" data-carousel-slot="game"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="notes" aria-label="DM"><div class="ol-carousel-slot" data-carousel-slot="notes"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="documents" aria-label="Documents"><div class="ol-carousel-slot" data-carousel-slot="documents"></div></section>
+        <section class="ol-carousel-slide" data-carousel-slide="players" aria-label="Players"><div class="ol-carousel-slot" data-carousel-slot="players"></div></section>
       </div>
 
       <div class="ol-carousel-controls" aria-label="Carousel controls">
@@ -571,7 +575,7 @@
         <div class="ol-carousel-dots" aria-hidden="true">
           <span class="ol-carousel-dot is-active"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
           <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
-          <span class="ol-carousel-dot"></span>
+          <span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span><span class="ol-carousel-dot"></span>
         </div>
         <button id="ol-carousel-next" type="button" class="ol-carousel-arrow" aria-label="Next section">›</button>
       </div>
@@ -598,12 +602,14 @@
         <button type="button" class="dnd-sheet-tab" data-dnd-tab="weapons" aria-selected="false">Weapons</button>
         <button type="button" class="dnd-sheet-tab" data-dnd-tab="spells" aria-selected="false">Spells</button>
         <button type="button" class="dnd-sheet-tab" data-dnd-tab="profile" aria-selected="false">Profile</button>
-        <button type="button" class="dnd-sheet-tab" data-dnd-tab="game" aria-selected="false">Game</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="notes" aria-selected="false">DM</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="documents" aria-selected="false">Documents</button>
+        <button type="button" class="dnd-sheet-tab" data-dnd-tab="players" aria-selected="false">Players</button>
       </nav>
 
       <div class="dnd-sheet-dots" aria-hidden="true">
         <span class="dnd-sheet-dot is-active"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span>
-        <span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span>
+        <span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span><span class="dnd-sheet-dot"></span>
         <span class="dnd-sheet-loop">∞</span>
       </div>
 
@@ -655,7 +661,7 @@
             <div id="dnd-trackers-mount" class="dnd-source-mount"></div>
 
             <section class="dnd-note-preview-card">
-              <div class="dnd-panel-heading"><h2>Shared Note</h2><button type="button" class="dnd-jump-link" data-dnd-go="game">Edit</button></div>
+              <div class="dnd-panel-heading"><h2>Shared Note</h2><button type="button" class="dnd-jump-link" data-dnd-go="notes">Edit</button></div>
               <div id="dnd-overview-note-preview" class="dnd-note-preview">—</div>
             </section>
 
@@ -690,13 +696,17 @@
             <div id="dnd-profile-content" class="dnd-profile-content"></div>
           </section>
 
-          <section class="dnd-sheet-page" data-dnd-page="game" aria-label="Game">
-            <div class="dnd-page-heading"><h2>Game</h2></div>
-            <div class="dnd-game-sections">
-              <div id="dnd-notes-mount" class="dnd-source-mount"></div>
-              <div id="dnd-documents-mount" class="dnd-source-mount"></div>
-              <div id="dnd-players-mount" class="dnd-source-mount"></div>
-            </div>
+          <section class="dnd-sheet-page" data-dnd-page="notes" aria-label="DM">
+            <div class="dnd-page-heading"><h2>DM</h2></div>
+            <div id="dnd-notes-mount" class="dnd-source-mount"></div>
+          </section>
+          <section class="dnd-sheet-page" data-dnd-page="documents" aria-label="Documents">
+            <div class="dnd-page-heading"><h2>Documents</h2></div>
+            <div id="dnd-documents-mount" class="dnd-source-mount"></div>
+          </section>
+          <section class="dnd-sheet-page" data-dnd-page="players" aria-label="Players">
+            <div class="dnd-page-heading"><h2>Players</h2></div>
+            <div id="dnd-players-mount" class="dnd-source-mount"></div>
           </section>
         </div>
       </div>
@@ -1026,17 +1036,6 @@
       </div>
     </div>
 
-    <div id="ol-character-menu-modal" class="ol-modal" aria-hidden="true">
-      <div class="ol-modal__dialog ol-character-menu-dialog" role="dialog" aria-modal="true" aria-labelledby="ol-character-menu-title">
-        <button class="ol-modal__close" id="ol-character-menu-close" aria-label="Close">×</button>
-        <h3 id="ol-character-menu-title">Game</h3>
-        <div class="ol-character-menu-actions">
-          <button id="ol-menu-manage-characters" type="button">Character</button>
-          <a id="ol-menu-return-lobby" class="button-link" href="lobby.html">Return to Lobby</a>
-        </div>
-      </div>
-    </div>
-
     <div id="dnd-character-menu-modal" class="dnd-sheet-modal" aria-hidden="true">
       <div class="dnd-sheet-modal-dialog dnd-sheet-modal-dialog--small" role="dialog" aria-modal="true" aria-labelledby="dnd-character-menu-title">
         <button class="dnd-sheet-modal-close" data-dnd-close="dnd-character-menu-modal" aria-label="Close">×</button>
@@ -1207,6 +1206,17 @@
           <label class="dnd-profile-field-wide">Or choose a feat<select id="dnd-asi-feat-choice"><option value="">No feat — use ability increases</option></select></label>
         </div>
         <button id="dnd-confirm-asi-choice" type="button">Apply &amp; Level Up</button>
+      </div>
+    </div>
+
+    <div id="ol-character-menu-modal" class="ol-modal" aria-hidden="true">
+      <div class="ol-modal__dialog ol-character-menu-dialog" role="dialog" aria-modal="true" aria-labelledby="ol-character-menu-title">
+        <button id="ol-character-menu-close" class="ol-modal__close" type="button" aria-label="Close character menu">×</button>
+        <h3 id="ol-character-menu-title">Menu</h3>
+        <div class="ol-character-menu-actions">
+          <button id="open-character-manager" class="character-manager-open" type="button">Characters</button>
+          <a id="return-to-lobby-link" class="button-link" href="lobby.html">Return to Lobby</a>
+        </div>
       </div>
     </div>
 

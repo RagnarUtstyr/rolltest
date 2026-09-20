@@ -120,8 +120,6 @@ if (mode === "dnd") {
 }
 const returnToLobbyLink = document.getElementById("return-to-lobby-link");
 if (returnToLobbyLink) returnToLobbyLink.href = `lobby.html?code=${encodeURIComponent(code)}`;
-const olMenuReturnLobbyLink = document.getElementById("ol-menu-return-lobby");
-if (olMenuReturnLobbyLink) olMenuReturnLobbyLink.href = `lobby.html?code=${encodeURIComponent(code)}`;
 
 function isOpenLegendMode(value) {
   const normalized = String(value || "").toLowerCase();
@@ -322,11 +320,9 @@ function setupPlayerMobileCarousels() {
         feats: [document.getElementById("player-openlegend-feats-panel")],
         profile: [document.getElementById("player-openlegend-profile-panel")],
         trackers: [document.getElementById("player-trackers-panel")],
-        game: [
-          document.getElementById("player-shared-notes-panel"),
-          document.getElementById("player-documents-panel"),
-          document.getElementById("player-messages-panel")
-        ]
+        notes: [document.getElementById("player-shared-notes-panel")],
+        documents: [document.getElementById("player-documents-panel")],
+        players: [document.getElementById("player-messages-panel")]
       }
     });
     return;
@@ -1751,7 +1747,7 @@ function setupDndUnifiedControls() {
   document.addEventListener("focusout",()=>setTimeout(flushDndDeferredLiveRender,80));
 
   const lobbyHref=`lobby.html?code=${encodeURIComponent(code)}`;
-  ["dnd-return-lobby","dnd-menu-return-lobby","ol-menu-return-lobby"].forEach((id)=>{const link=document.getElementById(id); if(link) link.href=lobbyHref;});
+  ["return-to-lobby-link","dnd-return-lobby","dnd-menu-return-lobby"].forEach((id)=>{const link=document.getElementById(id); if(link) link.href=lobbyHref;});
   const legacy=document.getElementById("dnd-legacy-builder-link"); if(legacy) legacy.href=`dnd_character_builder_firebase.html?code=${encodeURIComponent(code)}`;
 }
 
@@ -1796,6 +1792,12 @@ function openLegendBuilderSheetPath() {
   return `games/${code}/builderSheets/${user.uid}`;
 }
 
+// Compatibility mode: v5.4's existing Firebase paths remain the authoritative
+// character store. The new /characterSlots branch is not writable under the
+// deployed database rules, so do not read, migrate, overwrite or write to it.
+// Re-enable multi-character storage only after the deployed rules and a safe
+// migration procedure have both been reviewed and tested.
+const CHARACTER_SLOTS_ENABLED = false;
 let activeCharacterSlotId = null;
 let selectedMessagePlayerUid = null;
 let stopMessageThreadWatch = null;
@@ -1803,12 +1805,14 @@ function characterSlotsPath(){ return `games/${code}/characterSlots/${user.uid}`
 function characterSlotPath(id){ return `${characterSlotsPath()}/${id}`; }
 function currentBuilderForMode(){ return mode === "dnd" ? (currentDndBuilderData||{}) : (currentOpenLegendBuilderData||{}); }
 async function persistActiveCharacterSlot(builder, player){
+  if (!CHARACTER_SLOTS_ENABLED) return; // Legacy sheet write already succeeded.
   if(!activeCharacterSlotId) activeCharacterSlotId=`character-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
   const now=Date.now();
   const existing=await get(ref(db,characterSlotPath(activeCharacterSlotId)));
   await update(ref(db,characterSlotPath(activeCharacterSlotId)),{id:activeCharacterSlotId,name:builder?.name||player?.name||"Character",mode,isDefault:existing.exists()?!!existing.val()?.isDefault:false,updatedAt:now,builder:builder||{},player:player||{}});
 }
 async function initializeCharacterSlots(){
+  if (!CHARACTER_SLOTS_ENABLED) return; // Never overwrite a working legacy sheet.
   const slotsSnap=await get(ref(db,characterSlotsPath()));
   let slots=slotsSnap.exists()?slotsSnap.val():{};
   if(!slots || !Object.keys(slots).length){
@@ -1829,19 +1833,25 @@ async function initializeCharacterSlots(){
 }
 async function renderCharacterManager(){
   const list=document.getElementById("character-manager-list");if(!list)return;
+  if (!CHARACTER_SLOTS_ENABLED) {
+    const newButton=document.getElementById("character-manager-new");
+    if (newButton) newButton.hidden=true;
+    list.innerHTML='<div class="empty-state">Your current character is available and continues to save normally. Multiple-character management is temporarily unavailable until Firebase database permissions are updated. No existing character data has been deleted.</div>';
+    return;
+  }
   const snap=await get(ref(db,characterSlotsPath()));const slots=snap.exists()?snap.val():{};const entries=Object.entries(slots||{}).filter(([,s])=>!s?.mode||String(s.mode).toLowerCase()===String(mode).toLowerCase()).sort((a,b)=>Number(b[1]?.updatedAt||0)-Number(a[1]?.updatedAt||0));
   list.innerHTML=entries.length?entries.map(([id,s])=>`<div class="character-manager-row"><div><strong>${escapeHtml(s.name||"Character")}</strong><small>${id===activeCharacterSlotId?"Currently loaded · ":""}${s.updatedAt?new Date(s.updatedAt).toLocaleString():""}</small></div><label class="character-default-toggle"><input type="checkbox" data-character-default="${escapeHtml(id)}" ${s.isDefault?"checked":""}> Default</label><button type="button" data-character-load="${escapeHtml(id)}" ${id===activeCharacterSlotId?"disabled":""}>Load</button><button type="button" class="remove-button" data-character-delete="${escapeHtml(id)}">Delete</button></div>`).join(""):`<div class="empty-state">No saved characters yet.</div>`;
 }
 async function openCharacterManager(){await renderCharacterManager();document.getElementById("character-manager-modal")?.setAttribute("aria-hidden","false");}
-async function setDefaultCharacter(id,checked){const snap=await get(ref(db,characterSlotsPath()));if(!snap.exists())return;const updates={};Object.keys(snap.val()||{}).forEach((slotId)=>{updates[`${characterSlotsPath()}/${slotId}/isDefault`]=checked?slotId===id:false;});await update(ref(db),updates);await renderCharacterManager();}
-async function loadCharacterSlot(id){const snap=await get(ref(db,characterSlotPath(id)));if(!snap.exists())return;const slot=snap.val();activeCharacterSlotId=id;const updates={};updates[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]=slot.builder||{};updates[playerSheetPath()]=slot.player||{};const entry=await get(ref(db,playerEntryPath()));if(entry.exists())updates[playerEntryPath()]={...entry.val(),name:slot.player?.name||slot.name||"Character",playerName:slot.player?.name||slot.name||"Character",updatedAt:Date.now()};await update(ref(db),updates);window.location.href=`player.html?code=${encodeURIComponent(code)}&character=${encodeURIComponent(id)}`;}
-async function deleteCharacterSlot(id){if(!confirm("Delete this character? This cannot be undone."))return;await set(ref(db,characterSlotPath(id)),null);if(id===activeCharacterSlotId){const snap=await get(ref(db,characterSlotsPath()));const entries=Object.entries(snap.val()||{}).filter(([,s])=>!s?.mode||String(s.mode).toLowerCase()===String(mode).toLowerCase());if(entries.length){const next=entries.find(([,s])=>s?.isDefault)||entries.sort((a,b)=>Number(b[1]?.updatedAt||0)-Number(a[1]?.updatedAt||0))[0];await loadCharacterSlot(next[0]);return;}activeCharacterSlotId=null;await update(ref(db),{[playerSheetPath()]:null,[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]:null});window.location.href=`player.html?code=${encodeURIComponent(code)}`;return;}await renderCharacterManager();}
-async function createNewCharacterSlot(){const id=`character-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;const builder=mode==="dnd"?dndDefaultBuilder():olNormalizeBuilder({name:"",attributes:{}},{});const player={uid:user.uid,mode,name:"",updatedAt:Date.now()};await set(ref(db,characterSlotPath(id)),{id,name:"New Character",mode,isDefault:false,updatedAt:Date.now(),builder,player});activeCharacterSlotId=id;const updates={[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]:builder,[playerSheetPath()]:player};const entry=await get(ref(db,playerEntryPath()));if(entry.exists())updates[playerEntryPath()]={...entry.val(),name:"New Character",playerName:"New Character",updatedAt:Date.now()};await update(ref(db),updates);window.location.href=`player.html?code=${encodeURIComponent(code)}&character=${encodeURIComponent(id)}&new=1`; }
+async function setDefaultCharacter(id,checked){if(!CHARACTER_SLOTS_ENABLED)return;const snap=await get(ref(db,characterSlotsPath()));if(!snap.exists())return;const updates={};Object.keys(snap.val()||{}).forEach((slotId)=>{updates[`${characterSlotsPath()}/${slotId}/isDefault`]=checked?slotId===id:false;});await update(ref(db),updates);await renderCharacterManager();}
+async function loadCharacterSlot(id){if(!CHARACTER_SLOTS_ENABLED)return;const snap=await get(ref(db,characterSlotPath(id)));if(!snap.exists())return;const slot=snap.val();activeCharacterSlotId=id;const updates={};updates[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]=slot.builder||{};updates[playerSheetPath()]=slot.player||{};const entry=await get(ref(db,playerEntryPath()));if(entry.exists())updates[playerEntryPath()]={...entry.val(),name:slot.player?.name||slot.name||"Character",playerName:slot.player?.name||slot.name||"Character",updatedAt:Date.now()};await update(ref(db),updates);window.location.href=`player.html?code=${encodeURIComponent(code)}&character=${encodeURIComponent(id)}`;}
+async function deleteCharacterSlot(id){if(!CHARACTER_SLOTS_ENABLED)return;if(!confirm("Delete this character? This cannot be undone."))return;await set(ref(db,characterSlotPath(id)),null);if(id===activeCharacterSlotId){const snap=await get(ref(db,characterSlotsPath()));const entries=Object.entries(snap.val()||{}).filter(([,s])=>!s?.mode||String(s.mode).toLowerCase()===String(mode).toLowerCase());if(entries.length){const next=entries.find(([,s])=>s?.isDefault)||entries.sort((a,b)=>Number(b[1]?.updatedAt||0)-Number(a[1]?.updatedAt||0))[0];await loadCharacterSlot(next[0]);return;}activeCharacterSlotId=null;await update(ref(db),{[playerSheetPath()]:null,[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]:null});window.location.href=`player.html?code=${encodeURIComponent(code)}`;return;}await renderCharacterManager();}
+async function createNewCharacterSlot(){if(!CHARACTER_SLOTS_ENABLED)return;const id=`character-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;const builder=mode==="dnd"?dndDefaultBuilder():olNormalizeBuilder({name:"",attributes:{}},{});const player={uid:user.uid,mode,name:"",updatedAt:Date.now()};await set(ref(db,characterSlotPath(id)),{id,name:"New Character",mode,isDefault:false,updatedAt:Date.now(),builder,player});activeCharacterSlotId=id;const updates={[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]:builder,[playerSheetPath()]:player};const entry=await get(ref(db,playerEntryPath()));if(entry.exists())updates[playerEntryPath()]={...entry.val(),name:"New Character",playerName:"New Character",updatedAt:Date.now()};await update(ref(db),updates);window.location.href=`player.html?code=${encodeURIComponent(code)}&character=${encodeURIComponent(id)}&new=1`; }
 function goToOlProfileIfPossible(){document.querySelector('[data-carousel-tab="profile"]')?.click();}
 function messageThreadKey(a,b){return [a,b].sort().join("__");}
-function startPlayerDocumentsWatch(){const target=document.getElementById("player-documents-list");if(!target)return;onValue(ref(db,`games/${code}/documents`),(snap)=>{const docs=Object.values(snap.val()||{}).sort((a,b)=>Number(b.uploadedAt||0)-Number(a.uploadedAt||0));target.innerHTML=docs.length?docs.map((d)=>`<div class="player-document-row"><div class="player-document-meta"><strong>${escapeHtml(d.name||"Document")}</strong><small>${escapeHtml(d.type||"file")}${d.size?` · ${Math.max(1,Math.round(Number(d.size)/1024))} KB`:""}</small></div><a class="button-link" href="${d.dataUrl||"#"}" download="${escapeHtml(d.name||"document")}">Open</a></div>`).join(""):`<div class="empty-state">No documents shared yet.</div>`;});}
-function startPlayerMessaging(){const list=document.getElementById("player-message-player-list");if(!list)return;onValue(ref(db,`games/${code}`),(snap)=>{const data=snap.val()||{};const members=Object.values(data.members||{}).filter((m)=>m?.role==="player");const players=data.players||{};list.innerHTML=members.filter((m)=>m.uid!==user.uid).map((m)=>{const name=players?.[m.uid]?.name||m.name||"Player";return `<button type="button" class="player-message-player ${m.uid===selectedMessagePlayerUid?"is-active":""}" data-message-player="${escapeHtml(m.uid)}" data-message-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`;}).join("")||`<div class="empty-state">No other players in the game.</div>`;});}
-function openPlayerMessageThread(uid,name){selectedMessagePlayerUid=uid;document.getElementById("player-message-thread-title").textContent=name||"Player";const input=document.getElementById("player-message-input"),send=document.getElementById("player-message-send");if(input)input.disabled=false;if(send)send.disabled=false;startPlayerMessaging();if(stopMessageThreadWatch)stopMessageThreadWatch();const body=document.getElementById("player-message-thread-body");const key=messageThreadKey(user.uid,uid);stopMessageThreadWatch=onValue(ref(db,`games/${code}/playerMessages/${key}`),(snap)=>{const rows=Object.values(snap.val()||{}).sort((a,b)=>Number(a.createdAt||0)-Number(b.createdAt||0));body.innerHTML=rows.map((m)=>`<div class="player-message-bubble ${m.from===user.uid?"is-own":""}"><div>${escapeHtml(m.text||"")}</div><small>${m.from===user.uid?"You":escapeHtml(name||"Player")} · ${m.createdAt?new Date(m.createdAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):""}</small></div>`).join("")||`<div class="empty-state">No messages yet.</div>`;body.scrollTop=body.scrollHeight;});}
+function startPlayerDocumentsWatch(){const target=document.getElementById("player-documents-list");if(!target)return;onValue(ref(db,`games/${code}/documents`),(snap)=>{const docs=Object.values(snap.val()||{}).sort((a,b)=>Number(b.uploadedAt||0)-Number(a.uploadedAt||0));target.innerHTML=docs.length?docs.map((d)=>`<div class="player-document-row"><div class="player-document-meta"><strong>${escapeHtml(d.name||"Document")}</strong><small>${escapeHtml(d.type||"file")}${d.size?` · ${Math.max(1,Math.round(Number(d.size)/1024))} KB`:""}</small></div><a class="button-link" href="${d.dataUrl||"#"}" download="${escapeHtml(d.name||"document")}">Open</a></div>`).join(""):`<div class="empty-state">No documents shared yet.</div>`;},(error)=>{console.warn("Shared documents unavailable:",error.code||error.message);target.innerHTML='<div class="empty-state">Shared documents are unavailable with the current database permissions.</div>';});}
+function startPlayerMessaging(){const list=document.getElementById("player-message-player-list");if(!list)return;onValue(ref(db,`games/${code}`),(snap)=>{const data=snap.val()||{};const members=Object.values(data.members||{}).filter((m)=>m?.role==="player");const players=data.players||{};list.innerHTML=members.filter((m)=>m.uid!==user.uid).map((m)=>{const name=players?.[m.uid]?.name||m.name||"Player";return `<button type="button" class="player-message-player ${m.uid===selectedMessagePlayerUid?"is-active":""}" data-message-player="${escapeHtml(m.uid)}" data-message-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`;}).join("")||`<div class="empty-state">No other players in the game.</div>`;},(error)=>{console.warn("Player messaging unavailable:",error.code||error.message);list.innerHTML='<div class="empty-state">Player messaging is unavailable with the current database permissions.</div>';});}
+function openPlayerMessageThread(uid,name){selectedMessagePlayerUid=uid;document.getElementById("player-message-thread-title").textContent=name||"Player";const input=document.getElementById("player-message-input"),send=document.getElementById("player-message-send");if(input)input.disabled=false;if(send)send.disabled=false;startPlayerMessaging();if(stopMessageThreadWatch)stopMessageThreadWatch();const body=document.getElementById("player-message-thread-body");const key=messageThreadKey(user.uid,uid);stopMessageThreadWatch=onValue(ref(db,`games/${code}/playerMessages/${key}`),(snap)=>{const rows=Object.values(snap.val()||{}).sort((a,b)=>Number(a.createdAt||0)-Number(b.createdAt||0));body.innerHTML=rows.map((m)=>`<div class="player-message-bubble ${m.from===user.uid?"is-own":""}"><div>${escapeHtml(m.text||"")}</div><small>${m.from===user.uid?"You":escapeHtml(name||"Player")} · ${m.createdAt?new Date(m.createdAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):""}</small></div>`).join("")||`<div class="empty-state">No messages yet.</div>`;body.scrollTop=body.scrollHeight;},(error)=>{console.warn("Message thread unavailable:",error.code||error.message);body.innerHTML='<div class="empty-state">This conversation is unavailable with the current database permissions.</div>';});}
 async function sendPlayerMessage(){const input=document.getElementById("player-message-input");const text=input?.value?.trim();if(!text||!selectedMessagePlayerUid)return;const key=messageThreadKey(user.uid,selectedMessagePlayerUid);const id=`${Date.now()}_${user.uid.slice(0,8)}_${Math.random().toString(36).slice(2,6)}`;await set(ref(db,`games/${code}/playerMessages/${key}/${id}`),{from:user.uid,to:selectedMessagePlayerUid,text:text.slice(0,500),createdAt:Date.now()});input.value="";}
 
 function numberOrNull(value) {
@@ -3878,9 +3888,37 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
 
 document.getElementById("player-openlegend-weapons-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-weapon]");if(card)openOlWeaponEditor(Number(card.dataset.olOpenWeapon));});
 document.getElementById("player-openlegend-feats-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-feat]");if(card)openOlFeatEditor(Number(card.dataset.olOpenFeat));});
-document.getElementById("ol-character-menu-button")?.addEventListener("click",()=>document.getElementById("ol-character-menu-modal")?.setAttribute("aria-hidden","false"));
-document.getElementById("ol-character-menu-close")?.addEventListener("click",()=>document.getElementById("ol-character-menu-modal")?.setAttribute("aria-hidden","true"));
-document.getElementById("ol-menu-manage-characters")?.addEventListener("click",async()=>{document.getElementById("ol-character-menu-modal")?.setAttribute("aria-hidden","true");await openCharacterManager();});
+// Open Legend has a compact three-dot header menu. Keep the existing character
+// manager and lobby link rather than creating a second copy of either action.
+const olCharacterMenu = document.getElementById("ol-character-menu-modal");
+const olCharacterMenuButton = document.getElementById("ol-character-menu-button");
+function closeOlCharacterMenu(restoreFocus = false) {
+  if (!olCharacterMenu) return;
+  const wasOpen = olCharacterMenu.getAttribute("aria-hidden") === "false";
+  olCharacterMenu.setAttribute("aria-hidden", "true");
+  olCharacterMenuButton?.setAttribute("aria-expanded", "false");
+  if (restoreFocus && wasOpen) olCharacterMenuButton?.focus();
+}
+olCharacterMenuButton?.addEventListener("click", () => {
+  if (!isOpenLegendMode(mode) || !olCharacterMenu) return;
+  olCharacterMenu.setAttribute("aria-hidden", "false");
+  olCharacterMenuButton.setAttribute("aria-expanded", "true");
+  document.getElementById("open-character-manager")?.focus();
+});
+document.getElementById("ol-character-menu-close")?.addEventListener("click", () => closeOlCharacterMenu(true));
+olCharacterMenu?.addEventListener("click", event => {
+  if (event.target === olCharacterMenu) closeOlCharacterMenu(true);
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && olCharacterMenu?.getAttribute("aria-hidden") === "false") {
+    event.preventDefault();
+    closeOlCharacterMenu(true);
+  }
+});
+document.getElementById("open-character-manager")?.addEventListener("click", () => {
+  closeOlCharacterMenu();
+  void openCharacterManager();
+});
 document.getElementById("character-manager-close")?.addEventListener("click",()=>document.getElementById("character-manager-modal")?.setAttribute("aria-hidden","true"));
 document.getElementById("character-manager-new")?.addEventListener("click",createNewCharacterSlot);
 document.getElementById("character-manager-list")?.addEventListener("click",async(e)=>{const load=e.target.closest("[data-character-load]");if(load){await loadCharacterSlot(load.dataset.characterLoad);return;}const del=e.target.closest("[data-character-delete]");if(del){await deleteCharacterSlot(del.dataset.characterDelete);return;}});
