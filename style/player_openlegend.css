@@ -2257,3 +2257,674 @@ body.player-mode-openlegend #player-openlegend-section { display:none !important
   .player-mode-openlegend #player-initiative-panel input#player-initiative { width:64px !important; max-width:64px !important; }
   .player-mode-openlegend #player-initiative-panel #save-initiative-button { width:50px !important; min-width:50px !important; }
 }
+
+/* === 2026-09-18 vnext5: compact combat controls, attribute budget, mobile profile density === */
+.player-mode-openlegend .ol-attributes-heading {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.player-mode-openlegend .ol-attribute-budget {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 6px;
+  margin-left: auto;
+}
+.player-mode-openlegend .ol-attribute-budget > span {
+  min-width: 72px;
+  padding: 5px 7px;
+  border: 1px solid rgba(230, 207, 148, .22);
+  border-radius: 7px;
+  background: rgba(3, 25, 21, .72);
+  text-align: center;
+}
+.player-mode-openlegend .ol-attribute-budget small,
+.player-mode-openlegend .ol-attribute-budget strong {
+  display: block;
+  line-height: 1.15;
+}
+.player-mode-openlegend .ol-attribute-budget small {
+  color: #9fb0a6;
+  font-size: .57rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.player-mode-openlegend .ol-attribute-budget strong {
+  margin-top: 2px;
+  color: #f0dfab;
+  font-size: .82rem;
+}
+.player-mode-openlegend .ol-attribute-budget.is-over-budget strong:last-child,
+.player-mode-openlegend .ol-attribute-budget.is-over-budget {
+  color: #ffb1a9;
+}
+
+/* Give the HP amount a little more weight, while keeping defense selectors compact. */
+.player-mode-openlegend .ol-combat-card {
+  grid-template-columns: minmax(104px, 118px) minmax(150px, 1fr);
+}
+.player-mode-openlegend .ol-combat-card #ol-damage-input {
+  width: 112px !important;
+  max-width: 112px !important;
+  min-height: 48px !important;
+  padding: 8px 9px !important;
+  font-size: 1.12rem !important;
+  font-weight: 700;
+}
+.player-mode-openlegend .ol-combat-card .damage-options {
+  grid-template-columns: repeat(3, minmax(42px, 52px));
+  justify-content: start;
+  gap: 4px;
+  padding: 4px;
+}
+.player-mode-openlegend .ol-combat-card .damage-options label {
+  min-height: 30px;
+  padding: 3px 4px;
+  gap: 3px;
+  font-size: .64rem;
+}
+.player-mode-openlegend .ol-combat-card .damage-options input[type="checkbox"] {
+  width: 17px !important;
+  height: 17px !important;
+  min-width: 17px !important;
+  min-height: 17px !important;
+  border-radius: 4px;
+  background-size: 12px 12px;
+}
+
+/* Tracker rows are list items, but should not reserve space for a list marker. */
+.player-mode-openlegend #tracker-list {
+  list-style: none !important;
+  padding-inline-start: 0 !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+.player-mode-openlegend #tracker-list > .tracker-card {
+  margin-left: 0 !important;
+}
+.player-mode-openlegend #tracker-list > .tracker-card::marker {
+  content: "";
+  font-size: 0;
+}
+
+@media (max-width: 720px) {
+  /* Keep initiative Result + Set on one row. */
+  .player-mode-openlegend #player-initiative-panel {
+    grid-template-columns: 70px 54px !important;
+    grid-template-areas:
+      "heading heading"
+      "field button";
+    align-items: end !important;
+    justify-content: start !important;
+    column-gap: 6px !important;
+    row-gap: 5px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-heading {
+    grid-area: heading;
+  }
+  .player-mode-openlegend #player-initiative-panel .field-stack {
+    grid-area: field;
+    width: 70px !important;
+    max-width: 70px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+  .player-mode-openlegend #player-initiative-panel input#player-initiative {
+    width: 70px !important;
+    max-width: 70px !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel #save-initiative-button {
+    grid-area: button;
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    align-self: end !important;
+  }
+
+  .player-mode-openlegend .ol-combat-card {
+    grid-template-columns: 104px minmax(0, 1fr) !important;
+    align-items: end;
+  }
+  .player-mode-openlegend .ol-combat-card #ol-damage-input {
+    width: 104px !important;
+    max-width: 104px !important;
+    min-height: 50px !important;
+    font-size: 1.15rem !important;
+  }
+  .player-mode-openlegend .ol-combat-card .damage-options {
+    grid-template-columns: repeat(3, 43px) !important;
+    gap: 3px !important;
+  }
+  .player-mode-openlegend .ol-combat-card .damage-options label {
+    min-height: 29px !important;
+    padding: 2px 3px !important;
+    gap: 2px !important;
+    font-size: .61rem !important;
+  }
+  .player-mode-openlegend .ol-combat-card .damage-options input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+  }
+
+  /* Frequently tapped mobile combat buttons need a real touch target. */
+  .player-mode-openlegend .ol-combat-card .ol-hp-buttons button {
+    min-height: 48px !important;
+    padding: 9px 8px !important;
+    font-size: .86rem !important;
+    font-weight: 700;
+  }
+
+  /* Keep the Profile data dense enough for at least two fields across. */
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid--3,
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid label {
+    min-width: 0;
+    gap: 3px;
+    font-size: .69rem;
+  }
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid input,
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 38px !important;
+    padding: 6px 7px !important;
+    font-size: .82rem !important;
+  }
+
+  .player-mode-openlegend .ol-attributes-heading {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .player-mode-openlegend .ol-attribute-budget {
+    width: 100%;
+    margin: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .player-mode-openlegend .ol-attribute-budget > span {
+    min-width: 0;
+    padding: 5px 4px;
+  }
+}
+
+@media (max-width: 380px) {
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid--3,
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid label {
+    font-size: .64rem;
+  }
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid input,
+  .player-mode-openlegend #player-openlegend-profile-panel .ol-form-grid select {
+    padding-inline: 5px !important;
+    font-size: .76rem !important;
+  }
+}
+
+/* === 2026-09-18 vnext6: mobile initiative row + equal-width HP actions === */
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 82px) 62px;
+  align-items: end;
+  justify-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  /* Keep Result and Set physically grouped so Set cannot wrap below the input. */
+  .player-mode-openlegend #player-initiative-panel {
+    display: block !important;
+    min-width: 0 !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-heading {
+    display: flex !important;
+    margin-bottom: 5px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 54px !important;
+    align-items: end !important;
+    gap: 5px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls .field-stack {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls input#player-initiative {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    box-sizing: border-box !important;
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 7px 4px !important;
+    align-self: end !important;
+  }
+
+  /* Three large, equal touch targets across the whole combat-card width. */
+  .player-mode-openlegend .ol-combat-card .ol-hp-buttons,
+  .player-mode-openlegend .ol-hp-control-panel .ol-hp-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-column: 1 / -1 !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 2px 0 0 !important;
+  }
+  .player-mode-openlegend .ol-combat-card .ol-hp-buttons button,
+  .player-mode-openlegend .ol-hp-control-panel .ol-hp-buttons button {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 54px !important;
+    padding: 10px 4px !important;
+    font-size: .84rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    grid-template-columns: minmax(0, 1fr) 50px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+  }
+  .player-mode-openlegend .ol-combat-card .ol-hp-buttons button,
+  .player-mode-openlegend .ol-hp-control-panel .ol-hp-buttons button {
+    min-height: 52px !important;
+    font-size: .78rem !important;
+  }
+}
+
+
+/* === 2026-09-18 vnext7: strict mobile initiative input/button row === */
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+  display: grid !important;
+  grid-template-columns: 88px 56px !important;
+  column-gap: 8px !important;
+  align-items: center !important;
+  justify-content: start !important;
+  width: auto !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative,
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  min-height: 42px !important;
+  height: 42px !important;
+}
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+  grid-column: 1 !important;
+  width: 88px !important;
+  min-width: 0 !important;
+  max-width: 88px !important;
+  padding: 7px 8px !important;
+}
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+  grid-column: 2 !important;
+  width: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+  padding: 7px 6px !important;
+}
+
+@media (max-width: 720px) {
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    grid-template-columns: minmax(0, 96px) 58px !important;
+    width: 162px !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: start !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+    width: 96px !important;
+    max-width: 96px !important;
+    min-width: 0 !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    grid-template-columns: minmax(0, 88px) 54px !important;
+    width: 150px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+    width: 88px !important;
+    max-width: 88px !important;
+  }
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+  }
+}
+
+
+/* === 2026-09-18 vnext8: canonical Open Legend initiative card layout ===
+   Visual-only redesign. Existing input/button ids and behavior are unchanged. */
+.player-mode-openlegend #player-initiative-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  padding: 11px 12px !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-heading {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-heading h2 {
+  margin: 0 !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+  color: var(--ol-gold) !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+  display: grid !important;
+  grid-template-columns: 92px 62px !important;
+  align-items: stretch !important;
+  justify-content: start !important;
+  gap: 8px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative,
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+  box-sizing: border-box !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+  grid-column: 1 !important;
+  width: 92px !important;
+  min-width: 92px !important;
+  max-width: 92px !important;
+  padding: 8px 10px !important;
+  text-align: center !important;
+  font-size: 1.08rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+  grid-column: 2 !important;
+  width: 62px !important;
+  min-width: 62px !important;
+  max-width: 62px !important;
+  padding: 8px 10px !important;
+  font-size: .84rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .initiative-formula {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 3px 8px !important;
+  border: 1px solid rgba(230, 207, 148, .28) !important;
+  border-radius: 999px !important;
+  color: var(--ol-gold) !important;
+  background: rgba(0, 0, 0, .18) !important;
+  font: 700 .72rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 720px) {
+  /* Give the initiative card enough room for a real three-digit input plus Set. */
+  .player-mode-openlegend .ol-carousel-slot[data-carousel-slot="overview"] {
+    grid-template-columns: minmax(118px, 1fr) minmax(166px, .82fr) !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel {
+    padding: 9px 10px !important;
+    gap: 7px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    grid-template-columns: 86px 58px !important;
+    gap: 7px !important;
+    width: 151px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+    width: 86px !important;
+    min-width: 86px !important;
+    max-width: 86px !important;
+    font-size: 1.02rem !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .player-mode-openlegend .ol-carousel-slot[data-carousel-slot="overview"] {
+    grid-template-columns: minmax(108px, 1fr) minmax(158px, .88fr) !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel {
+    padding: 8px 8px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    grid-template-columns: 80px 54px !important;
+    gap: 6px !important;
+    width: 140px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+    padding-inline: 7px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    padding-inline: 6px !important;
+  }
+}
+
+
+/* === 2026-09-18 vnext9: definitive Initiative component layout ===
+   This deliberately overrides all legacy initiative/form stacking rules. */
+.player-mode-openlegend #player-initiative-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-heading {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-heading h2 {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  margin: 0 !important;
+  line-height: 1.15 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-heading .initiative-formula {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 3px 8px !important;
+  white-space: nowrap !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative,
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  margin: 0 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+  flex: 0 0 92px !important;
+  width: 92px !important;
+  min-width: 92px !important;
+  max-width: 92px !important;
+  padding: 8px 10px !important;
+  text-align: center !important;
+  font-size: 1.08rem !important;
+  font-weight: 700 !important;
+}
+
+.player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+  flex: 0 0 64px !important;
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  padding: 8px 10px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 720px) {
+  .player-mode-openlegend #player-initiative-panel {
+    gap: 9px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-heading {
+    gap: 8px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    gap: 8px !important;
+    width: auto !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+    flex: 0 0 86px !important;
+    width: 86px !important;
+    min-width: 86px !important;
+    max-width: 86px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    flex: 0 0 60px !important;
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #player-initiative {
+    flex-basis: 80px !important;
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  .player-mode-openlegend #player-initiative-panel .ol-initiative-controls #save-initiative-button {
+    flex-basis: 56px !important;
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+  }
+}
+
+
+/* 2026-09-19 clickable weapon/feat cards + defense checkbox cleanup */
+.ol-clickable-list-card{width:100%;text-align:left;cursor:pointer}.ol-list-chevron{font-size:1.5rem;opacity:.75;align-self:center}.ol-feat-list-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:12px 14px;border:1px solid rgba(45,61,115,.8);border-radius:10px;background:rgba(11,38,33,.72);color:#e3cf95}.ol-feat-list-item strong{font-size:.88rem;color:#bdb382}.ol-weapon-available-banes{margin-top:12px;padding:10px;border:1px solid rgba(45,61,115,.65);border-radius:10px}.ol-weapon-available-banes h4{margin:0 0 8px}.ol-weapon-bane-list{display:flex;flex-wrap:wrap;gap:6px}.ol-weapon-bane-list span{padding:5px 8px;border-radius:999px;background:rgba(35,119,104,.16);border:1px solid rgba(35,119,104,.5)}
+/* Avoid the mobile pseudo/shadow looking like a second checked box. */
+.player-page .damage-options input[type="checkbox"],.player-page .damage-options input[type="checkbox"]:checked{box-shadow:none!important;appearance:none!important;-webkit-appearance:none!important;background-image:none!important}.player-page .damage-options input[type="checkbox"]:checked::before,.player-page .damage-options input[type="checkbox"]:checked::after{display:none!important;content:none!important}.player-page .damage-options input[type="checkbox"]:checked{background:#237768!important;position:relative}.player-page .damage-options label{overflow:hidden}

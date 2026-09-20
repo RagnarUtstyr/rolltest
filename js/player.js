@@ -320,7 +320,9 @@ function setupPlayerMobileCarousels() {
         feats: [document.getElementById("player-openlegend-feats-panel")],
         profile: [document.getElementById("player-openlegend-profile-panel")],
         trackers: [document.getElementById("player-trackers-panel")],
-        notes: [document.getElementById("player-shared-notes-panel")]
+        notes: [document.getElementById("player-shared-notes-panel")],
+        documents: [document.getElementById("player-documents-panel")],
+        players: [document.getElementById("player-messages-panel")]
       }
     });
     return;
@@ -336,6 +338,7 @@ let currentDndBuilderData = null;
 let currentDndPageIndex = 0;
 
 const DND_ABILITY_ORDER = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+const DND_ABILITY_DISPLAY_ORDER = [...DND_ABILITY_ORDER].sort((a,b)=>a.localeCompare(b));
 const DND_ABILITY_SHORT = { Strength:"STR", Dexterity:"DEX", Constitution:"CON", Intelligence:"INT", Wisdom:"WIS", Charisma:"CHA" };
 const DND_SKILL_DATA = {
   Athletics:"Strength", Acrobatics:"Dexterity", "Sleight of Hand":"Dexterity", Stealth:"Dexterity",
@@ -465,6 +468,7 @@ const DND_SPELL_META = {
 const DND_SPECIES = ["Human","Dwarf","Elf","Halfling","Gnome","Dragonborn","Orc","Tiefling"];
 const DND_BACKGROUNDS = ["Acolyte","Artisan","Criminal","Guard","Hermit","Noble","Sage","Soldier","Wayfarer"];
 const DND_BACKGROUND_FEAT = {Acolyte:"Magic Initiate",Artisan:"Crafter",Criminal:"Alert",Guard:"Alert",Hermit:"Healer",Noble:"Skilled",Sage:"Magic Initiate",Soldier:"Savage Attacker",Wayfarer:"Lucky"};
+const DND_FEATS = ["Actor", "Alert", "Athlete", "Charger", "Crossbow Expert", "Defensive Duelist", "Dual Wielder", "Dungeon Delver", "Durable", "Elemental Adept", "Grappler", "Great Weapon Master", "Healer", "Heavily Armored", "Heavy Armor Master", "Inspiring Leader", "Keen Mind", "Lightly Armored", "Linguist", "Lucky", "Mage Slayer", "Magic Initiate", "Martial Adept", "Medium Armor Master", "Mobile", "Moderately Armored", "Mounted Combatant", "Observant", "Polearm Master", "Resilient", "Ritual Caster", "Savage Attacker", "Sentinel", "Sharpshooter", "Shield Master", "Skilled", "Skulker", "Spell Sniper", "Tavern Brawler", "Tough", "War Caster", "Weapon Master"];
 const DND_SPECIES_NOTES = {
   Human:"Medium or Small, Speed 30 feet, Resourceful, Skillful, and Versatile.",
   Dwarf:"Speed 30 feet, Darkvision, Dwarven Resilience, and Stonecunning.",
@@ -899,7 +903,7 @@ function renderDndAttributes(target, builder, sheet, compact = false) {
   const prof = Number(sheet.prof ?? sheet.proficiencyBonus ?? dndProfBonus(builder));
   const firstClass = builder?.classes?.[0]?.name;
   const saves = new Set(DND_CLASS_SAVES[firstClass] || []);
-  target.innerHTML = DND_ABILITY_ORDER.map((name)=> {
+  target.innerHTML = DND_ABILITY_DISPLAY_ORDER.map((name)=> {
     const score = abilities[name]; const mod = dndMod(score); const save = mod + (saves.has(name) ? prof : 0);
     return `<div class="dnd-attribute-card${compact ? " is-compact" : ""}"><span>${DND_ABILITY_SHORT[name]}</span><strong>${score}</strong><div><span>Mod ${dndSigned(mod)}</span><span>Save ${dndSigned(save)}</span></div></div>`;
   }).join("");
@@ -911,7 +915,7 @@ function renderDndSkills(builder, sheet) {
   const rule=dndSkillChoiceRules(builder); const chosen=(builder.extraSkillProficiencies||[]).filter((skill)=>!fixed.has(skill));
   const summary=document.getElementById("dnd-skill-proficiency-summary");
   if(summary) summary.innerHTML=`<span>Class choices</span><strong>${chosen.length} / ${rule.count}</strong><span>Automatic</span><strong>${fixed.size}</strong>`;
-  target.innerHTML = DND_ABILITY_ORDER.map((ability)=> {
+  target.innerHTML = DND_ABILITY_DISPLAY_ORDER.map((ability)=> {
     const skills = Object.keys(DND_SKILL_DATA).filter((s)=>DND_SKILL_DATA[s]===ability);
     const skillHtml = skills.length ? skills.map((skill)=> { const skillSources=sources[skill]||[]; const proficient=skillSources.length>0; const value=dndMod(abilities[ability])+(proficient?prof:0); const title=skillSources.join(" · "); return `<div class="dnd-skill-card${proficient?" is-proficient":""}" title="${escapeHtml(title)}"><span>${escapeHtml(skill)}</span><strong>${dndSigned(value)}</strong></div>`; }).join("") : `<div class="dnd-skill-empty">—</div>`;
     return `<section class="dnd-skill-group"><div class="dnd-skill-ability"><span>${escapeHtml(ability)}</span><strong>${abilities[ability]}</strong><small>Mod ${dndSigned(dndMod(abilities[ability]))}</small></div><div class="dnd-skill-boxes">${skillHtml}</div></section>`;
@@ -1225,6 +1229,7 @@ async function saveDndBuilderAndPlayer(builder, message="Saved.", options={}) {
   };
   await set(ref(db,dndBuilderSheetPath()),next);
   await set(ref(db,playerSheetPath()),playerPayload);
+  await persistActiveCharacterSlot(next,playerPayload);
   const entrySnap=await get(ref(db,playerEntryPath()));
   if(entrySnap.exists()) await update(ref(db,playerEntryPath()),{ac,name:playerPayload.name,playerName:playerPayload.name,updatedAt:Date.now()});
   currentDndBuilderData=next; setCurrentSheetCache(playerPayload); setSharedValues({...playerPayload,initiative:document.getElementById("player-initiative")?.value}); setDndValues(playerPayload);
@@ -1257,7 +1262,7 @@ function openDndCharacterSetup() {
   dndPopulateSelect(document.getElementById("dnd-setup-shield"),Object.keys(DND_SHIELDS),builder.shield);
   document.getElementById("dnd-setup-alignment").value=builder.alignment||"";
   const attr=document.getElementById("dnd-setup-attributes");
-  attr.innerHTML=DND_ABILITY_ORDER.map((name)=>`<label>${DND_ABILITY_SHORT[name]}<input type="number" min="1" max="30" data-dnd-setup-ability="${name}" value="${Number(builder.abilities?.[name]??10)}"></label>`).join("");
+  attr.innerHTML=DND_ABILITY_DISPLAY_ORDER.map((name)=>`<label>${DND_ABILITY_SHORT[name]}<input type="number" min="1" max="30" data-dnd-setup-ability="${name}" value="${Number(builder.abilities?.[name]??10)}"></label>`).join("");
   dndRefreshSetupSubclass(); dndOpenModal("dnd-character-setup-modal");
 }
 function collectDndCharacterSetup() {
@@ -1298,8 +1303,7 @@ function dndRefreshLevelUpModal() {
   const subInfo=DND_SUBCLASSES[className]; const subWrap=document.getElementById("dnd-level-subclass-wrap"); const subSel=document.getElementById("dnd-level-subclass");
   const needsSubclass=!!subInfo && nextLevel>=subInfo.chooseAt && !(existing?.subclass);
   if(subWrap) subWrap.hidden=!needsSubclass; if(subSel) subSel.innerHTML=["",...(subInfo?.options||[])].map((x)=>`<option value="${escapeHtml(x)}">${escapeHtml(x||"Choose")}</option>`).join("");
-  const isAsi=(DND_CLASS_ASI_LEVELS[className]||[]).includes(nextLevel); ["dnd-level-asi-one-wrap","dnd-level-asi-two-wrap","dnd-level-feat-wrap"].forEach((id)=>{const el=document.getElementById(id); if(el) el.hidden=!isAsi;});
-  const attrs=["",...DND_ABILITY_ORDER]; ["dnd-level-asi-one","dnd-level-asi-two"].forEach((id)=>dndPopulateSelect(document.getElementById(id),attrs,""));
+  const isAsi=(DND_CLASS_ASI_LEVELS[className]||[]).includes(nextLevel);
   const features=DND_CLASS_FEATURES[className]?.[nextLevel]||[]; const box=document.getElementById("dnd-level-features"); if(box) box.innerHTML=`<strong>Level ${nextLevel}</strong>${features.length?`<div>${features.map((f)=>`<span>${escapeHtml(f)}</span>`).join("")}</div>`:""}<small>d${hd}</small>`;
 }
 function openDndLevelUp(multiclassOnly=false) {
@@ -1311,22 +1315,44 @@ function openDndLevelUp(multiclassOnly=false) {
   dndPopulateSelect(sel,available,selected);
   const title=document.getElementById("dnd-level-up-title"); if(title) title.textContent=multiclassOnly?"Add Multiclass":"Level Up / Multiclass";
   if(sel) sel.dataset.multiclassOnly=multiclassOnly?"1":"";
-  document.getElementById("dnd-level-hp-gain").dataset.touched=""; document.getElementById("dnd-level-feat").value=""; dndRefreshLevelUpModal(); dndOpenModal("dnd-level-up-modal");
+  document.getElementById("dnd-level-hp-gain").dataset.touched=""; dndRefreshLevelUpModal(); dndOpenModal("dnd-level-up-modal");
+}
+let pendingDndLevelUp=null;
+function openDndAsiChoiceModal(pending){
+  pendingDndLevelUp=pending;
+  const attrs=["",...DND_ABILITY_DISPLAY_ORDER];
+  dndPopulateSelect(document.getElementById("dnd-asi-choice-one"),attrs,"");
+  dndPopulateSelect(document.getElementById("dnd-asi-choice-two"),attrs,"");
+  const featSel=document.getElementById("dnd-asi-feat-choice");
+  if(featSel) featSel.innerHTML=`<option value="">No feat — use ability increases</option>${DND_FEATS.map((f)=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("")}`;
+  dndOpenModal("dnd-asi-modal");
+}
+async function commitDndLevelUp(pending,asi={}){
+  const {builder,className,nextLevel,hpGain,die,previousHd,subclass}=pending;
+  let cls=(builder.classes||[]).find((c)=>c?.name===className);
+  if(!cls){cls={name:className,level:1,hpLog:[hpGain],subclass:"",featureChoices:{},asiChoices:{}};builder.classes.push(cls);}else{cls.level=nextLevel;cls.hpLog=Array.isArray(cls.hpLog)?cls.hpLog:[];cls.hpLog.push(hpGain);}
+  if(subclass) cls.subclass=subclass;
+  const feat=asi.feat||"";
+  if(feat){builder.feats=Array.isArray(builder.feats)?builder.feats:[];if(!builder.feats.includes(feat))builder.feats.push(feat);}
+  else [asi.one,asi.two].filter(Boolean).forEach((a)=>{builder.abilities[a]=Math.min(30,Number(builder.abilities[a]||10)+1);});
+  cls.asiChoices=cls.asiChoices||{}; if((DND_CLASS_ASI_LEVELS[className]||[]).includes(nextLevel)) cls.asiChoices[nextLevel]={feat:feat||"",abilities:[asi.one,asi.two].filter(Boolean)};
+  const tracker=builder.resourceTracker||(builder.resourceTracker={});const hdKey=`hitdice-d${die}`;const newTotal=dndHitDicePools(builder)[die]||1;tracker[hdKey]=Number.isFinite(previousHd)?Math.min(newTotal,previousHd+1):newTotal;
+  await saveDndBuilderAndPlayer(builder,`${className} level ${nextLevel} saved.`);
+  dndCloseModal("dnd-level-up-modal");dndCloseModal("dnd-asi-modal");pendingDndLevelUp=null;
 }
 async function confirmDndLevelUp() {
-  const builder=dndNormalizeBuilder(currentDndBuilderData||{}); const className=document.getElementById("dnd-level-class").value; let cls=(builder.classes||[]).find((c)=>c?.name===className);
-  if (dndTotalLevel(builder) >= 20) { statusEl.textContent="Total character level is already 20."; return; }
-  const previousLevel=cls?Number(cls.level||0):0; const nextLevel=previousLevel+1; if(nextLevel>20){statusEl.textContent="That class is already level 20.";return;}
-  const hpGain=Math.max(1,Number(document.getElementById("dnd-level-hp-gain").value||dndAverageHpGain(className))); const die=DND_CLASS_HD[className]||8;
-  const tracker=builder.resourceTracker||(builder.resourceTracker={}); const hdKey=`hitdice-d${die}`; const previousHd=Number(tracker[hdKey]);
-  if(!cls){cls={name:className,level:1,hpLog:[hpGain],subclass:"",featureChoices:{},asiChoices:{}}; builder.classes.push(cls);} else {cls.level=nextLevel; cls.hpLog=Array.isArray(cls.hpLog)?cls.hpLog:[]; cls.hpLog.push(hpGain);}
-  const subclass=document.getElementById("dnd-level-subclass")?.value; if(subclass) cls.subclass=subclass;
-  const feat=document.getElementById("dnd-level-feat")?.value.trim();
-  if(feat){builder.feats=Array.isArray(builder.feats)?builder.feats:[]; if(!builder.feats.includes(feat))builder.feats.push(feat);} else {
-    [document.getElementById("dnd-level-asi-one")?.value,document.getElementById("dnd-level-asi-two")?.value].filter(Boolean).forEach((a)=>{builder.abilities[a]=Math.min(30,Number(builder.abilities[a]||10)+1);});
-  }
-  const newTotal=dndHitDicePools(builder)[die]||1; tracker[hdKey]=Number.isFinite(previousHd)?Math.min(newTotal,previousHd+1):newTotal;
-  await saveDndBuilderAndPlayer(builder,`${className} level ${nextLevel} saved.`); dndCloseModal("dnd-level-up-modal");
+  const builder=dndNormalizeBuilder(currentDndBuilderData||{}); const className=document.getElementById("dnd-level-class").value; const existing=(builder.classes||[]).find((c)=>c?.name===className);
+  if(dndTotalLevel(builder)>=20){statusEl.textContent="Total character level is already 20.";return;}
+  const previousLevel=existing?Number(existing.level||0):0;const nextLevel=previousLevel+1;if(nextLevel>20){statusEl.textContent="That class is already level 20.";return;}
+  const hpGain=Math.max(1,Number(document.getElementById("dnd-level-hp-gain").value||dndAverageHpGain(className)));const die=DND_CLASS_HD[className]||8;const tracker=builder.resourceTracker||(builder.resourceTracker={});const previousHd=Number(tracker[`hitdice-d${die}`]);const subclass=document.getElementById("dnd-level-subclass")?.value||"";
+  const pending={builder,className,nextLevel,hpGain,die,previousHd,subclass};
+  if((DND_CLASS_ASI_LEVELS[className]||[]).includes(nextLevel)){openDndAsiChoiceModal(pending);return;}
+  await commitDndLevelUp(pending,{});
+}
+async function confirmDndAsiChoice(){
+  if(!pendingDndLevelUp)return;const feat=document.getElementById("dnd-asi-feat-choice")?.value||"";const one=document.getElementById("dnd-asi-choice-one")?.value||"";const two=document.getElementById("dnd-asi-choice-two")?.value||"";
+  if(!feat && !one && !two){statusEl.textContent="Choose a feat or ability score improvement.";return;}
+  await commitDndLevelUp(pendingDndLevelUp,{feat,one,two});
 }
 function openDndHitDice() {
   const builder=dndNormalizeBuilder(currentDndBuilderData||{}); const pools=dndHitDicePools(builder); const remaining=dndHitDiceRemaining(builder); const list=document.getElementById("dnd-hit-dice-pools");
@@ -1348,10 +1374,11 @@ async function restoreDndHitDice() {
 }
 function refreshDndAcPreview() {
   const builder=dndNormalizeBuilder(currentDndBuilderData||{});
+  const armorMagicEl=document.getElementById("dnd-ac-armor-magic"); const shieldMagicEl=document.getElementById("dnd-ac-shield-magic");
   builder.armor=document.getElementById("dnd-ac-armor-select")?.value||builder.armor;
-  builder.armorMagic=Number(document.getElementById("dnd-ac-armor-magic")?.value||0);
+  builder.armorMagic=Number(armorMagicEl?.value ?? builder.armorMagic ?? 0);
   builder.shield=document.getElementById("dnd-ac-shield-select")?.value||builder.shield;
-  builder.shieldMagic=Number(document.getElementById("dnd-ac-shield-magic")?.value||0);
+  builder.shieldMagic=Number(shieldMagicEl?.value ?? builder.shieldMagic ?? 0);
   delete builder.acOverride;
   const calc=dndArmorClassFromBuilder(builder); const preview=document.getElementById("dnd-ac-calculated-preview");
   if(preview) preview.textContent=`Calculated from equipment: AC ${calc} · ${dndArmorEquipmentSummary(builder)}`;
@@ -1653,6 +1680,7 @@ function setupDndUnifiedControls() {
   document.getElementById("dnd-multiclass-button")?.addEventListener("click",()=>openDndLevelUp(true));
   document.getElementById("dnd-rest-button")?.addEventListener("click",openDndRestModal);
   document.getElementById("dnd-menu-rest")?.addEventListener("click",()=>{dndCloseModal("dnd-character-menu-modal");openDndRestModal();});
+  document.getElementById("dnd-menu-manage-characters")?.addEventListener("click",()=>{dndCloseModal("dnd-character-menu-modal");openCharacterManager();});
   document.getElementById("dnd-short-rest-button")?.addEventListener("click",()=>applyDndRest("short"));
   document.getElementById("dnd-long-rest-button")?.addEventListener("click",()=>applyDndRest("long"));
 
@@ -1667,6 +1695,7 @@ function setupDndUnifiedControls() {
   document.getElementById("dnd-level-class")?.addEventListener("change",()=>{const hp=document.getElementById("dnd-level-hp-gain"); if(hp)hp.dataset.touched="";dndRefreshLevelUpModal();});
   document.getElementById("dnd-level-hp-gain")?.addEventListener("input",(event)=>{event.target.dataset.touched="1";});
   document.getElementById("dnd-confirm-level-up")?.addEventListener("click",confirmDndLevelUp);
+  document.getElementById("dnd-confirm-asi-choice")?.addEventListener("click",confirmDndAsiChoice);
   document.getElementById("dnd-hit-dice-button")?.addEventListener("click",openDndHitDice);
   document.getElementById("dnd-spend-hit-dice")?.addEventListener("click",spendDndHitDice);
   document.getElementById("dnd-restore-hit-dice")?.addEventListener("click",restoreDndHitDice);
@@ -1724,8 +1753,8 @@ function setupDndUnifiedControls() {
 
 function setupDndSheetCarousel() {
   const app=document.getElementById("dnd-sheet-app"), track=document.getElementById("dnd-sheet-track"); if(!app||!track)return; app.hidden=false;
-  const effects=document.getElementById("player-effects-panel"), trackers=document.getElementById("player-trackers-panel"), notes=document.getElementById("player-shared-notes-panel");
-  if(effects) document.getElementById("dnd-effects-mount")?.appendChild(effects); if(trackers) document.getElementById("dnd-trackers-mount")?.appendChild(trackers); if(notes) document.getElementById("dnd-notes-mount")?.appendChild(notes);
+  const effects=document.getElementById("player-effects-panel"), trackers=document.getElementById("player-trackers-panel"), notes=document.getElementById("player-shared-notes-panel"), documents=document.getElementById("player-documents-panel"), messages=document.getElementById("player-messages-panel");
+  if(effects) document.getElementById("dnd-effects-mount")?.appendChild(effects); if(trackers) document.getElementById("dnd-trackers-mount")?.appendChild(trackers); if(notes) document.getElementById("dnd-notes-mount")?.appendChild(notes); if(documents) document.getElementById("dnd-documents-mount")?.appendChild(documents); if(messages) document.getElementById("dnd-players-mount")?.appendChild(messages);
   app.querySelectorAll("[data-dnd-tab]").forEach((tab)=>tab.addEventListener("click",()=>goToDndPage(tab.dataset.dndTab)));
   app.querySelectorAll("[data-dnd-go]").forEach((button)=>button.addEventListener("click",()=>goToDndPage(button.dataset.dndGo)));
   document.getElementById("dnd-sheet-prev")?.addEventListener("click",()=>goToDndPage(currentDndPageIndex-1)); document.getElementById("dnd-sheet-next")?.addEventListener("click",()=>goToDndPage(currentDndPageIndex+1));
@@ -1762,6 +1791,54 @@ function dndBuilderSheetPath() {
 function openLegendBuilderSheetPath() {
   return `games/${code}/builderSheets/${user.uid}`;
 }
+
+let activeCharacterSlotId = null;
+let selectedMessagePlayerUid = null;
+let stopMessageThreadWatch = null;
+function characterSlotsPath(){ return `games/${code}/characterSlots/${user.uid}`; }
+function characterSlotPath(id){ return `${characterSlotsPath()}/${id}`; }
+function currentBuilderForMode(){ return mode === "dnd" ? (currentDndBuilderData||{}) : (currentOpenLegendBuilderData||{}); }
+async function persistActiveCharacterSlot(builder, player){
+  if(!activeCharacterSlotId) activeCharacterSlotId=`character-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+  const now=Date.now();
+  const existing=await get(ref(db,characterSlotPath(activeCharacterSlotId)));
+  await update(ref(db,characterSlotPath(activeCharacterSlotId)),{id:activeCharacterSlotId,name:builder?.name||player?.name||"Character",mode,isDefault:existing.exists()?!!existing.val()?.isDefault:false,updatedAt:now,builder:builder||{},player:player||{}});
+}
+async function initializeCharacterSlots(){
+  const slotsSnap=await get(ref(db,characterSlotsPath()));
+  let slots=slotsSnap.exists()?slotsSnap.val():{};
+  if(!slots || !Object.keys(slots).length){
+    const [playerSnap,builderSnap]=await Promise.all([get(ref(db,playerSheetPath())),get(ref(db,mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()))]);
+    if(playerSnap.exists() || builderSnap.exists()){
+      const id=`character-${Date.now()}`;const player=playerSnap.exists()?playerSnap.val():{};const builder=builderSnap.exists()?builderSnap.val():{};
+      await set(ref(db,characterSlotPath(id)),{id,name:builder?.name||player?.name||"Character",mode,isDefault:true,updatedAt:Number(builder?.updatedAt||player?.updatedAt||Date.now()),builder,player});
+      slots={[id]:{id,name:builder?.name||player?.name||"Character",mode,isDefault:true,updatedAt:Date.now(),builder,player}};
+    }
+  }
+  const entries=Object.entries(slots||{}).filter(([,s])=>!s?.mode || String(s.mode).toLowerCase()===String(mode).toLowerCase());
+  if(!entries.length){activeCharacterSlotId=null;return;}
+  const requestedId=(params.get("character")||"").trim();
+  const preferred=entries.find(([id])=>id===requestedId) || entries.find(([,s])=>s?.isDefault) || entries.sort((a,b)=>Number(b[1]?.updatedAt||0)-Number(a[1]?.updatedAt||0))[0];
+  activeCharacterSlotId=preferred[0]; const slot=preferred[1]||{};
+  const updates={};updates[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]=slot.builder||{};updates[playerSheetPath()]=slot.player||{};
+  await update(ref(db),updates);
+}
+async function renderCharacterManager(){
+  const list=document.getElementById("character-manager-list");if(!list)return;
+  const snap=await get(ref(db,characterSlotsPath()));const slots=snap.exists()?snap.val():{};const entries=Object.entries(slots||{}).filter(([,s])=>!s?.mode||String(s.mode).toLowerCase()===String(mode).toLowerCase()).sort((a,b)=>Number(b[1]?.updatedAt||0)-Number(a[1]?.updatedAt||0));
+  list.innerHTML=entries.length?entries.map(([id,s])=>`<div class="character-manager-row"><div><strong>${escapeHtml(s.name||"Character")}</strong><small>${id===activeCharacterSlotId?"Currently loaded · ":""}${s.updatedAt?new Date(s.updatedAt).toLocaleString():""}</small></div><label class="character-default-toggle"><input type="checkbox" data-character-default="${escapeHtml(id)}" ${s.isDefault?"checked":""}> Default</label><button type="button" data-character-load="${escapeHtml(id)}" ${id===activeCharacterSlotId?"disabled":""}>Load</button><button type="button" class="remove-button" data-character-delete="${escapeHtml(id)}">Delete</button></div>`).join(""):`<div class="empty-state">No saved characters yet.</div>`;
+}
+async function openCharacterManager(){await renderCharacterManager();document.getElementById("character-manager-modal")?.setAttribute("aria-hidden","false");}
+async function setDefaultCharacter(id,checked){const snap=await get(ref(db,characterSlotsPath()));if(!snap.exists())return;const updates={};Object.keys(snap.val()||{}).forEach((slotId)=>{updates[`${characterSlotsPath()}/${slotId}/isDefault`]=checked?slotId===id:false;});await update(ref(db),updates);await renderCharacterManager();}
+async function loadCharacterSlot(id){const snap=await get(ref(db,characterSlotPath(id)));if(!snap.exists())return;const slot=snap.val();activeCharacterSlotId=id;const updates={};updates[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]=slot.builder||{};updates[playerSheetPath()]=slot.player||{};const entry=await get(ref(db,playerEntryPath()));if(entry.exists())updates[playerEntryPath()]={...entry.val(),name:slot.player?.name||slot.name||"Character",playerName:slot.player?.name||slot.name||"Character",updatedAt:Date.now()};await update(ref(db),updates);window.location.href=`player.html?code=${encodeURIComponent(code)}&character=${encodeURIComponent(id)}`;}
+async function deleteCharacterSlot(id){if(!confirm("Delete this character? This cannot be undone."))return;await set(ref(db,characterSlotPath(id)),null);if(id===activeCharacterSlotId){const snap=await get(ref(db,characterSlotsPath()));const entries=Object.entries(snap.val()||{}).filter(([,s])=>!s?.mode||String(s.mode).toLowerCase()===String(mode).toLowerCase());if(entries.length){const next=entries.find(([,s])=>s?.isDefault)||entries.sort((a,b)=>Number(b[1]?.updatedAt||0)-Number(a[1]?.updatedAt||0))[0];await loadCharacterSlot(next[0]);return;}activeCharacterSlotId=null;await update(ref(db),{[playerSheetPath()]:null,[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]:null});window.location.href=`player.html?code=${encodeURIComponent(code)}`;return;}await renderCharacterManager();}
+async function createNewCharacterSlot(){const id=`character-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;const builder=mode==="dnd"?dndDefaultBuilder():olNormalizeBuilder({name:"",attributes:{}},{});const player={uid:user.uid,mode,name:"",updatedAt:Date.now()};await set(ref(db,characterSlotPath(id)),{id,name:"New Character",mode,isDefault:false,updatedAt:Date.now(),builder,player});activeCharacterSlotId=id;const updates={[mode==="dnd"?dndBuilderSheetPath():openLegendBuilderSheetPath()]:builder,[playerSheetPath()]:player};const entry=await get(ref(db,playerEntryPath()));if(entry.exists())updates[playerEntryPath()]={...entry.val(),name:"New Character",playerName:"New Character",updatedAt:Date.now()};await update(ref(db),updates);window.location.href=`player.html?code=${encodeURIComponent(code)}&character=${encodeURIComponent(id)}&new=1`; }
+function goToOlProfileIfPossible(){document.querySelector('[data-carousel-tab="profile"]')?.click();}
+function messageThreadKey(a,b){return [a,b].sort().join("__");}
+function startPlayerDocumentsWatch(){const target=document.getElementById("player-documents-list");if(!target)return;onValue(ref(db,`games/${code}/documents`),(snap)=>{const docs=Object.values(snap.val()||{}).sort((a,b)=>Number(b.uploadedAt||0)-Number(a.uploadedAt||0));target.innerHTML=docs.length?docs.map((d)=>`<div class="player-document-row"><div class="player-document-meta"><strong>${escapeHtml(d.name||"Document")}</strong><small>${escapeHtml(d.type||"file")}${d.size?` · ${Math.max(1,Math.round(Number(d.size)/1024))} KB`:""}</small></div><a class="button-link" href="${d.dataUrl||"#"}" download="${escapeHtml(d.name||"document")}">Open</a></div>`).join(""):`<div class="empty-state">No documents shared yet.</div>`;});}
+function startPlayerMessaging(){const list=document.getElementById("player-message-player-list");if(!list)return;onValue(ref(db,`games/${code}`),(snap)=>{const data=snap.val()||{};const members=Object.values(data.members||{}).filter((m)=>m?.role==="player");const players=data.players||{};list.innerHTML=members.filter((m)=>m.uid!==user.uid).map((m)=>{const name=players?.[m.uid]?.name||m.name||"Player";return `<button type="button" class="player-message-player ${m.uid===selectedMessagePlayerUid?"is-active":""}" data-message-player="${escapeHtml(m.uid)}" data-message-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`;}).join("")||`<div class="empty-state">No other players in the game.</div>`;});}
+function openPlayerMessageThread(uid,name){selectedMessagePlayerUid=uid;document.getElementById("player-message-thread-title").textContent=name||"Player";const input=document.getElementById("player-message-input"),send=document.getElementById("player-message-send");if(input)input.disabled=false;if(send)send.disabled=false;startPlayerMessaging();if(stopMessageThreadWatch)stopMessageThreadWatch();const body=document.getElementById("player-message-thread-body");const key=messageThreadKey(user.uid,uid);stopMessageThreadWatch=onValue(ref(db,`games/${code}/playerMessages/${key}`),(snap)=>{const rows=Object.values(snap.val()||{}).sort((a,b)=>Number(a.createdAt||0)-Number(b.createdAt||0));body.innerHTML=rows.map((m)=>`<div class="player-message-bubble ${m.from===user.uid?"is-own":""}"><div>${escapeHtml(m.text||"")}</div><small>${m.from===user.uid?"You":escapeHtml(name||"Player")} · ${m.createdAt?new Date(m.createdAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):""}</small></div>`).join("")||`<div class="empty-state">No messages yet.</div>`;body.scrollTop=body.scrollHeight;});}
+async function sendPlayerMessage(){const input=document.getElementById("player-message-input");const text=input?.value?.trim();if(!text||!selectedMessagePlayerUid)return;const key=messageThreadKey(user.uid,selectedMessagePlayerUid);const id=`${Date.now()}_${user.uid.slice(0,8)}_${Math.random().toString(36).slice(2,6)}`;await set(ref(db,`games/${code}/playerMessages/${key}/${id}`),{from:user.uid,to:selectedMessagePlayerUid,text:text.slice(0,500),createdAt:Date.now()});input.value="";}
 
 function numberOrNull(value) {
   if (value === "" || value === null || value === undefined) return null;
@@ -2066,17 +2143,13 @@ function renderOpenLegendOverviewMeta(builder={}){
 }
 function renderOpenLegendWeapons(builder={}){
   const target=document.getElementById("player-openlegend-weapons-list"); if(!target)return;
-  const weapons=builder.weapons||[];
-  target.innerHTML=weapons.length?weapons.map((weapon,index)=>{
-    const preset=findOpenLegendWeaponPreset(weapon.presetKey||weapon.name||"");
-    return `<article class="ol-weapon-card"><div class="ol-card-heading"><div><small>${escapeHtml(preset?.category||"Custom Weapon")}</small><h3>${escapeHtml(weapon.name||`Weapon ${index+1}`)}</h3></div><div class="ol-card-actions"><button type="button" data-ol-edit-weapon="${index}">Edit</button><button type="button" class="remove-button" data-ol-remove-weapon="${index}">Remove</button></div></div><div class="ol-weapon-stats"><div><span>Damage</span><strong>${escapeHtml(olWeaponDamage(builder,weapon))}</strong></div><div><span>Attack</span><strong>${escapeHtml(weapon.attribute||"—")}</strong></div><div><span>VS</span><strong>${escapeHtml(weapon.vs||"GRD")}</strong></div><div><span>Range</span><strong>${escapeHtml(weapon.range||"—")}</strong></div></div>${weapon.tags?`<div class="ol-card-tags">${escapeHtml(String(weapon.tags))}</div>`:""}${weapon.notes?`<p class="muted">${escapeHtml(weapon.notes)}</p>`:""}</article>`;
-  }).join(""):`<div class="empty-state">No weapons added.</div>`;
+  const weapons=Array.isArray(builder.weapons)?builder.weapons:[];
+  target.innerHTML=weapons.length?weapons.map((raw,index)=>{const weapon=olNormalizeWeapon(raw);const preset=findOpenLegendWeaponPreset(weapon.presetKey||weapon.name||"");return `<button type="button" class="ol-weapon-card ol-clickable-list-card" data-ol-open-weapon="${index}"><div class="ol-card-heading"><div><small>${escapeHtml(preset?.category||"Custom Weapon")}</small><h3>${escapeHtml(weapon.name||`Weapon ${index+1}`)}</h3></div><span class="ol-list-chevron">›</span></div><div class="ol-weapon-stats"><div><span>Damage</span><strong>${escapeHtml(olWeaponDamage(builder,weapon))}</strong></div><div><span>Attack</span><strong>${escapeHtml(weapon.attribute||"—")}</strong></div><div><span>VS</span><strong>${escapeHtml(weapon.vs||"GRD")}</strong></div><div><span>Range</span><strong>${escapeHtml(weapon.range||"—")}</strong></div></div></button>`;}).join(""):`<div class="empty-state">No weapons added.</div>`;
 }
 function renderOpenLegendFeats(builder={}){
-  const target=document.getElementById("player-openlegend-feats-list"); const summary=document.getElementById("player-openlegend-feats-summary"); if(!target)return;
-  const feats=builder.feats||[]; const budget=olBudgetSummary(builder); const spent=budget.featSpent;
-  if(summary)summary.innerHTML=`<span>${feats.length} feat${feats.length===1?"":"s"}</span><strong class="${spent>budget.featTotal?"is-over-budget":""}">${spent} / ${budget.featTotal} feat points</strong>`;
-  target.innerHTML=feats.length?feats.map((feat,index)=>`<article class="ol-feat-card ol-feat-card--compact"><h3>${escapeHtml(feat.name)}</h3><button type="button" data-ol-edit-feat="${index}">Edit</button></article>`).join(""):`<div class="empty-state">No feats added.</div>`;
+  const target=document.getElementById("player-openlegend-feats-list"); const summary=document.getElementById("player-openlegend-feats-summary"); if(!target)return; const feats=Array.isArray(builder.feats)?builder.feats:[];
+  if(summary){const spent=feats.reduce((sum,f)=>{const entry=OPENLEGEND_FEATS.find((e)=>e.name===(f.name||f.key));return sum+Number(entry?.costPerLevel||1)*Math.max(1,Number(f.level||1));},0);summary.textContent=`${spent} feat points used`; }
+  target.innerHTML=feats.length?feats.map((feat,index)=>`<button type="button" class="ol-feat-list-item ol-clickable-list-card" data-ol-open-feat="${index}"><span>${escapeHtml(feat.name||feat.key||"Feat")}</span><strong>Level ${Math.max(1,Number(feat.level||1))}</strong><span class="ol-list-chevron">›</span></button>`).join(""):`<div class="empty-state">No feats added.</div>`;
 }
 function renderOpenLegendProfile(builder={}){
   const target=document.getElementById("player-openlegend-profile-content"); if(!target)return;
@@ -2089,7 +2162,7 @@ function renderOpenLegendProfile(builder={}){
       <label>Level<input id="ol-profile-level" type="number" value="${Math.max(1,Number(builder.level||olXpLevel(builder.xp)))}" readonly></label>
       <label>Speed<input id="ol-profile-speed" type="number" min="0" value="${Number(m.speed||30)}"></label>
       <label>Wealth<input id="ol-profile-wealth" type="number" min="0" value="${Number(m.wealth||0)}"></label>
-      <label>Initiative Attribute<select id="ol-profile-init-attribute">${OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>`<option ${m.initiativeAttribute===name?"selected":""}>${name}</option>`).join("")}</select></label>
+      <label>Initiative Attribute<select id="ol-profile-init-attribute">${[...OPEN_LEGEND_ATTRIBUTE_ORDER].sort((a,b)=>a.localeCompare(b)).map((name)=>`<option ${m.initiativeAttribute===name?"selected":""}>${name}</option>`).join("")}</select></label>
       <label>Initiative Bonus<input id="ol-profile-init-bonus" type="number" value="${Number(m.initiativeBonus||0)}"></label>
       <label>Armor Guard Bonus<input id="ol-profile-armor-guard" type="number" value="${Number(m.armorGuardBonus||0)}"></label>
       <label>Other Guard Bonus<input id="ol-profile-guard-bonus" type="number" value="${Number(m.guardBonus||0)}"></label>
@@ -2104,7 +2177,7 @@ function renderOpenLegendProfile(builder={}){
 function renderOpenLegendDashboard(builder=currentOpenLegendBuilderData||{},sheet=getCurrentSheetCache()||{}){
   if(!isOpenLegendMode(mode))return;
   const normalized=olNormalizeBuilder(builder,sheet); currentOpenLegendBuilderData=normalized;
-  renderOpenLegendAttributes(normalized.attributes); renderOpenLegendOverviewMeta(normalized); renderOpenLegendWeapons(normalized); renderOpenLegendFeats(normalized); renderOpenLegendProfile(normalized);
+  renderOpenLegendAttributes(normalized.attributes, normalized); renderOpenLegendOverviewMeta(normalized); renderOpenLegendWeapons(normalized); renderOpenLegendFeats(normalized); renderOpenLegendProfile(normalized);
   const d=olDerived(normalized); setOpenLegendValues({...sheet,baseHp:d.baseHp,grd:d.grd,res:d.res,tgh:d.tgh,currentHp:sheet.currentHp ?? d.baseHp,lethal:sheet.lethal??0,banes:sheet.banes??[],fatigue:sheet.fatigue??{points:0}});
 }
 function syncOlBuilderFromProfile(builder){
@@ -2127,10 +2200,13 @@ async function saveOpenLegendBuilderAndPlayer(builder,message="Open Legend auto-
     const normalized=olNormalizeBuilder(builder,getCurrentSheetCache()||{}); normalized.name=document.getElementById("player-name")?.value?.trim() || normalized.name; normalized.level=olXpLevel(normalized.xp);
     const d=olDerived(normalized); const existing=(await getCurrentSheet())||{}; const oldCurrent=Number(existing.currentHp); const nextCurrent=Number.isFinite(oldCurrent)?Math.max(0,Math.min(oldCurrent,d.baseHp)):d.baseHp;
     const initDie=getOpenLegendAttributeDie(normalized.attributes?.[d.initiativeAttribute]||0);
-    const initFormula=`${String(initDie||"").toLowerCase()}${d.initiativeBonus>=0?`+${d.initiativeBonus}`:d.initiativeBonus}`;
+    const initBonus=Number(d.initiativeBonus)||0;
+    const initFormula=initDie ? `${String(initDie).toLowerCase()}${initBonus ? (initBonus>0?`+${initBonus}`:`${initBonus}`) : ""}` : (initBonus ? `${initBonus}` : "—");
     const now=Date.now(); const builderPayload={...olClone(normalized),updatedAt:now};
     const playerPayload={...existing,uid:user.uid,userEmail:user.email||"",userName:user.displayName||"",mode:"openlegend",name:normalized.name,attributes:olClone(normalized.attributes),baseHp:d.baseHp,currentHp:nextCurrent,grd:d.grd,res:d.res,tgh:d.tgh,initiativeAttribute:d.initiativeAttribute,initiativeBonus:d.initiativeBonus,initiativeDie:initDie,initiativeFormula:initFormula,feats:olClone(normalized.feats),weapons:normalized.weapons.map((weapon)=>({...weapon,computedDamage:olWeaponDamage(normalized,weapon)})),builderUpdatedAt:now,updatedAt:now};
     await update(ref(db),{[openLegendBuilderSheetPath()]:builderPayload,[playerSheetPath()]:playerPayload});
+    const olEntrySnap=await get(ref(db,playerEntryPath())); if(olEntrySnap.exists()) await update(ref(db,playerEntryPath()),{name:playerPayload.name,playerName:playerPayload.name,updatedAt:now});
+    await persistActiveCharacterSlot(builderPayload,playerPayload);
     currentOpenLegendBuilderData=normalized; setCurrentSheetCache(playerPayload); if(render)olRenderOrDefer(normalized,playerPayload); if(status)status.textContent="Saved"; statusEl.textContent=message;
   }catch(error){console.error("Open Legend save failed:",error);if(status)status.textContent="Save failed";statusEl.textContent=error.message||"Could not save Open Legend character.";}finally{olBuilderSaving=false;}
 }
@@ -2138,12 +2214,14 @@ function scheduleOlBuilderAutoSave(syncProfile=false){ clearTimeout(olBuilderAut
 function openOlWeaponEditor(index=null){
   const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); const editing=Number.isInteger(index)&&!!builder.weapons[index]; currentOlWeaponEditIndex=editing?index:null; const weapon=editing?olNormalizeWeapon(builder.weapons[index]):createOpenLegendWeapon(OPENLEGEND_WEAPONS[0]?.key||"");
   const preset=document.getElementById("ol-weapon-preset"); preset.innerHTML=`<option value="">Custom</option>${OPENLEGEND_WEAPONS.map((w)=>`<option value="${escapeHtml(w.key)}">${escapeHtml(w.name)}</option>`).join("")}`; preset.value=weapon.presetKey||"";
-  document.getElementById("ol-weapon-attribute").innerHTML=OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>`<option ${weapon.attribute===name?"selected":""}>${name}</option>`).join("");
+  document.getElementById("ol-weapon-attribute").innerHTML=[...OPEN_LEGEND_ATTRIBUTE_ORDER].sort((a,b)=>a.localeCompare(b)).map((name)=>`<option ${weapon.attribute===name?"selected":""}>${name}</option>`).join("");
   const values={"ol-weapon-name":weapon.name,"ol-weapon-vs":weapon.vs,"ol-weapon-range":weapon.range,"ol-weapon-bonus-dice":weapon.bonusDice,"ol-weapon-flat-bonus":weapon.flatBonus,"ol-weapon-boon":weapon.boon,"ol-weapon-bane":weapon.bane,"ol-weapon-tags":weapon.tags,"ol-weapon-notes":weapon.notes}; Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??"";});
-  document.getElementById("ol-weapon-editor-title").textContent=editing?"Edit Weapon":"Add Weapon"; refreshOlWeaponPreview(); document.getElementById("ol-weapon-editor-modal").setAttribute("aria-hidden","false");
+  document.getElementById("ol-weapon-editor-title").textContent=editing?(weapon.name||"Weapon"):"Add Weapon"; const del=document.getElementById("ol-delete-weapon-button"); if(del)del.hidden=!editing; refreshOlWeaponPreview(); renderOlWeaponAvailableBanes(weapon); document.getElementById("ol-weapon-editor-modal").setAttribute("aria-hidden","false");
 }
+function renderOlWeaponAvailableBanes(weapon={}){ const el=document.getElementById("ol-weapon-available-banes");if(!el)return;const preset=findOpenLegendWeaponPreset(weapon.presetKey||weapon.name||"");const list=(Array.isArray(weapon.availableBanes)&&weapon.availableBanes.length?weapon.availableBanes:preset?.availableBanes)||[];el.innerHTML=`<h4>Available Banes</h4>${list.length?`<div class="ol-weapon-bane-list">${list.map((b)=>`<span>${escapeHtml(b)}</span>`).join("")}</div>`:`<p class="muted">No curated bane list is assigned to this weapon.</p>`}`;}
+async function deleteOlWeapon(){if(!Number.isInteger(currentOlWeaponEditIndex))return;const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});if(!builder.weapons[currentOlWeaponEditIndex])return;builder.weapons.splice(currentOlWeaponEditIndex,1);currentOlWeaponEditIndex=null;await saveOpenLegendBuilderAndPlayer(builder,"Weapon removed.");document.getElementById("ol-weapon-editor-modal")?.setAttribute("aria-hidden","true");}
 function refreshOlWeaponPreview(){ const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); const weapon={attribute:document.getElementById("ol-weapon-attribute")?.value||"Agility",bonusDice:document.getElementById("ol-weapon-bonus-dice")?.value||"",flatBonus:Number(document.getElementById("ol-weapon-flat-bonus")?.value||0)}; const el=document.getElementById("ol-weapon-damage-preview");if(el)el.innerHTML=`<span>Computed Damage</span><strong>${escapeHtml(olWeaponDamage(builder,weapon))}</strong>`; }
-function applyOlWeaponPreset(){const key=document.getElementById("ol-weapon-preset")?.value||"";if(!key)return;const w=createOpenLegendWeapon(key);const map={"ol-weapon-name":w.name,"ol-weapon-attribute":w.attribute,"ol-weapon-vs":w.vs,"ol-weapon-range":w.range,"ol-weapon-bonus-dice":w.bonusDice,"ol-weapon-flat-bonus":w.flatBonus,"ol-weapon-boon":w.boon,"ol-weapon-bane":w.bane,"ol-weapon-tags":w.tags,"ol-weapon-notes":w.notes};Object.entries(map).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??"";});refreshOlWeaponPreview();}
+function applyOlWeaponPreset(){const key=document.getElementById("ol-weapon-preset")?.value||"";if(!key)return;const w=createOpenLegendWeapon(key);const map={"ol-weapon-name":w.name,"ol-weapon-attribute":w.attribute,"ol-weapon-vs":w.vs,"ol-weapon-range":w.range,"ol-weapon-bonus-dice":w.bonusDice,"ol-weapon-flat-bonus":w.flatBonus,"ol-weapon-boon":w.boon,"ol-weapon-bane":w.bane,"ol-weapon-tags":w.tags,"ol-weapon-notes":w.notes};Object.entries(map).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value??"";});refreshOlWeaponPreview();renderOlWeaponAvailableBanes(w);}
 async function saveOlWeapon(){const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});const weapon=olNormalizeWeapon({presetKey:document.getElementById("ol-weapon-preset")?.value||"",name:document.getElementById("ol-weapon-name")?.value?.trim()||"Weapon",attribute:document.getElementById("ol-weapon-attribute")?.value||"Agility",vs:document.getElementById("ol-weapon-vs")?.value||"GRD",range:document.getElementById("ol-weapon-range")?.value?.trim()||"Melee",bonusDice:document.getElementById("ol-weapon-bonus-dice")?.value?.trim()||"",flatBonus:Number(document.getElementById("ol-weapon-flat-bonus")?.value||0),boon:Number(document.getElementById("ol-weapon-boon")?.value||0),bane:Number(document.getElementById("ol-weapon-bane")?.value||0),tags:document.getElementById("ol-weapon-tags")?.value?.trim()||"",notes:document.getElementById("ol-weapon-notes")?.value?.trim()||""});if(Number.isInteger(currentOlWeaponEditIndex)&&builder.weapons[currentOlWeaponEditIndex])builder.weapons[currentOlWeaponEditIndex]=weapon;else builder.weapons.push(weapon);currentOlWeaponEditIndex=null;await saveOpenLegendBuilderAndPlayer(builder,"Weapon saved.");document.getElementById("ol-weapon-editor-modal")?.setAttribute("aria-hidden","true");}
 function openOlFeatEditor(index=null){
   const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{});
@@ -2228,14 +2306,24 @@ function openLegendAttributeDie(score) {
   return Number.isFinite(value) ? (diceMap[value] || "—") : "—";
 }
 
-function renderOpenLegendAttributes(attributes = {}) {
+function renderOpenLegendAttributeBudget(builder = {}) {
+  const target = document.getElementById("player-openlegend-attribute-budget");
+  if (!target) return;
+  const budget = olBudgetSummary(builder);
+  const remaining = budget.attributeTotal - budget.attributeSpent;
+  target.classList.toggle("is-over-budget", remaining < 0);
+  target.innerHTML = `<span><small>Used</small><strong>${budget.attributeSpent}</strong></span><span><small>Available</small><strong>${budget.attributeTotal}</strong></span><span><small>Remaining</small><strong>${remaining}</strong></span>`;
+}
+
+function renderOpenLegendAttributes(attributes = {}, builder = null) {
   const grid = document.getElementById("player-openlegend-attributes-grid");
   if (!grid) return;
   const raw = attributes && typeof attributes === "object" ? attributes : {};
-  grid.innerHTML=OPEN_LEGEND_ATTRIBUTE_ORDER.map((name)=>{
+  grid.innerHTML=[...OPEN_LEGEND_ATTRIBUTE_ORDER].sort((a,b)=>a.localeCompare(b)).map((name)=>{
     const value=Math.max(0,Number(raw[name]||0));
     return `<label class="ol-attribute-card ol-attribute-card--editable"><span class="ol-attribute-name">${escapeHtml(name)}</span><input type="number" min="0" max="10" data-ol-attribute="${escapeHtml(name)}" value="${value}"><span class="ol-attribute-die">${escapeHtml(getOpenLegendAttributeDie(value)||"—")}</span></label>`;
   }).join("");
+  renderOpenLegendAttributeBudget(builder || {...(currentOpenLegendBuilderData || {}), attributes: raw});
 }
 
 function getCurrentBanes() {
@@ -2882,10 +2970,15 @@ async function removePlayerEffect(effectName) {
 }
 
 function getInitiativeFormulaDisplay(data = {}) {
-  if (data.initiativeFormula) return String(data.initiativeFormula);
-
   const die = data.initiativeDie;
   const bonus = Number(data.initiativeBonus);
+
+  if (isOpenLegendMode(mode) && die) {
+    const safeBonus = Number.isFinite(bonus) ? bonus : 0;
+    return `${String(die).toLowerCase()}${safeBonus ? (safeBonus > 0 ? `+${safeBonus}` : `${safeBonus}`) : ""}`;
+  }
+
+  if (data.initiativeFormula) return String(data.initiativeFormula);
 
   if (die) {
     return `${String(die).toLowerCase()}${Number.isFinite(bonus) ? (bonus >= 0 ? `+${bonus}` : `${bonus}`) : ""}`;
@@ -3388,6 +3481,7 @@ async function autoSaveCharacter(message = "Saved.") {
     const existing = (await getCurrentSheet()) || {};
     const payload = buildSheetPayload(existing);
     await set(ref(db, playerSheetPath()), payload);
+    await persistActiveCharacterSlot(currentBuilderForMode(),payload);
     setCurrentSheetCache(payload);
     statusEl.textContent = message;
   } catch (error) {
@@ -3507,7 +3601,7 @@ async function saveInitiativeToGame() {
   if (sheetPayload.initiativeDie != null) entryPayload.initiativeDie = sheetPayload.initiativeDie;
   if (sheetPayload.initiativeBonus != null) entryPayload.initiativeBonus = sheetPayload.initiativeBonus;
   if (sheetPayload.initiativeAttribute != null) entryPayload.initiativeAttribute = sheetPayload.initiativeAttribute;
-  if (sheetPayload.initiativeFormula != null) entryPayload.initiativeFormula = sheetPayload.initiativeFormula;
+  if (sheetPayload.initiativeFormula != null) entryPayload.initiativeFormula = isOpenLegendMode(mode) ? getInitiativeFormulaDisplay(sheetPayload) : sheetPayload.initiativeFormula;
 
   if (mode === "dnd") {
     entryPayload.health = sheetPayload.currentHp ?? sheetPayload.hp ?? "";
@@ -3716,6 +3810,7 @@ if (isOpenLegendMode(mode)) {
     const input=event.target.closest("[data-ol-attribute]"); if(!input)return;
     const builder=olNormalizeBuilder(currentOpenLegendBuilderData||{},getCurrentSheetCache()||{}); builder.attributes[input.dataset.olAttribute]=Math.max(0,Number(input.value||0)); currentOpenLegendBuilderData=builder;
     const die=input.closest(".ol-attribute-card")?.querySelector(".ol-attribute-die"); if(die)die.textContent=getOpenLegendAttributeDie(builder.attributes[input.dataset.olAttribute])||"—";
+    renderOpenLegendAttributeBudget(builder);
     scheduleOlBuilderAutoSave(false);
   });
   const profile=document.getElementById("player-openlegend-profile-content");
@@ -3776,5 +3871,21 @@ document.querySelectorAll(".ol-defense-choice").forEach((checkbox) => {
   });
 });
 
+
+document.getElementById("player-openlegend-weapons-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-weapon]");if(card)openOlWeaponEditor(Number(card.dataset.olOpenWeapon));});
+document.getElementById("player-openlegend-feats-list")?.addEventListener("click",(e)=>{const card=e.target.closest("[data-ol-open-feat]");if(card)openOlFeatEditor(Number(card.dataset.olOpenFeat));});
+document.getElementById("open-character-manager")?.addEventListener("click",openCharacterManager);
+document.getElementById("character-manager-close")?.addEventListener("click",()=>document.getElementById("character-manager-modal")?.setAttribute("aria-hidden","true"));
+document.getElementById("character-manager-new")?.addEventListener("click",createNewCharacterSlot);
+document.getElementById("character-manager-list")?.addEventListener("click",async(e)=>{const load=e.target.closest("[data-character-load]");if(load){await loadCharacterSlot(load.dataset.characterLoad);return;}const del=e.target.closest("[data-character-delete]");if(del){await deleteCharacterSlot(del.dataset.characterDelete);return;}});
+document.getElementById("character-manager-list")?.addEventListener("change",async(e)=>{const box=e.target.closest("[data-character-default]");if(box)await setDefaultCharacter(box.dataset.characterDefault,box.checked);});
+document.getElementById("player-message-player-list")?.addEventListener("click",(e)=>{const button=e.target.closest("[data-message-player]");if(button)openPlayerMessageThread(button.dataset.messagePlayer,button.dataset.messageName);});
+document.getElementById("player-message-send")?.addEventListener("click",sendPlayerMessage);
+document.getElementById("player-message-input")?.addEventListener("keydown",(e)=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendPlayerMessage();}});
+document.getElementById("ol-delete-weapon-button")?.addEventListener("click",deleteOlWeapon);
+await initializeCharacterSlots();
 await loadExistingCharacter();
+if(params.get("new")==="1"){setTimeout(()=>{if(mode==="dnd")openDndCharacterSetup();else goToOlProfileIfPossible();},120);}
+startPlayerDocumentsWatch();
+startPlayerMessaging();
 startSharedPlayerWatchers();

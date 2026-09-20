@@ -1594,3 +1594,23 @@ body.player-mode-dnd .dnd-overview-feature-row .dnd-ac-feature-equipment strong 
     font-size: 3rem !important;
   }
 }
+
+
+/* 2026-09-19 character / initiative / shared service refinements */
+.dnd-overview-feature-row{grid-template-columns:minmax(280px,1.25fr) minmax(170px,.55fr) minmax(0,1fr);align-items:stretch}
+.dnd-initiative-feature-card{border:1px solid rgba(116,154,180,.32);border-radius:12px;background:linear-gradient(180deg,rgba(12,35,50,.94),rgba(7,25,38,.94));padding:14px;display:flex;flex-direction:column;justify-content:center;gap:10px;min-height:142px}
+.dnd-initiative-feature-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.dnd-initiative-feature-heading span{font-size:.84rem;text-transform:uppercase;letter-spacing:.06em;color:#b6c9d7}.dnd-initiative-feature-heading strong{font-size:1.45rem;color:#e5cf91;white-space:nowrap}
+.dnd-initiative-feature-controls{display:grid;grid-template-columns:minmax(72px,1fr) auto;gap:8px}.dnd-initiative-feature-controls input{min-width:0;width:100%;height:44px;text-align:center}.dnd-initiative-feature-controls button{height:44px;padding:0 14px;width:auto}
+@media(max-width:720px){.dnd-overview-feature-row{grid-template-columns:minmax(0,1fr) minmax(130px,.55fr)}.dnd-overview-feature-row .dnd-ac-feature-card{grid-column:1/2;min-width:0}.dnd-initiative-feature-card{grid-column:2/3;min-height:142px;padding:10px}.dnd-overview-features{grid-column:1/-1}.dnd-initiative-feature-heading{display:block}.dnd-initiative-feature-heading strong{display:block;margin-top:4px;font-size:1.15rem}.dnd-initiative-feature-controls{grid-template-columns:minmax(54px,1fr) 46px;gap:5px}.dnd-initiative-feature-controls button{padding:0 6px}.dnd-core-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:430px){.dnd-overview-feature-row{grid-template-columns:minmax(0,1.25fr) minmax(112px,.75fr)}.dnd-overview-feature-row .dnd-ac-feature-card{min-height:150px}.dnd-initiative-feature-card{min-height:150px}.dnd-initiative-feature-controls{grid-template-columns:minmax(48px,1fr) 42px}}
+/* Keep Initiative beside AC even when there are no class-resource cards. */
+.dnd-overview-feature-row:has(.dnd-overview-features.is-empty){grid-template-columns:minmax(280px,1.25fr) minmax(170px,.55fr)}
+.dnd-overview-feature-row:has(.dnd-overview-features.is-empty) .dnd-ac-feature-card{max-width:none}
+@media(max-width:720px){
+  .dnd-overview-feature-row:has(.dnd-overview-features.is-empty){grid-template-columns:minmax(0,1fr) minmax(130px,.55fr)}
+  .dnd-overview-feature-row:has(.dnd-overview-features.is-empty) .dnd-ac-feature-card{grid-column:1/2}
+  .dnd-overview-feature-row:has(.dnd-overview-features.is-empty) .dnd-initiative-feature-card{grid-column:2/3}
+}
+@media(max-width:430px){
+  .dnd-overview-feature-row:has(.dnd-overview-features.is-empty){grid-template-columns:minmax(0,1.25fr) minmax(112px,.75fr)}
+}
