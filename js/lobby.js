@@ -6,6 +6,7 @@ import {
   deleteGame,
   leaveSpecificGame
 } from "./game-service.js?v=20260917olui1";
+import { exportOpenLegendFirebaseGame } from "./firebase-openlegend-export.js?v=20261004olmigrate1";
 
 const createBtn = document.getElementById("create-game-button");
 const joinBtn = document.getElementById("join-game-button");
@@ -83,18 +84,47 @@ watchOwnedAndJoinedGames(user.uid, (games) => {
               <span class="code-badge">${escapeHtml(game.code)}</span>
             </div>
           </a>
-          <button
-            class="game-action-button"
-            data-game-code="${escapeHtml(game.code)}"
-            data-is-owner="${String(isOwner)}"
-            type="button"
-          >
-            ${actionLabel}
-          </button>
+          <div class="game-card-actions">
+            ${systemClass === "is-openlegend" ? `<button
+              class="game-transfer-button firebase-export-button"
+              data-game-code="${escapeHtml(game.code)}"
+              type="button"
+            >Export transfer</button>` : ""}
+            <button
+              class="game-action-button"
+              data-game-code="${escapeHtml(game.code)}"
+              data-is-owner="${String(isOwner)}"
+              type="button"
+            >
+              ${actionLabel}
+            </button>
+          </div>
         </div>
       </div>
     `;
   }).join("");
+
+  document.querySelectorAll(".firebase-export-button").forEach((button) => {
+    button.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const gameCode = button.dataset.gameCode;
+      const game = games.find((item) => item.code === gameCode);
+      if (!game) return;
+
+      button.disabled = true;
+      statusEl.textContent = `Preparing Firebase export for ${gameCode}...`;
+      try {
+        const result = await exportOpenLegendFirebaseGame({ user, game });
+        statusEl.textContent = `Exported ${result.filename}. Character: ${result.characterIncluded ? "yes" : "none"}; custom NPCs: ${result.customNpcCount}${result.role === "dm" ? `; saved lists: ${result.savedListCount}` : ""}.`;
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = error.message || "Could not export Firebase data.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
 
   document.querySelectorAll(".game-action-button").forEach((button) => {
     button.addEventListener("click", async (event) => {

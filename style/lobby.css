@@ -397,6 +397,30 @@ a:focus-visible {
   flex-wrap: wrap;
 }
 
+
+.game-card-actions {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.game-transfer-button {
+  min-width: 104px;
+  margin: 0;
+  border-color: rgba(72, 199, 122, 0.46);
+  color: #a9e8bd;
+  background: rgba(17, 72, 49, 0.42);
+}
+
+.game-transfer-button:disabled,
+.game-action-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
+
 .game-action-button {
   flex: 0 0 auto;
   align-self: center;
@@ -502,6 +526,11 @@ a:focus-visible {
     flex-direction: column;
   }
 
+  .game-card-actions {
+    width: 100%;
+  }
+
+  .game-transfer-button,
   .game-action-button {
     width: 100%;
   }
